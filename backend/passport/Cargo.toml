@@ -1,0 +1,43 @@
+[package]
+name = "passport"
+version = "0.1.0"
+edition = "2021"
+authors = ["Maksim Nikitin <cfrt.dev@gmail.com>", "Mikhail Reznichenko <me@justmarfix.ru>"]
+license = "MIT"
+repository = "https://github.com/mscw-infosec/lms"
+publish = false
+
+[features]
+default = []
+swagger = ["dep:utoipa-swagger-ui"]
+
+[dependencies]
+anyhow = "1.0.98"
+async-trait = "0.1.88"
+axum = "0.8.4"
+axum-macros = "0.5.0"
+base64 = "0.22.1"
+chrono = { version = "0.4.41", features = ["serde"] }
+dotenvy = "0.15.7"
+fastrand = "2.3.0"
+jsonwebtoken = "9.3.1"
+rust-argon2 = "2.1.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+sqlx = { version = "0.8.5", features = ["postgres", "uuid", "runtime-tokio", "chrono"] }
+thiserror = "2.0.12"
+tokio = { version = "1.44.2", features = ["full"] }
+tower-cookies = "0.11.0"
+tower-http = { version = "0.6.2", features = ["compression-full", "cors", "request-id", "trace"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["json", "env-filter", "fmt"] }
+utoipa = { version = "5.3.1", features = ["axum_extras", "chrono", "macros", "non_strict_integers", "uuid"] }
+utoipa-axum = "0.2.0"
+utoipa-swagger-ui = { version = "9.0.1", features = ["axum"], optional = true }
+uuid = { version = "1.16.0", features = ["serde", "v4"] }
+validator = { version = "0.20.0", features = ["derive"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
