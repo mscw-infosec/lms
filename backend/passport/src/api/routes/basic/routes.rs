@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use axum::{extract::State, Json};
-use tower_cookies::{cookie::SameSite, Cookie, Cookies};
+use tower_cookies::Cookies;
 
 use crate::{
     api::dto::basic::{BasicLoginRequest, BasicRegisterRequest},
     errors::LMSError,
-    infrastructure::jwt::Claim,
+    infrastructure::jwt::generate_tokens,
     utils::ValidatedJson,
 };
 
@@ -20,7 +20,8 @@ use super::BasicAuthState;
     request_body = BasicRegisterRequest,
     responses(
         (status = 200, description = "Create user and set session cookie", headers(
-            ("Set-Cookie" = String, description = "Contains the session cookie named `token`.")
+            ("Set-Cookie" = String, description = "Contains the `access_token`"),
+            ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 401, description = "User with the same email or name already exists")
     )
@@ -37,16 +38,10 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
-    let token = Claim::new(user.id).encode(&state.jwt_secret)?;
+    let (access, refresh) = generate_tokens(user.id, &state.jwt_secret)?;
 
-    let cookie = Cookie::build(("token", token))
-        .path("/")
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Lax)
-        .build();
-
-    cookies.add(cookie);
+    cookies.add(access);
+    cookies.add(refresh);
 
     Ok(())
 }
@@ -59,7 +54,8 @@ pub async fn register(
     request_body = BasicLoginRequest,
     responses(
         (status = 200, description = "Set session cookie", headers(
-            ("Set-Cookie" = String, description = "Contains the session cookie named `token`.")
+            ("Set-Cookie" = String, description = "Contains the `access_token`"),
+            ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 403, description = "Wrong email or password")
     )
@@ -72,16 +68,10 @@ pub async fn login(
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.service.login(username, password).await?;
-    let token = Claim::new(user.id).encode(&state.jwt_secret)?;
+    let (access, refresh) = generate_tokens(user.id, &state.jwt_secret)?;
 
-    let cookie = Cookie::build(("token", token))
-        .path("/")
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Lax)
-        .build();
-
-    cookies.add(cookie);
+    cookies.add(access);
+    cookies.add(refresh);
 
     Ok(())
 }
