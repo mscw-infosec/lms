@@ -15,17 +15,16 @@ pub struct BasicAuthState {
     pub jwt_secret: String,
 }
 
-pub fn configure(state: &AppState) -> OpenApiRouter {
-    let service = BasicAuthService::new(Box::new(BasicAuthRepositoryPostgres {
-        pool: state.pool.clone(),
-    }));
+pub fn configure(state: AppState) -> OpenApiRouter {
+    let service = BasicAuthService::new(Box::new(BasicAuthRepositoryPostgres { pool: state.pool }));
 
     let state = BasicAuthState {
         service,
-        jwt_secret: state.secret.clone(),
+        jwt_secret: state.secret,
     };
 
     OpenApiRouter::new()
         .routes(routes!(register))
+        .routes(routes!(login))
         .with_state(Arc::new(state))
 }

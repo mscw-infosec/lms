@@ -53,6 +53,30 @@ impl BasicAuthRepository for BasicAuthRepositoryPostgres {
         Ok(())
     }
 
+    async fn get_by_username(&self, username: &str) -> Result<Option<User>> {
+        let user = sqlx::query!(
+            r#"
+            SELECT u.id, u.username, u.email, u.created_at,
+                   ac.password_hash as password
+            FROM users u
+            LEFT JOIN auth_credentials ac ON u.id = ac.user_id
+            WHERE u.username = $1
+            "#,
+            username
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .map(|user| User {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            password: user.password.expect("With Basic auth password exists"),
+            created_at: user.created_at,
+        });
+
+        Ok(user)
+    }
+
     async fn is_exists(&self, username: &str, email: &str) -> Result<bool> {
         let id = sqlx::query!(
             r#"

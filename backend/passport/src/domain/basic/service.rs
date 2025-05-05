@@ -42,4 +42,20 @@ impl BasicAuthService {
 
         Ok(user)
     }
+
+    pub async fn login(&self, username: String, password: String) -> Result<User> {
+        let Some(user) = self.repo.get_by_username(&username).await? else {
+            return Err(LMSError::Forbidden(
+                "Wrong username or password.".to_string(),
+            ));
+        };
+
+        if !Argon::verify(password.as_bytes(), &user.password)? {
+            return Err(LMSError::Forbidden(
+                "Wrong username or password.".to_string(),
+            ));
+        }
+
+        Ok(user)
+    }
 }

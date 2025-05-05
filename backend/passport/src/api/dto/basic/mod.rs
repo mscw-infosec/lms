@@ -10,3 +10,9 @@ pub struct BasicRegisterRequest {
     pub email: String,
     pub password: String,
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct BasicLoginRequest {
+    pub username: String,
+    pub password: String,
+}

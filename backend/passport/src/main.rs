@@ -54,9 +54,10 @@ async fn main() -> anyhow::Result<()> {
         secret: config.jwt_secret().to_string(),
     };
 
+    #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::new()
         .route("/health", get(|| async { StatusCode::OK }))
-        .nest("/basic", routes::basic::configure(&state))
+        .nest("/basic", routes::basic::configure(state.clone()))
         .layer(CookieManagerLayer::new())
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
