@@ -1,5 +1,6 @@
+use axum::http::HeaderMap;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 use tower_cookies::{cookie::SameSite, Cookie};
 use uuid::Uuid;
@@ -36,6 +37,16 @@ impl Claim {
         )
         .map_err(LMSError::InvalidToken)
     }
+
+    pub fn validate_token(token: &str, key: &str) -> Result<Self> {
+        decode::<Claim>(
+            token,
+            &DecodingKey::from_secret(key.as_bytes()),
+            &Validation::new(Algorithm::HS256),
+        )
+        .map(|data| data.claims)
+        .map_err(LMSError::InvalidToken)
+    }
 }
 
 pub fn generate_tokens(id: Uuid, key: &str) -> Result<(Cookie<'static>, Cookie<'static>)> {
@@ -57,4 +68,23 @@ pub fn generate_tokens(id: Uuid, key: &str) -> Result<(Cookie<'static>, Cookie<'
         .build();
 
     Ok((access, refresh))
+}
+
+pub fn claim_from_header(header: &HeaderMap, key: &str) -> Result<Claim> {
+    let Some(auth) = header.get("authorization") else {
+        return Err(LMSError::Forbidden(
+            "No authorization header was found.".to_string(),
+        ));
+    };
+
+    let auth = auth
+        .to_str()
+        .map_err(|_| LMSError::ShitHappened("Wrong authorization Bearer format".to_string()))?;
+
+    let parts: Vec<_> = auth.split(' ').collect();
+    let token = parts.get(1).ok_or(LMSError::ShitHappened(
+        "Wrong authorization Bearer format".to_string(),
+    ))?;
+
+    Claim::validate_token(token, key)
 }

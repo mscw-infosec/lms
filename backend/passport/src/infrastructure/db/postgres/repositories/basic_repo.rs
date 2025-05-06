@@ -1,9 +1,8 @@
 use async_trait::async_trait;
 use sqlx::PgPool;
-use uuid::Uuid;
 
 use crate::{
-    domain::basic::{model::User, repository::BasicAuthRepository},
+    domain::basic::{model::BasicUser, repository::BasicAuthRepository},
     errors::{LMSError, Result},
 };
 
@@ -14,7 +13,7 @@ pub struct BasicAuthRepositoryPostgres {
 
 #[async_trait]
 impl BasicAuthRepository for BasicAuthRepositoryPostgres {
-    async fn create(&self, user: &User) -> Result<()> {
+    async fn create(&self, user: &BasicUser) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 
         let _ = sqlx::query!(
@@ -53,20 +52,20 @@ impl BasicAuthRepository for BasicAuthRepositoryPostgres {
         Ok(())
     }
 
-    async fn get_by_username(&self, username: &str) -> Result<Option<User>> {
+    async fn get_by_username(&self, username: &str) -> Result<Option<BasicUser>> {
         let user = sqlx::query!(
             r#"
             SELECT u.id, u.username, u.email, u.created_at,
                    ac.password_hash as password
             FROM users u
             LEFT JOIN auth_credentials ac ON u.id = ac.user_id
-            WHERE u.username = $1
+            WHERE u.username = $1 OR ac.provider = 'basic'
             "#,
             username
         )
         .fetch_optional(&self.pool)
         .await?
-        .map(|user| User {
+        .map(|user| BasicUser {
             id: user.id,
             username: user.username,
             email: user.email,
@@ -90,17 +89,5 @@ impl BasicAuthRepository for BasicAuthRepositoryPostgres {
         .await?;
 
         Ok(id.is_some())
-    }
-
-    async fn delete(&self, user_id: Uuid) -> Result<()> {
-        todo!()
-    }
-
-    async fn list(&self) -> Result<Vec<User>> {
-        todo!()
-    }
-
-    async fn update(&self, user: &User) -> Result<()> {
-        todo!()
     }
 }

@@ -4,10 +4,10 @@ use axum::{extract::State, Json};
 use tower_cookies::Cookies;
 
 use crate::{
-    api::dto::basic::{BasicLoginRequest, BasicRegisterRequest},
+    api::dto::basic::{BasicLoginRequest, BasicRegisterRequest, BasicRegisterResponse},
     errors::LMSError,
-    infrastructure::jwt::generate_tokens,
-    utils::ValidatedJson,
+    infrastructure::jwt::{generate_tokens, Claim},
+    utils::{ValidatedJson, MONTH},
 };
 
 use super::BasicAuthState;
@@ -19,18 +19,14 @@ use super::BasicAuthState;
     path = "/register",
     request_body = BasicRegisterRequest,
     responses(
-        (status = 200, description = "Create user and set session cookie", headers(
-            ("Set-Cookie" = String, description = "Contains the `access_token`"),
-            ("Set-Cookie" = String, description = "Contains the `refresh_token`")
-        )),
+        (status = 200, body = BasicRegisterResponse, description = "Create new user"),
         (status = 401, description = "User with the same email or name already exists")
     )
 )]
 pub async fn register(
-    cookies: Cookies,
     State(state): State<Arc<BasicAuthState>>,
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
-) -> Result<(), LMSError> {
+) -> Result<Json<BasicRegisterResponse>, LMSError> {
     let BasicRegisterRequest {
         username,
         email,
@@ -38,12 +34,15 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
-    let (access, refresh) = generate_tokens(user.id, &state.jwt_secret)?;
 
-    cookies.add(access);
-    cookies.add(refresh);
+    let refresh_token = Claim::new(user.id, MONTH).encode(&state.jwt_secret)?;
+    let access_token = Claim::new(user.id, 15 * 60).encode(&state.jwt_secret)?;
 
-    Ok(())
+    Ok(Json(BasicRegisterResponse {
+        user,
+        access_token,
+        refresh_token,
+    }))
 }
 
 /// Login user with email and password

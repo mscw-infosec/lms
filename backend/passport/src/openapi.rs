@@ -18,6 +18,7 @@ impl Modify for SecurityAddon {
 #[derive(OpenApi)]
 #[openapi(
     tags(
+        (name = "Account", description = "User management"),
         (name = "Basic", description = "Auth using email and password"),
     ),
     info(title = "LMS Passport Service"),

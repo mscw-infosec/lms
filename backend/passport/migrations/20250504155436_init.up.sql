@@ -1,12 +1,23 @@
-CREATE TABLE users
+DO
+$$
+    BEGIN
+        CREATE TYPE UserRole AS ENUM ('Student', 'Teacher', 'Admin');
+    EXCEPTION
+        WHEN duplicate_object THEN NULL;
+    end;
+$$;
+
+
+CREATE TABLE IF NOT EXISTS users
 (
     id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
     username   TEXT        NOT NULL UNIQUE,
     email      TEXT        NOT NULL UNIQUE,
+    role       UserRole    NOT NULL DEFAULT 'Student',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE auth_credentials
+CREATE TABLE IF NOT EXISTS auth_credentials
 (
     id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id            UUID REFERENCES users (id) ON DELETE CASCADE,
@@ -20,7 +31,7 @@ CREATE TABLE auth_credentials
     UNIQUE (user_id, provider, provider_user_id)
 );
 
-CREATE TABLE recovery_codes
+CREATE TABLE IF NOT EXISTS recovery_codes
 (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id    UUID REFERENCES users (id) ON DELETE CASCADE,

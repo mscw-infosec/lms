@@ -1,7 +1,7 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use super::{model::User, repository::BasicAuthRepository};
+use super::{model::BasicUser, repository::BasicAuthRepository};
 use crate::{
     errors::{LMSError, Result},
     infrastructure::crypto::Argon,
@@ -21,7 +21,7 @@ impl BasicAuthService {
         username: String,
         email: String,
         password: String,
-    ) -> Result<User> {
+    ) -> Result<BasicUser> {
         let password_hash = Argon::hash_password(password.as_bytes())?;
 
         if self.repo.is_exists(&username, &email).await? {
@@ -30,7 +30,7 @@ impl BasicAuthService {
             ));
         }
 
-        let user = User {
+        let user = BasicUser {
             id: Uuid::new_v4(),
             username,
             email,
@@ -43,7 +43,7 @@ impl BasicAuthService {
         Ok(user)
     }
 
-    pub async fn login(&self, username: String, password: String) -> Result<User> {
+    pub async fn login(&self, username: String, password: String) -> Result<BasicUser> {
         let Some(user) = self.repo.get_by_username(&username).await? else {
             return Err(LMSError::Forbidden(
                 "Wrong username or password.".to_string(),
