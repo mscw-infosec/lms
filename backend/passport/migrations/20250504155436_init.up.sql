@@ -11,7 +11,7 @@ $$;
 CREATE TABLE IF NOT EXISTS users
 (
     id         UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    username   TEXT        NOT NULL UNIQUE,
+    username   TEXT        NOT NULL,
     email      TEXT        NOT NULL UNIQUE,
     role       UserRole    NOT NULL DEFAULT 'Student',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()

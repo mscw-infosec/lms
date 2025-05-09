@@ -7,7 +7,7 @@ use crate::{
     api::dto::basic::{BasicLoginRequest, BasicRegisterRequest, BasicRegisterResponse},
     errors::LMSError,
     infrastructure::jwt::{generate_tokens, Claim},
-    utils::{ValidatedJson, MONTH},
+    utils::{add_cookie, ValidatedJson},
 };
 
 use super::BasicAuthState;
@@ -19,11 +19,14 @@ use super::BasicAuthState;
     path = "/register",
     request_body = BasicRegisterRequest,
     responses(
-        (status = 200, body = BasicRegisterResponse, description = "Create new user"),
+        (status = 200, body = BasicRegisterResponse, description = "Create new user", headers(
+            ("Set-Cookie" = String, description = "Contains the `refresh_token`")
+        )),
         (status = 401, description = "User with the same email or name already exists")
     )
 )]
 pub async fn register(
+    cookies: Cookies,
     State(state): State<Arc<BasicAuthState>>,
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
 ) -> Result<Json<BasicRegisterResponse>, LMSError> {
@@ -34,14 +37,13 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
+    let (refresh, access) = Claim::generate_tokens(user.id, &state.jwt_secret)?;
 
-    let refresh_token = Claim::new(user.id, MONTH).encode(&state.jwt_secret)?;
-    let access_token = Claim::new(user.id, 15 * 60).encode(&state.jwt_secret)?;
+    add_cookie(&cookies, ("refresh_token", refresh));
 
     Ok(Json(BasicRegisterResponse {
         user,
-        access_token,
-        refresh_token,
+        access_token: access,
     }))
 }
 

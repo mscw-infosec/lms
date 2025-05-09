@@ -16,6 +16,7 @@ use crate::{
     },
 };
 
+use api::oauth::{self, configure};
 use axum::{http::StatusCode, routing::get};
 use openapi::ApiDoc;
 use sqlx::PgPool;
@@ -41,7 +42,11 @@ pub mod utils;
 #[derive(Clone)]
 pub struct AppState {
     pool: PgPool,
+    client: reqwest::Client,
     secret: String,
+    base_url: String,
+    github_client_id: String,
+    github_client_secret: String,
 }
 
 #[tokio::main]
@@ -50,19 +55,33 @@ async fn main() -> anyhow::Result<()> {
 
     let config = Config::from_env()?;
 
-    let pool = PostgresClient::new(config.database_url()).await?;
+    let pool = PostgresClient::new(&config.database_url).await?;
     run_migrations(&pool).await?;
 
+    let client = reqwest::Client::builder()
+        .user_agent("LMS Passport")
+        .build()
+        .expect("Failed to build client");
+
     let state = AppState {
+        client,
         pool: pool.client(),
-        secret: config.jwt_secret().to_string(),
+        secret: config.jwt_secret,
+        github_client_id: config.github_client_id,
+        github_client_secret: config.github_client_secret,
+        base_url: config.base_url,
     };
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .route("/health", get(|| async { StatusCode::OK }))
-        .nest("/basic", routes::basic::configure(state.clone()))
-        .nest("/account", routes::account::configure(state.clone()))
+        .nest(
+            "/api",
+            OpenApiRouter::new()
+                .route("/health", get(|| async { StatusCode::OK }))
+                .nest("/basic", routes::basic::configure(state.clone()))
+                .nest("/account", routes::account::configure(state.clone()))
+                .nest("/oauth", oauth::configure(state.clone())),
+        )
         .layer(CookieManagerLayer::new())
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
@@ -72,7 +91,7 @@ async fn main() -> anyhow::Result<()> {
     #[cfg(feature = "swagger")]
     let router = router.merge(SwaggerUi::new("/swagger").url("/openapi.json", api));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], config.port()));
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.server_port));
     info!("Listening on {}", addr);
 
     let listener = TcpListener::bind(&addr).await?;

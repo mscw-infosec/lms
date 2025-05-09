@@ -39,13 +39,20 @@ impl Claim {
     }
 
     pub fn validate_token(token: &str, key: &str) -> Result<Self> {
-        decode::<Claim>(
+        decode::<Self>(
             token,
             &DecodingKey::from_secret(key.as_bytes()),
             &Validation::new(Algorithm::HS256),
         )
         .map(|data| data.claims)
         .map_err(LMSError::InvalidToken)
+    }
+
+    pub fn generate_tokens(id: Uuid, key: &str) -> Result<(String, String)> {
+        let refresh_token = Self::new(id, MONTH).encode(key)?;
+        let access_token = Self::new(id, 15 * 60).encode(key)?;
+
+        Ok((refresh_token, access_token))
     }
 }
 

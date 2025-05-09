@@ -59,7 +59,7 @@ impl BasicAuthRepository for BasicAuthRepositoryPostgres {
                    ac.password_hash as password
             FROM users u
             LEFT JOIN auth_credentials ac ON u.id = ac.user_id
-            WHERE u.username = $1 OR ac.provider = 'basic'
+            WHERE u.username = $1 AND ac.provider = 'basic'
             "#,
             username
         )

@@ -20,6 +20,7 @@ impl Modify for SecurityAddon {
     tags(
         (name = "Account", description = "User management"),
         (name = "Basic", description = "Auth using email and password"),
+        (name = "OAuth", description = "OAuth providers with callback and login routes"),
     ),
     info(title = "LMS Passport Service"),
     modifiers(&SecurityAddon)

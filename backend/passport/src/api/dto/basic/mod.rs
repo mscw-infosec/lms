@@ -21,7 +21,6 @@ pub struct BasicRegisterRequest {
 pub struct BasicRegisterResponse {
     pub user: BasicUser,
     pub access_token: String,
-    pub refresh_token: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]

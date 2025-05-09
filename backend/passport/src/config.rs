@@ -1,8 +1,11 @@
 #[derive(Clone)]
 pub struct Config {
-    database_url: String,
-    jwt_secret: String,
-    server_port: u16,
+    pub database_url: String,
+    pub jwt_secret: String,
+    pub server_port: u16,
+    pub base_url: String,
+    pub github_client_id: String,
+    pub github_client_secret: String,
 }
 
 pub fn env(key: &str) -> String {
@@ -15,18 +18,9 @@ impl Config {
             database_url: env("DATABASE_URL"),
             jwt_secret: env("JWT_SECRET"),
             server_port: env("PORT").parse()?,
+            github_client_id: env("GITHUB_CLIENT_ID"),
+            github_client_secret: env("GITHUB_CLIENT_SECRET"),
+            base_url: env("BASE_URL"),
         })
-    }
-
-    pub const fn database_url(&self) -> &str {
-        self.database_url.as_str()
-    }
-
-    pub const fn port(&self) -> u16 {
-        self.server_port
-    }
-
-    pub const fn jwt_secret(&self) -> &str {
-        self.jwt_secret.as_str()
     }
 }

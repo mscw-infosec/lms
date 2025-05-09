@@ -2,7 +2,10 @@ use axum::{
     extract::{FromRequest, Request},
     Json,
 };
+use rand::{distr::Alphanumeric, Rng};
 use serde::de::DeserializeOwned;
+use tower_cookies::{cookie::SameSite, Cookie, Cookies};
+use tracing::warn;
 use validator::Validate;
 
 use crate::errors::LMSError;
@@ -27,4 +30,44 @@ where
 
         Ok(Self(value))
     }
+}
+
+pub fn generate_random_string(len: usize) -> String {
+    rand::rng()
+        .sample_iter(Alphanumeric)
+        .take(len)
+        .map(char::from)
+        .collect()
+}
+
+pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
+    let cookie = Cookie::build((name, value))
+        .path("/")
+        .http_only(true)
+        .same_site(SameSite::Lax)
+        .build();
+
+    cookies.add(cookie);
+}
+
+pub async fn send_and_parse<T: serde::de::DeserializeOwned>(
+    request: reqwest::RequestBuilder,
+    context: &str,
+) -> Result<T, LMSError> {
+    request
+        .send()
+        .await
+        .map_err(|err| {
+            warn!("Failed to send request to {} - {:?}", context, err);
+            LMSError::Unknown("Internal Server Error".into())
+        })?
+        .json::<T>()
+        .await
+        .map_err(|err| {
+            warn!(
+                "Failed to deserialize response from {} - {:?}",
+                context, err
+            );
+            LMSError::Unknown("Internal Server Error".into())
+        })
 }
