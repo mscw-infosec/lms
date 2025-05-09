@@ -65,7 +65,7 @@ impl JWT {
 
     pub fn tokens(&self, sub: Uuid) -> Result<(String, String)> {
         let access = self.generate_access_token(sub)?;
-        let refresh = self.generate_access_token(sub)?;
+        let refresh = self.generate_refresh_token(sub)?;
 
         Ok((access, refresh))
     }

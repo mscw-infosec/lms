@@ -36,7 +36,7 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
-    let (refresh, access) = state.jwt.tokens(user.id)?;
+    let (access, refresh) = state.jwt.tokens(user.id)?;
 
     add_cookie(&cookies, ("refresh_token", refresh));
 
