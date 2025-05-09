@@ -8,7 +8,7 @@
 )]
 
 use crate::{
-    api::routes,
+    api::{oauth, routes},
     config::Config,
     infrastructure::{
         db::postgres::{run_migrations, PostgresClient},
@@ -16,11 +16,11 @@ use crate::{
     },
 };
 
-use api::oauth::{self, configure};
 use axum::{http::StatusCode, routing::get};
+use infrastructure::jwt::JWT;
 use openapi::ApiDoc;
 use sqlx::PgPool;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
@@ -43,8 +43,7 @@ pub mod utils;
 pub struct AppState {
     pool: PgPool,
     client: reqwest::Client,
-    secret: String,
-    base_url: String,
+    jwt: Arc<JWT>,
     github_client_id: String,
     github_client_secret: String,
 }
@@ -63,13 +62,14 @@ async fn main() -> anyhow::Result<()> {
         .build()
         .expect("Failed to build client");
 
+    let jwt = JWT::new(&config.jwt_secret);
+
     let state = AppState {
         client,
         pool: pool.client(),
-        secret: config.jwt_secret,
+        jwt: Arc::new(jwt),
         github_client_id: config.github_client_id,
         github_client_secret: config.github_client_secret,
-        base_url: config.base_url,
     };
 
     #[allow(unused_variables)]

@@ -2,96 +2,105 @@ use axum::http::HeaderMap;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use tower_cookies::{cookie::SameSite, Cookie};
 use uuid::Uuid;
 
-use crate::{
-    errors::{LMSError, Result},
-    utils::MONTH,
-};
+use crate::errors::{LMSError, Result};
 
 #[derive(Serialize, Deserialize)]
-pub struct Claim {
-    pub id: Uuid,
+pub struct AccessClaim {
+    pub iss: String,
+    pub sub: Uuid,
     pub iat: i64,
     pub exp: i64,
 }
 
-impl Claim {
-    pub fn new(id: Uuid, seconds: i64) -> Self {
-        let iat = Utc::now();
-        let exp = iat + Duration::seconds(seconds);
+#[derive(Serialize, Deserialize)]
+pub struct RefreshToken {
+    pub iss: String,
+    pub sub: Uuid,
+    pub jti: Uuid,
+    pub iat: i64,
+    pub exp: i64,
+}
 
+#[derive(Clone)]
+pub struct JWT {
+    encoding_key: EncodingKey,
+    decoding_key: DecodingKey,
+}
+
+impl JWT {
+    pub fn new(secret: &str) -> Self {
         Self {
-            id,
-            iat: iat.timestamp(),
-            exp: exp.timestamp(),
+            encoding_key: EncodingKey::from_secret(secret.as_bytes()),
+            decoding_key: DecodingKey::from_secret(secret.as_bytes()),
         }
     }
 
-    pub fn encode(&self, key: &str) -> Result<String> {
-        encode(
-            &Header::new(Algorithm::HS256),
-            &self,
-            &EncodingKey::from_secret(key.as_bytes()),
-        )
-        .map_err(LMSError::InvalidToken)
-    }
+    pub fn refresh_from_header(&self, header: &HeaderMap) -> Result<RefreshToken> {
+        let Some(auth) = header.get("authorization") else {
+            return Err(LMSError::Forbidden(
+                "No authorization header was found.".to_string(),
+            ));
+        };
 
-    pub fn validate_token(token: &str, key: &str) -> Result<Self> {
-        decode::<Self>(
+        let auth = auth
+            .to_str()
+            .map_err(|_| LMSError::ShitHappened("Wrong authorization Bearer format".to_string()))?;
+
+        let parts: Vec<_> = auth.split(' ').collect();
+        let token = parts.get(1).ok_or(LMSError::ShitHappened(
+            "Wrong authorization Bearer format".to_string(),
+        ))?;
+
+        let claim = decode::<RefreshToken>(
             token,
-            &DecodingKey::from_secret(key.as_bytes()),
+            &self.decoding_key,
             &Validation::new(Algorithm::HS256),
         )
-        .map(|data| data.claims)
-        .map_err(LMSError::InvalidToken)
+        .map(|data| data.claims)?;
+
+        Ok(claim)
     }
 
-    pub fn generate_tokens(id: Uuid, key: &str) -> Result<(String, String)> {
-        let refresh_token = Self::new(id, MONTH).encode(key)?;
-        let access_token = Self::new(id, 15 * 60).encode(key)?;
+    pub fn tokens(&self, sub: Uuid) -> Result<(String, String)> {
+        let access = self.generate_access_token(sub)?;
+        let refresh = self.generate_access_token(sub)?;
 
-        Ok((refresh_token, access_token))
+        Ok((access, refresh))
     }
-}
 
-pub fn generate_tokens(id: Uuid, key: &str) -> Result<(Cookie<'static>, Cookie<'static>)> {
-    let refresh_token = Claim::new(id, MONTH).encode(key)?;
-    let access_token = Claim::new(id, 15 * 60).encode(key)?;
+    pub fn generate_refresh_token(&self, sub: Uuid) -> Result<String> {
+        let jti = Uuid::new_v4();
+        let iat = Utc::now();
+        let exp = iat + Duration::seconds(15 * 24 * 60 * 60); // 15 days
 
-    let refresh = Cookie::build(("refresh_token", refresh_token))
-        .path("/")
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Lax)
-        .build();
+        let claim = RefreshToken {
+            iss: String::from("LMS Passport"),
+            sub,
+            jti,
+            iat: iat.timestamp(),
+            exp: exp.timestamp(),
+        };
 
-    let access = Cookie::build(("access_token", access_token))
-        .path("/")
-        .http_only(true)
-        .secure(true)
-        .same_site(SameSite::Lax)
-        .build();
+        let token = encode(&Header::default(), &claim, &self.encoding_key)?;
 
-    Ok((access, refresh))
-}
+        Ok(token)
+    }
 
-pub fn claim_from_header(header: &HeaderMap, key: &str) -> Result<Claim> {
-    let Some(auth) = header.get("authorization") else {
-        return Err(LMSError::Forbidden(
-            "No authorization header was found.".to_string(),
-        ));
-    };
+    pub fn generate_access_token(&self, sub: Uuid) -> Result<String> {
+        let iat = Utc::now();
+        let exp = iat + Duration::seconds(15 * 60);
 
-    let auth = auth
-        .to_str()
-        .map_err(|_| LMSError::ShitHappened("Wrong authorization Bearer format".to_string()))?;
+        let claim = AccessClaim {
+            iss: String::from("LMS Passport"),
+            sub,
+            iat: iat.timestamp(),
+            exp: exp.timestamp(),
+        };
 
-    let parts: Vec<_> = auth.split(' ').collect();
-    let token = parts.get(1).ok_or(LMSError::ShitHappened(
-        "Wrong authorization Bearer format".to_string(),
-    ))?;
+        let token = encode(&Header::default(), &claim, &self.encoding_key)?;
 
-    Claim::validate_token(token, key)
+        Ok(token)
+    }
 }

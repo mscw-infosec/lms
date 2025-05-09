@@ -5,14 +5,17 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
     domain::basic::service::BasicAuthService,
-    infrastructure::db::postgres::repositories::basic_repo::BasicAuthRepositoryPostgres, AppState,
+    infrastructure::{
+        db::postgres::repositories::basic_repo::BasicAuthRepositoryPostgres, jwt::JWT,
+    },
+    AppState,
 };
 
 pub mod routes;
 
 pub struct BasicAuthState {
     pub service: BasicAuthService,
-    pub jwt_secret: String,
+    pub jwt: Arc<JWT>,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {
@@ -20,7 +23,7 @@ pub fn configure(state: AppState) -> OpenApiRouter {
 
     let state = BasicAuthState {
         service,
-        jwt_secret: state.secret,
+        jwt: state.jwt,
     };
 
     OpenApiRouter::new()

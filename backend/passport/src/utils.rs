@@ -10,8 +10,6 @@ use validator::Validate;
 
 use crate::errors::LMSError;
 
-pub const MONTH: i64 = 60 * 60 * 24 * 30;
-
 pub struct ValidatedJson<T>(pub T);
 
 impl<S, T> FromRequest<S> for ValidatedJson<T>

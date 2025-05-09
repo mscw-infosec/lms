@@ -10,7 +10,6 @@ use crate::{
     api::dto::oauth::github::OAuthCallbackQuery,
     domain::oauth::service::{OAuthProvider, OAuthService},
     errors::LMSError,
-    infrastructure::jwt::Claim,
     utils::add_cookie,
 };
 
@@ -42,7 +41,7 @@ pub async fn callback(
     let user = state.provider.get_user(query.code, code_verifier).await?;
     let user_id = state.service.save_user(user).await?;
 
-    let (refresh, access) = Claim::generate_tokens(user_id, &state.jwt_secret)?;
+    let (refresh, access) = state.jwt.tokens(user_id)?;
     add_cookie(&cookies, ("refresh_token", refresh));
 
     Ok(access)

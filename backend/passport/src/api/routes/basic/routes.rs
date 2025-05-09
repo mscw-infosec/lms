@@ -6,7 +6,6 @@ use tower_cookies::Cookies;
 use crate::{
     api::dto::basic::{BasicLoginRequest, BasicRegisterRequest, BasicRegisterResponse},
     errors::LMSError,
-    infrastructure::jwt::{generate_tokens, Claim},
     utils::{add_cookie, ValidatedJson},
 };
 
@@ -37,7 +36,7 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
-    let (refresh, access) = Claim::generate_tokens(user.id, &state.jwt_secret)?;
+    let (refresh, access) = state.jwt.tokens(user.id)?;
 
     add_cookie(&cookies, ("refresh_token", refresh));
 
@@ -55,7 +54,6 @@ pub async fn register(
     request_body = BasicLoginRequest,
     responses(
         (status = 200, description = "Set session cookie", headers(
-            ("Set-Cookie" = String, description = "Contains the `access_token`"),
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 403, description = "Wrong email or password")
@@ -65,14 +63,13 @@ pub async fn login(
     cookies: Cookies,
     State(state): State<Arc<BasicAuthState>>,
     Json(payload): Json<BasicLoginRequest>,
-) -> Result<(), LMSError> {
+) -> Result<String, LMSError> {
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.service.login(username, password).await?;
-    let (access, refresh) = generate_tokens(user.id, &state.jwt_secret)?;
+    let (access, refresh) = state.jwt.tokens(user.id)?;
 
-    cookies.add(access);
-    cookies.add(refresh);
+    add_cookie(&cookies, ("refresh_token", refresh));
 
-    Ok(())
+    Ok(access)
 }

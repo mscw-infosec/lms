@@ -2,19 +2,18 @@ pub mod github;
 
 use std::sync::Arc;
 
-use axum::Extension;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
     domain::oauth::{providers::github::GithubProvider, service::OAuthService},
-    infrastructure::db::postgres::repositories::oauth_repo::OAuthRepositoryPostgres,
+    infrastructure::{db::postgres::repositories::oauth_repo::OAuthRepositoryPostgres, jwt::JWT},
     AppState,
 };
 
 pub struct GithubState {
     pub service: OAuthService,
     pub provider: GithubProvider,
-    pub jwt_secret: String,
+    pub jwt: Arc<JWT>,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {
@@ -30,7 +29,7 @@ pub fn configure(state: AppState) -> OpenApiRouter {
     let github_state = Arc::new(GithubState {
         service,
         provider: github_provider,
-        jwt_secret: state.secret,
+        jwt: state.jwt,
     });
 
     let github = OpenApiRouter::new()

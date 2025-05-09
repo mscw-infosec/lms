@@ -7,12 +7,15 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
     domain::account::service::AccountService,
-    infrastructure::db::postgres::repositories::account_repo::AccountRepositoryPostgres, AppState,
+    infrastructure::{
+        db::postgres::repositories::account_repo::AccountRepositoryPostgres, jwt::JWT,
+    },
+    AppState,
 };
 
 pub struct AccountState {
     pub service: AccountService,
-    pub jwt_secret: String,
+    pub jwt: Arc<JWT>,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {
@@ -20,7 +23,7 @@ pub fn configure(state: AppState) -> OpenApiRouter {
 
     let state = AccountState {
         service,
-        jwt_secret: state.secret,
+        jwt: state.jwt,
     };
 
     OpenApiRouter::new()
