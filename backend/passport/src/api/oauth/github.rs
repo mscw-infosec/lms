@@ -10,7 +10,7 @@ use crate::{
     api::dto::oauth::github::OAuthCallbackQuery,
     domain::oauth::service::{OAuthProvider, OAuthService},
     errors::LMSError,
-    utils::add_cookie,
+    utils::{add_cookie, remove_cookie},
 };
 
 use super::GithubState;
@@ -43,6 +43,9 @@ pub async fn callback(
 
     let (access, refresh) = state.jwt.tokens(user_id)?;
     add_cookie(&cookies, ("refresh_token", refresh));
+
+    remove_cookie(&cookies, "oauth_state");
+    remove_cookie(&cookies, "code_verifier");
 
     Ok(access)
 }
