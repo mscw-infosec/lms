@@ -1,17 +1,34 @@
-use utoipa::openapi::security::{Http, HttpAuthScheme, SecurityScheme};
+use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
 use utoipa::{Modify, OpenApi};
 
-struct SecurityAddon;
-impl Modify for SecurityAddon {
+struct BearerAuthAddon;
+impl Modify for BearerAuthAddon {
     fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
         let components: &mut utoipa::openapi::Components = openapi
             .components
             .as_mut()
             .expect("shit happened at SecurityAddon");
-        components.add_security_scheme(
-            "bearerAuth",
-            SecurityScheme::Http(Http::new(HttpAuthScheme::Bearer)),
+
+        let scheme = SecurityScheme::Http(
+            HttpBuilder::new()
+                .scheme(HttpAuthScheme::Bearer)
+                .bearer_format("JWT")
+                .build(),
         );
+
+        components.add_security_scheme("BearerAuth", scheme);
+    }
+}
+
+struct CookieAuthAddon;
+impl Modify for CookieAuthAddon {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        let components: &mut utoipa::openapi::Components = openapi
+            .components
+            .as_mut()
+            .expect("shit happened at CookieAuthAddon");
+        let scheme = SecurityScheme::ApiKey(ApiKey::Cookie(ApiKeyValue::new("refresh_token")));
+        components.add_security_scheme("CookieAuth", scheme);
     }
 }
 
@@ -21,8 +38,9 @@ impl Modify for SecurityAddon {
         (name = "Account", description = "User management"),
         (name = "Basic", description = "Auth using email and password"),
         (name = "OAuth", description = "OAuth providers with callback and login routes"),
+        (name = "Auth", description = "Token refresh and session management"),
     ),
     info(title = "LMS Passport Service"),
-    modifiers(&SecurityAddon)
+    modifiers(&BearerAuthAddon, &CookieAuthAddon)
 )]
 pub struct ApiDoc;

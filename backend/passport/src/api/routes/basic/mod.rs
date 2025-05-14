@@ -15,7 +15,7 @@ pub mod routes;
 
 pub struct BasicAuthState {
     pub service: BasicAuthService,
-    pub jwt: Arc<JWT>,
+    pub jwt: JWT,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {

@@ -1,6 +1,7 @@
 #[derive(Clone)]
 pub struct Config {
     pub database_url: String,
+    pub redis_url: String,
     pub jwt_secret: String,
     pub server_port: u16,
     pub base_url: String,
@@ -16,6 +17,7 @@ impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
         Ok(Self {
             database_url: env("DATABASE_URL"),
+            redis_url: env("REDIS_URL"),
             jwt_secret: env("JWT_SECRET"),
             server_port: env("PORT").parse()?,
             github_client_id: env("GITHUB_CLIENT_ID"),

@@ -1,0 +1,131 @@
+use async_trait::async_trait;
+use redis::{AsyncCommands, HashFieldExpirationOptions, SetExpiry};
+use serde_json;
+use uuid::Uuid;
+
+use crate::{
+    domain::refresh_token::{
+        model::{RefreshTokenData, SessionInfo},
+        repository::RefreshTokenRepository,
+    },
+    errors::LMSError,
+    infrastructure::db::redis::RedisClient,
+};
+
+pub struct RefreshTokenRepositoryRedis {
+    client: RedisClient,
+}
+
+impl RefreshTokenRepositoryRedis {
+    pub const fn new(client: RedisClient) -> Self {
+        Self { client }
+    }
+
+    fn token_key(jti: Uuid) -> String {
+        format!("refresh:{jti}")
+    }
+
+    fn user_sessions_key(user_id: Uuid) -> String {
+        format!("user_sessions:{user_id}")
+    }
+}
+
+#[async_trait]
+impl RefreshTokenRepository for RefreshTokenRepositoryRedis {
+    async fn store_token(&self, jti: Uuid, data: RefreshTokenData) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::token_key(jti);
+
+        let data_json: String = serde_json::to_string(&data)?;
+        let set_expiry = SetExpiry::EX(30 * 24 * 60 * 60);
+        let ex = HashFieldExpirationOptions::default().set_expiration(set_expiry);
+
+        let _: () = conn.hset_ex(key, &ex, &[("data", &data_json)]).await?;
+
+        Ok(())
+    }
+
+    async fn get_token(&self, jti: Uuid) -> Result<Option<RefreshTokenData>, LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::token_key(jti);
+
+        let data_json: Option<String> = conn.hget(&key, "data").await?;
+        match data_json {
+            Some(json) => Ok(Some(serde_json::from_str(&json)?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn mark_as_rotated(&self, jti: Uuid) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::token_key(jti);
+
+        if let Some(mut data) = self.get_token(jti).await? {
+            data.rotated = true;
+            let data_json = serde_json::to_string(&data)?;
+            let _: () = conn.hset(&key, "data", data_json).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::token_key(jti);
+
+        Ok(conn.del(&key).await?)
+    }
+
+    async fn add_to_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::user_sessions_key(user_id);
+
+        let _: bool = conn.sadd(&key, jti.to_string()).await?;
+        Ok(())
+    }
+
+    async fn remove_from_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::user_sessions_key(user_id);
+
+        Ok(conn.srem(&key, jti.to_string()).await?)
+    }
+
+    async fn get_user_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::user_sessions_key(user_id);
+
+        let jtis: Vec<String> = conn.smembers(&key).await?;
+        let mut sessions = Vec::new();
+
+        for jti_str in jtis {
+            if let Ok(jti) = Uuid::parse_str(&jti_str) {
+                if let Some(token_data) = self.get_token(jti).await? {
+                    sessions.push(SessionInfo {
+                        jti,
+                        device_id: token_data.device_id,
+                        last_used: token_data.last_used,
+                        issued_at: token_data.issued_at,
+                    });
+                }
+            }
+        }
+
+        Ok(sessions)
+    }
+
+    async fn delete_all_user_sessions(&self, user_id: Uuid) -> Result<(), LMSError> {
+        let mut conn = self.client.conn();
+        let key = Self::user_sessions_key(user_id);
+
+        let jtis: Vec<String> = conn.smembers(&key).await?;
+
+        for jti_str in jtis {
+            if let Ok(jti) = Uuid::parse_str(&jti_str) {
+                self.delete_token(jti).await?;
+            }
+        }
+
+        Ok(conn.del(&key).await?)
+    }
+}

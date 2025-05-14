@@ -1,13 +1,14 @@
 use axum::http::HeaderMap;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tower_cookies::Cookies;
 use uuid::Uuid;
 
 use crate::errors::{LMSError, Result};
 
 #[derive(Serialize, Deserialize)]
-pub struct AccessClaim {
+pub struct AccessTokenClaim {
     pub iss: String,
     pub sub: Uuid,
     pub iat: i64,
@@ -15,7 +16,7 @@ pub struct AccessClaim {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct RefreshToken {
+pub struct RefreshTokenClaim {
     pub iss: String,
     pub sub: Uuid,
     pub jti: Uuid,
@@ -37,45 +38,46 @@ impl JWT {
         }
     }
 
-    pub fn refresh_from_header(&self, header: &HeaderMap) -> Result<RefreshToken> {
+    pub fn access_from_header(&self, header: &HeaderMap) -> Result<AccessTokenClaim> {
         let Some(auth) = header.get("authorization") else {
-            return Err(LMSError::Forbidden(
+            return Err(LMSError::Unauthorized(
                 "No authorization header was found.".to_string(),
             ));
         };
 
         let auth = auth
             .to_str()
-            .map_err(|_| LMSError::ShitHappened("Wrong authorization Bearer format".to_string()))?;
+            .map_err(|_| LMSError::Unauthorized("Wrong authorization Bearer format".to_string()))?;
 
         let parts: Vec<_> = auth.split(' ').collect();
-        let token = parts.get(1).ok_or(LMSError::ShitHappened(
+        let token = parts.get(1).ok_or(LMSError::Unauthorized(
             "Wrong authorization Bearer format".to_string(),
         ))?;
 
-        let claim = decode::<RefreshToken>(
-            token,
-            &self.decoding_key,
-            &Validation::new(Algorithm::HS256),
-        )
-        .map(|data| data.claims)?;
+        self.validate_token(token)
+    }
 
-        Ok(claim)
+    pub fn refresh_from_cookies(&self, cookies: &Cookies) -> Result<RefreshTokenClaim> {
+        let cookie = cookies.get("refresh_token").ok_or_else(|| {
+            LMSError::Unauthorized("Could not extract refresh_token from cookies".to_string())
+        })?;
+
+        let token = self.validate_token(cookie.value())?;
+        Ok(token)
     }
 
     pub fn tokens(&self, sub: Uuid) -> Result<(String, String)> {
         let access = self.generate_access_token(sub)?;
-        let refresh = self.generate_refresh_token(sub)?;
+        let refresh = self.generate_refresh_token(sub, Uuid::new_v4())?;
 
         Ok((access, refresh))
     }
 
-    pub fn generate_refresh_token(&self, sub: Uuid) -> Result<String> {
-        let jti = Uuid::new_v4();
+    pub fn generate_refresh_token(&self, sub: Uuid, jti: Uuid) -> Result<String> {
         let iat = Utc::now();
-        let exp = iat + Duration::seconds(15 * 24 * 60 * 60); // 15 days
+        let exp = iat + Duration::days(30);
 
-        let claim = RefreshToken {
+        let claim = RefreshTokenClaim {
             iss: String::from("LMS Passport"),
             sub,
             jti,
@@ -88,11 +90,22 @@ impl JWT {
         Ok(token)
     }
 
+    pub fn validate_token<T: DeserializeOwned>(&self, token: &str) -> Result<T> {
+        let claim = decode::<T>(
+            token,
+            &self.decoding_key,
+            &Validation::new(Algorithm::HS256),
+        )
+        .map_err(|_| LMSError::Unauthorized("Invalid token format".to_string()))?;
+
+        Ok(claim.claims)
+    }
+
     pub fn generate_access_token(&self, sub: Uuid) -> Result<String> {
         let iat = Utc::now();
-        let exp = iat + Duration::seconds(15 * 60);
+        let exp = iat + Duration::minutes(15);
 
-        let claim = AccessClaim {
+        let claim = AccessTokenClaim {
             iss: String::from("LMS Passport"),
             sub,
             iat: iat.timestamp(),

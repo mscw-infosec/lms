@@ -15,7 +15,7 @@ use crate::{
 
 pub struct AccountState {
     pub service: AccountService,
-    pub jwt: Arc<JWT>,
+    pub jwt: JWT,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {

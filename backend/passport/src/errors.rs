@@ -40,6 +40,10 @@ pub enum LMSError {
     #[error("{0}")]
     Forbidden(String),
 
+    /// Unauthorized Error
+    #[error("{0}")]
+    Unauthorized(String),
+
     #[error("Unimplemented route with current configuration")]
     Unimplemented,
 
@@ -49,6 +53,13 @@ pub enum LMSError {
 
     #[error("{0}")]
     DeployError(String),
+
+    /// An error occured when connection to or using the redis.
+    #[error("{0}")]
+    RedisError(#[from] redis::RedisError),
+
+    #[error("{0}")]
+    SerdeError(#[from] serde_json::Error),
 }
 
 impl IntoResponse for LMSError {
@@ -60,11 +71,14 @@ impl IntoResponse for LMSError {
             Self::DatabaseError(_)
             | Self::Unknown(_)
             | Self::HashingError(_)
-            | Self::DeployError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            | Self::DeployError(_)
+            | Self::RedisError(_)
+            | Self::SerdeError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unimplemented => StatusCode::NOT_IMPLEMENTED,
             Self::Forbidden(_) | Self::InvalidToken(_) => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError => StatusCode::CONFLICT,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
         };
 
         let message = self.to_string();

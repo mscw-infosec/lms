@@ -13,7 +13,7 @@ use crate::{
 pub struct GithubState {
     pub service: OAuthService,
     pub provider: GithubProvider,
-    pub jwt: Arc<JWT>,
+    pub jwt: JWT,
 }
 
 pub fn configure(state: AppState) -> OpenApiRouter {
