@@ -36,14 +36,13 @@ pub async fn register(
     } = payload;
 
     let user = state.service.register(username, email, password).await?;
-    let (access, refresh) = state.jwt.tokens(user.id)?;
 
-    add_cookie(&cookies, ("refresh_token", refresh));
+    let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
+    let access_token = state.jwt.generate_access_token(user.id)?;
 
-    Ok(Json(BasicRegisterResponse {
-        user,
-        access_token: access,
-    }))
+    add_cookie(&cookies, ("refresh_token", refresh_token));
+
+    Ok(Json(BasicRegisterResponse { access_token }))
 }
 
 /// Login user with email and password
@@ -67,9 +66,11 @@ pub async fn login(
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.service.login(username, password).await?;
-    let (access, refresh) = state.jwt.tokens(user.id)?;
 
-    add_cookie(&cookies, ("refresh_token", refresh));
+    let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
+    let access_token = state.jwt.generate_access_token(user.id)?;
 
-    Ok(access)
+    add_cookie(&cookies, ("refresh_token", refresh_token));
+
+    Ok(access_token)
 }

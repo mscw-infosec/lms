@@ -41,11 +41,13 @@ pub async fn callback(
     let user = state.provider.get_user(query.code, code_verifier).await?;
     let user_id = state.service.save_user(user).await?;
 
-    let (access, refresh) = state.jwt.tokens(user_id)?;
-    add_cookie(&cookies, ("refresh_token", refresh));
+    let (refresh_token, _) = state.refresh_service.create_refresh_token(user_id).await?;
+    let access_token = state.jwt.generate_access_token(user_id)?;
+
+    add_cookie(&cookies, ("refresh_token", refresh_token));
 
     remove_cookie(&cookies, "oauth_state");
     remove_cookie(&cookies, "code_verifier");
 
-    Ok(access)
+    Ok(access_token)
 }

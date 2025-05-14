@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::domain::basic::model::BasicUser;
-
 #[derive(Serialize, Deserialize, Validate, ToSchema)]
 pub struct BasicRegisterRequest {
     #[schema(example = "John Doe")]
@@ -19,7 +17,6 @@ pub struct BasicRegisterRequest {
 
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct BasicRegisterResponse {
-    pub user: BasicUser,
     pub access_token: String,
 }
 
