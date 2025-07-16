@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=lms
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:8.0.0-alpine3.21
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
