@@ -20,7 +20,6 @@
 )]
 
 use crate::{
-    api::routes,
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
@@ -93,15 +92,15 @@ async fn main() -> anyhow::Result<()> {
                 .route("/health", get(|| async { StatusCode::OK }))
                 .nest(
                     "/account",
-                    routes::account::configure(account_service.clone(), jwt.clone()),
+                    api::account::configure(account_service.clone(), jwt.clone()),
                 )
                 .nest(
                     "/auth",
-                    routes::auth::configure(refresh_token_service.clone(), jwt.clone()),
+                    api::auth::configure(refresh_token_service.clone(), jwt.clone()),
                 )
                 .nest(
                     "/basic",
-                    routes::basic::configure(
+                    api::basic::configure(
                         basic_auth_service,
                         refresh_token_service.clone(),
                         jwt.clone(),
@@ -109,7 +108,7 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/oauth",
-                    routes::oauth::configure(
+                    api::oauth::configure(
                         jwt.clone(),
                         client,
                         oauth_service,
@@ -119,7 +118,7 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/video",
-                    routes::video::configure(video_service, account_service, jwt)?,
+                    api::video::configure(video_service, account_service, jwt)?,
                 ),
         )
         .layer(CookieManagerLayer::new())
