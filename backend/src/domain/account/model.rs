@@ -9,7 +9,7 @@ use uuid::Uuid;
 pub type Attributes = HashMap<String, String>;
 
 #[derive(
-    Default, Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Serialize, Deserialize, ToSchema, Type,
+    Default, Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Type, Serialize, Deserialize, ToSchema,
 )]
 #[sqlx(type_name = "UserRole")]
 pub enum UserRole {
@@ -19,23 +19,20 @@ pub enum UserRole {
     Admin,
 }
 
-#[derive(Serialize, Deserialize, Default, ToSchema, FromRow)]
-pub struct User {
-    #[serde(skip)]
+#[derive(Serialize, Deserialize, Default, FromRow)]
+pub struct UserModel {
     pub id: Uuid,
     pub username: String,
     pub email: String,
     pub role: UserRole,
 
-    #[serde(skip)]
     pub password: Option<String>,
     pub attributes: Attributes,
 
-    #[serde(skip)]
     pub created_at: DateTime<Utc>,
 }
 
-impl User {
+impl UserModel {
     pub fn new(username: String, email: String, password: Option<String>, role: UserRole) -> Self {
         Self {
             id: Uuid::new_v4(),

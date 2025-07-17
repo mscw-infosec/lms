@@ -1,18 +1,13 @@
-use sqlx::PgPool;
 use tonic::async_trait;
 
 use crate::{
     domain::video::{model::VideoModel, repository::VideoRepository},
     errors::Result,
+    infrastructure::db::postgres::RepositoryPostgres,
 };
 
-#[derive(Clone)]
-pub struct VideoRepositoryPostgres {
-    pub pool: PgPool,
-}
-
 #[async_trait]
-impl VideoRepository for VideoRepositoryPostgres {
+impl VideoRepository for RepositoryPostgres {
     async fn create(&self, video: VideoModel) -> Result<VideoModel> {
         sqlx::query!(
             r"

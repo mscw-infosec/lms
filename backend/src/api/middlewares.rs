@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use axum::{
     extract::{FromRef, FromRequestParts},
     http::request::Parts,
@@ -5,19 +7,20 @@ use axum::{
 use tower_cookies::Cookies;
 
 use crate::{
+    domain::account::{model::UserModel, service::AccountService},
     errors::LMSError,
     infrastructure::jwt::{AccessTokenClaim, JWT, RefreshTokenClaim},
 };
 
 impl<S> FromRequestParts<S> for AccessTokenClaim
 where
-    JWT: FromRef<S>,
+    Arc<JWT>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = LMSError;
 
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        let jwt = JWT::from_ref(state);
+        let jwt: Arc<JWT> = Arc::from_ref(state);
         let access = jwt.access_from_header(&parts.headers)?;
         Ok(access)
     }
@@ -25,7 +28,7 @@ where
 
 impl<S> FromRequestParts<S> for RefreshTokenClaim
 where
-    JWT: FromRef<S>,
+    Arc<JWT>: FromRef<S>,
     S: Send + Sync,
 {
     type Rejection = LMSError;
@@ -37,8 +40,27 @@ where
                 LMSError::Unauthorized("Could not extract cookies from request".to_string())
             })?;
 
-        let jwt = JWT::from_ref(state);
+        let jwt: Arc<JWT> = Arc::from_ref(state);
         let refresh = jwt.refresh_from_cookies(&cookies)?;
         Ok(refresh)
+    }
+}
+
+impl<S> FromRequestParts<S> for UserModel
+where
+    Arc<JWT>: FromRef<S>,
+    Arc<AccountService>: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = LMSError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let jwt: Arc<JWT> = Arc::from_ref(state);
+        let service: Arc<AccountService> = Arc::from_ref(state);
+
+        let access = jwt.access_from_header(&parts.headers)?;
+        let user = service.get_user(access.sub).await?;
+
+        Ok(user)
     }
 }

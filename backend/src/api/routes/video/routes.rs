@@ -1,16 +1,13 @@
-use std::sync::Arc;
-
 use axum::{
     Json,
     extract::{Path, State},
 };
 
 use crate::{
-    api::{
-        dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO, GetVideoUrlResponseDTO},
-        routes::video::VideoState,
-    },
-    errors::Result,
+    api::routes::video::VideoState,
+    domain::account::model::{UserModel, UserRole},
+    dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO, GetVideoUrlResponseDTO},
+    errors::{LMSError, Result},
     utils::ValidatedJson,
 };
 
@@ -19,17 +16,25 @@ use crate::{
     post,
     path = "/new",
     tag = "Video",
+    request_body = CreateVideoRequestDTO,
     responses(
         (status = 200, body = CreateVideoResponseDTO)
     ),
     security(
-        ("CookieAuth" = [])
+        ("BearerAuth" = [])
     )
 )]
 pub async fn create(
-    State(state): State<Arc<VideoState>>,
+    user: UserModel,
+    State(state): State<VideoState>,
     ValidatedJson(payload): ValidatedJson<CreateVideoRequestDTO>,
 ) -> Result<Json<CreateVideoResponseDTO>> {
+    if matches!(user.role, UserRole::Student) {
+        return Err(LMSError::Forbidden(
+            "You can not upload or create videos".to_string(),
+        ));
+    }
+
     let video = state.video_service.create(payload).await?;
     let response = video.into();
     Ok(Json(response))
@@ -49,7 +54,7 @@ pub async fn create(
 )]
 pub async fn get_video_url(
     Path(video_id): Path<String>,
-    State(state): State<Arc<VideoState>>,
+    State(state): State<VideoState>,
 ) -> Result<Json<GetVideoUrlResponseDTO>> {
     let url = state.video_service.get_player_url(video_id).await?;
     let response = url.into();

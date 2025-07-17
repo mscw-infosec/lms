@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use crate::{domain::account::model::User, errors::LMSError};
+use crate::{dto::account::GetUserResponseDTO, errors::LMSError};
 use axum::{Json, extract::State, http::HeaderMap};
 
 use super::AccountState;
@@ -11,7 +9,7 @@ use super::AccountState;
     path = "/",
     tag = "Account",
     responses(
-        (status = 200, body = User),
+        (status = 200, body = GetUserResponseDTO),
     ),
     security(
         ("BearerAuth" = [])
@@ -19,9 +17,9 @@ use super::AccountState;
 )]
 pub async fn get_user(
     header: HeaderMap,
-    State(state): State<Arc<AccountState>>,
-) -> Result<Json<User>, LMSError> {
+    State(state): State<AccountState>,
+) -> Result<Json<GetUserResponseDTO>, LMSError> {
     let id = state.jwt.access_from_header(&header)?.sub;
-    let user = state.service.get_user(id).await?;
+    let user = state.account_service.get_user(id).await?.into();
     Ok(Json(user))
 }

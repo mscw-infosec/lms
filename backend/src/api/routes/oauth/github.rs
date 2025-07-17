@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use axum::{
     extract::{Query, State},
     response::Redirect,
@@ -7,8 +5,8 @@ use axum::{
 use tower_cookies::Cookies;
 
 use crate::{
-    api::dto::oauth::github::OAuthCallbackQuery,
     domain::oauth::service::{OAuthProvider, OAuthService},
+    dto::oauth::github::OAuthCallbackQuery,
     errors::LMSError,
     utils::{add_cookie, remove_cookie},
 };
@@ -16,13 +14,13 @@ use crate::{
 use super::GithubState;
 
 #[utoipa::path(get, path = "/login", tag = "OAuth")]
-pub async fn login(cookies: Cookies, State(state): State<Arc<GithubState>>) -> Redirect {
+pub async fn login(cookies: Cookies, State(state): State<GithubState>) -> Redirect {
     let (oauth_state, code_verifier, code_challenge) = OAuthService::generate();
 
     add_cookie(&cookies, ("oauth_state", oauth_state.clone()));
     add_cookie(&cookies, ("code_verifier", code_verifier));
 
-    let url = state.provider.url(oauth_state, code_challenge);
+    let url = state.github_provider.url(oauth_state, code_challenge);
     Redirect::temporary(url.as_str())
 }
 
@@ -30,7 +28,7 @@ pub async fn login(cookies: Cookies, State(state): State<Arc<GithubState>>) -> R
 pub async fn callback(
     cookies: Cookies,
     Query(query): Query<OAuthCallbackQuery>,
-    State(state): State<Arc<GithubState>>,
+    State(state): State<GithubState>,
 ) -> Result<String, LMSError> {
     let (oauth_state, code_verifier) = OAuthService::parse_cookies(&cookies)?;
 
@@ -38,10 +36,16 @@ pub async fn callback(
         return Err(LMSError::Forbidden("Invalid `state` parameter".to_string()));
     }
 
-    let user = state.provider.get_user(query.code, code_verifier).await?;
-    let user_id = state.service.save_user(user).await?;
+    let user = state
+        .github_provider
+        .get_user(query.code, code_verifier)
+        .await?;
+    let user_id = state.oauth_service.save_user(user).await?;
 
-    let (refresh_token, _) = state.refresh_service.create_refresh_token(user_id).await?;
+    let (refresh_token, _) = state
+        .refresh_token_service
+        .create_refresh_token(user_id)
+        .await?;
     let access_token = state.jwt.generate_access_token(user_id)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
 use serde::Deserialize;
@@ -27,11 +29,11 @@ pub trait OAuthProvider {
 }
 
 pub struct OAuthService {
-    repo: Box<dyn OAuthRepository + Send + Sync>,
+    repo: Arc<dyn OAuthRepository + Send + Sync>,
 }
 
 impl OAuthService {
-    pub const fn new(repo: Box<dyn OAuthRepository + Send + Sync>) -> Self {
+    pub const fn new(repo: Arc<dyn OAuthRepository + Send + Sync>) -> Self {
         Self { repo }
     }
 

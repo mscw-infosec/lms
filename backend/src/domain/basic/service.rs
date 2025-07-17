@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -8,11 +10,11 @@ use crate::{
 };
 
 pub struct BasicAuthService {
-    repo: Box<dyn BasicAuthRepository + Send + Sync>,
+    repo: Arc<dyn BasicAuthRepository + Send + Sync>,
 }
 
 impl BasicAuthService {
-    pub const fn new(repo: Box<dyn BasicAuthRepository + Send + Sync>) -> Self {
+    pub const fn new(repo: Arc<dyn BasicAuthRepository + Send + Sync>) -> Self {
         Self { repo }
     }
 

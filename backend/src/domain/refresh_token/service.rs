@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use chrono::{Duration, Utc};
 use uuid::Uuid;
 
@@ -8,15 +10,17 @@ use crate::{
     },
     errors::{LMSError, Result},
     infrastructure::jwt::{JWT, RefreshTokenClaim},
+    repo,
 };
 
+#[derive(Clone)]
 pub struct RefreshTokenService {
-    repo: Box<dyn RefreshTokenRepository + Send + Sync>,
-    jwt: JWT,
+    repo: repo!(RefreshTokenRepository),
+    jwt: Arc<JWT>,
 }
 
 impl RefreshTokenService {
-    pub fn new(repo: Box<dyn RefreshTokenRepository + Send + Sync>, jwt: JWT) -> Self {
+    pub fn new(repo: repo!(RefreshTokenRepository), jwt: Arc<JWT>) -> Self {
         Self { repo, jwt }
     }
 

@@ -4,40 +4,32 @@ use routes::*;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    AppState,
     domain::{basic::service::BasicAuthService, refresh_token::service::RefreshTokenService},
-    infrastructure::{
-        db::{
-            postgres::repositories::basic_repo::BasicAuthRepositoryPostgres,
-            redis::repositories::refresh_token_repo::RefreshTokenRepositoryRedis,
-        },
-        jwt::JWT,
-    },
+    infrastructure::jwt::JWT,
 };
 
 pub mod routes;
 
+#[derive(Clone)]
 pub struct BasicAuthState {
-    pub service: BasicAuthService,
-    pub refresh_service: RefreshTokenService,
-    pub jwt: JWT,
+    pub basic_auth_service: Arc<BasicAuthService>,
+    pub refresh_service: Arc<RefreshTokenService>,
+    pub jwt: Arc<JWT>,
 }
 
-pub fn configure(state: AppState) -> OpenApiRouter {
-    let basic_repo = BasicAuthRepositoryPostgres { pool: state.pool };
-    let service = BasicAuthService::new(Box::new(basic_repo));
-
-    let refresh_repo = RefreshTokenRepositoryRedis::new(state.rdb);
-    let refresh_service = RefreshTokenService::new(Box::new(refresh_repo), state.jwt.clone());
-
+pub fn configure(
+    basic_auth_service: Arc<BasicAuthService>,
+    refresh_service: Arc<RefreshTokenService>,
+    jwt: Arc<JWT>,
+) -> OpenApiRouter {
     let state = BasicAuthState {
-        service,
+        basic_auth_service,
         refresh_service,
-        jwt: state.jwt,
+        jwt,
     };
 
     OpenApiRouter::new()
         .routes(routes!(register))
         .routes(routes!(login))
-        .with_state(Arc::new(state))
+        .with_state(state)
 }

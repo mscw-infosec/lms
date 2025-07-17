@@ -1,18 +1,13 @@
 use async_trait::async_trait;
-use sqlx::PgPool;
 
 use crate::{
     domain::basic::{model::BasicUser, repository::BasicAuthRepository},
     errors::{LMSError, Result},
+    infrastructure::db::postgres::RepositoryPostgres,
 };
 
-#[derive(Clone)]
-pub struct BasicAuthRepositoryPostgres {
-    pub pool: PgPool,
-}
-
 #[async_trait]
-impl BasicAuthRepository for BasicAuthRepositoryPostgres {
+impl BasicAuthRepository for RepositoryPostgres {
     async fn create(&self, user: &BasicUser) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 

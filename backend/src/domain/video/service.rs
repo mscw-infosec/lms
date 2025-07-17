@@ -1,5 +1,6 @@
 use prost::Message;
 use prost_types::Duration;
+use std::sync::Arc;
 use yandex_cloud::{
     AuthInterceptor,
     tonic_exports::{Channel, Endpoint},
@@ -16,32 +17,30 @@ use yandex_cloud::{
 };
 
 use crate::{
-    api::dto::video::CreateVideoRequestDTO,
     domain::video::{model::VideoModel, repository::VideoRepository},
+    dto::video::CreateVideoRequestDTO,
     errors::{LMSError, Result},
     infrastructure::iam::IAMTokenManager,
+    repo,
 };
 
 pub const SIGNED_URL_EXPIRATION_DURATION: i64 = 5 * 60 * 60;
 
+#[derive(Clone)]
 pub struct VideoService {
-    repo: Box<dyn VideoRepository + Send + Sync>,
+    repo: repo!(VideoRepository),
     channel: Channel,
     channel_id: String,
     token_manager: IAMTokenManager,
 }
 
 impl VideoService {
-    pub async fn new(
-        repo: Box<dyn VideoRepository + Send + Sync>,
+    pub fn new(
+        repo: repo!(VideoRepository),
         channel_id: String,
         token_manager: IAMTokenManager,
     ) -> Result<Self> {
-        let channel = Endpoint::from_static("https://video.api.cloud.yandex.net")
-            .connect()
-            .await
-            // TODO: think about degradation
-            .expect("TODO: think about degradation");
+        let channel = Endpoint::from_static("https://video.api.cloud.yandex.net").connect_lazy();
 
         let service = Self {
             repo,
