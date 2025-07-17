@@ -6,7 +6,7 @@ pub fn init_tracing() {
         .with(
             EnvFilter::builder()
                 .with_default_directive(LevelFilter::TRACE.into())
-                .parse("passport")
+                .parse("lms_backend")
                 .expect("Failed to start logging"),
         )
         .with(fmt::layer())

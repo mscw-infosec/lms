@@ -1,12 +1,13 @@
 use prost::Message;
+use prost_types::Duration;
 use yandex_cloud::{
     AuthInterceptor,
     tonic_exports::{Channel, Endpoint},
     yandex::cloud::{
         operation::operation,
         video::v1::{
-            AutoTranscode, CreateVideoRequest, Video, VideoSignUrlAccessParams, VideoTusdParams,
-            VideoTusdSource,
+            AutoTranscode, CreateVideoRequest, GetVideoPlayerUrlRequest, Video, VideoPlayerParams,
+            VideoSignUrlAccessParams, VideoTusdParams, VideoTusdSource,
             create_video_request::{self, AccessRights},
             video::Source,
             video_service_client::VideoServiceClient,
@@ -20,6 +21,8 @@ use crate::{
     errors::{LMSError, Result},
     infrastructure::iam::IAMTokenManager,
 };
+
+pub const SIGNED_URL_EXPIRATION_DURATION: i64 = 5 * 60 * 60;
 
 pub struct VideoService {
     repo: Box<dyn VideoRepository + Send + Sync>,
@@ -117,5 +120,33 @@ impl VideoService {
         let model = self.repo.create(model).await?;
 
         Ok(model)
+    }
+
+    pub async fn get_player_url(&self, video_id: String) -> Result<String> {
+        let token = self
+            .token_manager
+            .get_token()
+            .await
+            .map_err(|e| LMSError::ShitHappened(format!("Failed to get IAM token: {e}")))?;
+
+        let auth = AuthInterceptor::new(token);
+        let mut client = VideoServiceClient::with_interceptor(self.channel.clone(), auth);
+
+        let request = GetVideoPlayerUrlRequest {
+            video_id,
+            params: Some(VideoPlayerParams {
+                mute: false,
+                autoplay: false,
+                hidden: false,
+            }),
+            signed_url_expiration_duration: Some(Duration {
+                seconds: SIGNED_URL_EXPIRATION_DURATION,
+                nanos: 0,
+            }),
+        };
+
+        let response = client.get_player_url(request).await?.into_inner();
+
+        Ok(response.player_url)
     }
 }

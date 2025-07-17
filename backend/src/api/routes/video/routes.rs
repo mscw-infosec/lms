@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
-use axum::{Json, extract::State};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
 
 use crate::{
     api::{
-        dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO},
+        dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO, GetVideoUrlResponseDTO},
         routes::video::VideoState,
     },
     errors::Result,
@@ -29,5 +32,26 @@ pub async fn create(
 ) -> Result<Json<CreateVideoResponseDTO>> {
     let video = state.video_service.create(payload).await?;
     let response = video.into();
+    Ok(Json(response))
+}
+
+/// Return video player url by video id
+#[utoipa::path(
+    get,
+    path = "/{video_id}",
+    tag = "Video",
+    responses(
+        (status = 200, body = GetVideoUrlResponseDTO)
+    ),
+    security(
+        ("CookieAuth" = [])
+    )
+)]
+pub async fn get_video_url(
+    Path(video_id): Path<String>,
+    State(state): State<Arc<VideoState>>,
+) -> Result<Json<GetVideoUrlResponseDTO>> {
+    let url = state.video_service.get_player_url(video_id).await?;
+    let response = url.into();
     Ok(Json(response))
 }

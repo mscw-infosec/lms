@@ -24,3 +24,14 @@ impl From<VideoModel> for CreateVideoResponseDTO {
         Self { url: value.url }
     }
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct GetVideoUrlResponseDTO {
+    url: String,
+}
+
+impl From<String> for GetVideoUrlResponseDTO {
+    fn from(value: String) -> Self {
+        Self { url: value }
+    }
+}

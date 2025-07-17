@@ -22,6 +22,7 @@ pub async fn configure(state: AppState, channel_id: String) -> Result<OpenApiRou
 
     let router = OpenApiRouter::new()
         .routes(routes!(routes::create))
+        .routes(routes!(routes::get_video_url))
         .with_state(Arc::new(state));
 
     Ok(router)
