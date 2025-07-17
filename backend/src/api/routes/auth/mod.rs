@@ -1,30 +1,22 @@
 use std::sync::Arc;
 
-use axum::extract::FromRef;
+use axum_macros::FromRef;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
-use crate::{
-    AppState,
-    domain::refresh_token::service::RefreshTokenService,
-    infrastructure::{
-        db::redis::repositories::refresh_token_repo::RefreshTokenRepositoryRedis, jwt::JWT,
-    },
-};
+use crate::{domain::refresh_token::service::RefreshTokenService, infrastructure::jwt::JWT};
 
 pub mod routes;
 
+#[derive(FromRef, Clone)]
 pub struct AuthState {
-    pub refresh_service: RefreshTokenService,
-    pub jwt: JWT,
+    pub refresh_service: Arc<RefreshTokenService>,
+    pub jwt: Arc<JWT>,
 }
 
-pub fn configure(state: AppState) -> OpenApiRouter {
-    let repo = RefreshTokenRepositoryRedis::new(state.rdb);
-    let refresh_service = RefreshTokenService::new(Box::new(repo), state.jwt.clone());
-
+pub fn configure(refresh_service: Arc<RefreshTokenService>, jwt: Arc<JWT>) -> OpenApiRouter {
     let auth_state = AuthState {
         refresh_service,
-        jwt: state.jwt,
+        jwt,
     };
 
     OpenApiRouter::new()
@@ -32,11 +24,5 @@ pub fn configure(state: AppState) -> OpenApiRouter {
         .routes(routes!(routes::get_sessions))
         .routes(routes!(routes::logout_session))
         .routes(routes!(routes::logout_all))
-        .with_state(Arc::new(auth_state))
-}
-
-impl FromRef<Arc<AuthState>> for JWT {
-    fn from_ref(input: &Arc<AuthState>) -> Self {
-        input.jwt.clone()
-    }
+        .with_state(auth_state)
 }

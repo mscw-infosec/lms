@@ -4,7 +4,7 @@ use validator::Validate;
 
 use crate::domain::video::model::VideoModel;
 
-#[derive(Serialize, Deserialize, Validate)]
+#[derive(Serialize, Deserialize, Validate, ToSchema)]
 pub struct CreateVideoRequestDTO {
     #[validate(range(min = 1, message = "size: file size should be positive"))]
     pub size: i64,

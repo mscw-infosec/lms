@@ -1,23 +1,20 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::domain::account::{
-    model::{User, UserRole},
-    repository::AccountRepository,
-};
 use crate::errors::Result;
-
-#[derive(Clone)]
-pub struct AccountRepositoryPostgres {
-    pub pool: PgPool,
-}
+use crate::{
+    domain::account::{
+        model::{UserModel, UserRole},
+        repository::AccountRepository,
+    },
+    infrastructure::db::postgres::RepositoryPostgres,
+};
 
 #[async_trait]
-impl AccountRepository for AccountRepositoryPostgres {
-    async fn get_user_by_id(&self, id: Uuid) -> Result<Option<User>> {
+impl AccountRepository for RepositoryPostgres {
+    async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>> {
         let mut tx = self.pool.begin().await?;
 
         let attributes = sqlx::query!(
@@ -48,7 +45,7 @@ impl AccountRepository for AccountRepositoryPostgres {
         )
         .fetch_optional(tx.as_mut())
         .await?
-        .map(|x| User {
+        .map(|x| UserModel {
             id: x.id,
             username: x.username,
             email: x.email,

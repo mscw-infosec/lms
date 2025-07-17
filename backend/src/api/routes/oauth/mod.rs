@@ -5,51 +5,46 @@ use std::sync::Arc;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    AppState,
+    config::Config,
     domain::{
         oauth::{providers::github::GithubProvider, service::OAuthService},
         refresh_token::service::RefreshTokenService,
     },
-    infrastructure::{
-        db::{
-            postgres::repositories::oauth_repo::OAuthRepositoryPostgres,
-            redis::repositories::refresh_token_repo::RefreshTokenRepositoryRedis,
-        },
-        jwt::JWT,
-    },
+    infrastructure::jwt::JWT,
 };
 
+#[derive(Clone)]
 pub struct GithubState {
-    pub service: OAuthService,
-    pub provider: GithubProvider,
-    pub refresh_service: RefreshTokenService,
-    pub jwt: JWT,
+    pub jwt: Arc<JWT>,
+    pub oauth_service: Arc<OAuthService>,
+    pub github_provider: GithubProvider,
+    pub refresh_token_service: Arc<RefreshTokenService>,
 }
 
-pub fn configure(state: AppState) -> OpenApiRouter {
-    let oauth_repo = OAuthRepositoryPostgres { pool: state.pool };
-    let service = OAuthService::new(Box::new(oauth_repo));
-
+pub fn configure(
+    jwt: Arc<JWT>,
+    client: reqwest::Client,
+    oauth_service: Arc<OAuthService>,
+    refresh_token_service: Arc<RefreshTokenService>,
+    config: &Arc<Config>,
+) -> OpenApiRouter {
     let github_provider = GithubProvider {
-        client: state.client,
-        client_id: state.github_client_id,
-        client_secret: state.github_client_secret,
+        client,
+        client_id: config.github_client_id.clone(),
+        client_secret: config.github_client_secret.clone(),
     };
 
-    let refresh_repo = RefreshTokenRepositoryRedis::new(state.rdb);
-    let refresh_service = RefreshTokenService::new(Box::new(refresh_repo), state.jwt.clone());
-
     let github_state = GithubState {
-        service,
-        provider: github_provider,
-        refresh_service,
-        jwt: state.jwt,
+        jwt,
+        oauth_service,
+        github_provider,
+        refresh_token_service,
     };
 
     let github = OpenApiRouter::new()
         .routes(routes!(github::login))
         .routes(routes!(github::callback))
-        .with_state(Arc::new(github_state));
+        .with_state(github_state);
 
     let yandex = OpenApiRouter::new();
 

@@ -22,18 +22,22 @@
 use crate::{
     api::routes,
     config::Config,
+    domain::{
+        account::service::AccountService, basic::service::BasicAuthService,
+        oauth::service::OAuthService, refresh_token::service::RefreshTokenService,
+        video::service::VideoService,
+    },
     infrastructure::{
-        db::postgres::{PostgresClient, run_migrations},
+        db::postgres::{RepositoryPostgres, run_migrations},
         iam::IAMTokenManager,
         logging::init_tracing,
     },
 };
 
 use axum::{http::StatusCode, routing::get};
-use infrastructure::{db::redis::RedisClient, jwt::JWT};
+use infrastructure::{db::redis::RepositoryRedis, jwt::JWT};
 use openapi::ApiDoc;
-use sqlx::PgPool;
-use std::net::SocketAddr;
+use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
@@ -47,51 +51,39 @@ use utoipa_swagger_ui::SwaggerUi;
 pub mod api;
 pub mod config;
 pub mod domain;
+pub mod dto;
 pub mod errors;
 pub mod infrastructure;
+pub mod macros;
 pub mod openapi;
 pub mod utils;
-
-#[derive(Clone)]
-pub struct AppState {
-    pool: PgPool,
-    rdb: RedisClient,
-    client: reqwest::Client,
-    jwt: JWT,
-    iam: IAMTokenManager,
-    github_client_id: String,
-    github_client_secret: String,
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     init_tracing();
 
-    let config = Config::from_env()?;
+    let config = Arc::new(Config::from_env()?);
 
-    let pool = PostgresClient::new(&config.database_url).await?;
-    run_migrations(&pool).await?;
+    let db_repo = Arc::new(RepositoryPostgres::new(&config.database_url).await?);
+    run_migrations(&db_repo).await?;
 
-    let rdb = RedisClient::new(&config.redis_url).await?;
-
+    let jwt = Arc::new(JWT::new(&config.jwt_secret));
+    let iam = IAMTokenManager::new(&config.iam_key_file)?;
+    let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
     let client = reqwest::Client::builder()
-        .user_agent("LMS Passport")
+        .user_agent("LMS Backend")
         .build()
         .expect("Failed to build client");
 
-    let jwt = JWT::new(&config.jwt_secret);
-
-    let iam = IAMTokenManager::new(config.iam_key_file)?;
-
-    let state = AppState {
-        client,
-        rdb,
-        pool: pool.client(),
-        jwt,
+    let account_service = Arc::new(AccountService::new(db_repo.clone(), rdb_repo.clone()));
+    let basic_auth_service = Arc::new(BasicAuthService::new(db_repo.clone()));
+    let oauth_service = Arc::new(OAuthService::new(db_repo.clone()));
+    let refresh_token_service = Arc::new(RefreshTokenService::new(rdb_repo.clone(), jwt.clone()));
+    let video_service = Arc::new(VideoService::new(
+        db_repo.clone(),
+        config.channel_id.clone(),
         iam,
-        github_client_id: config.github_client_id,
-        github_client_secret: config.github_client_secret,
-    };
+    )?);
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
@@ -99,13 +91,35 @@ async fn main() -> anyhow::Result<()> {
             "/api",
             OpenApiRouter::new()
                 .route("/health", get(|| async { StatusCode::OK }))
-                .nest("/account", routes::account::configure(state.clone()))
-                .nest("/auth", routes::auth::configure(state.clone()))
-                .nest("/basic", routes::basic::configure(state.clone()))
-                .nest("/oauth", routes::oauth::configure(state.clone()))
+                .nest(
+                    "/account",
+                    routes::account::configure(account_service.clone(), jwt.clone()),
+                )
+                .nest(
+                    "/auth",
+                    routes::auth::configure(refresh_token_service.clone(), jwt.clone()),
+                )
+                .nest(
+                    "/basic",
+                    routes::basic::configure(
+                        basic_auth_service,
+                        refresh_token_service.clone(),
+                        jwt.clone(),
+                    ),
+                )
+                .nest(
+                    "/oauth",
+                    routes::oauth::configure(
+                        jwt.clone(),
+                        client,
+                        oauth_service,
+                        refresh_token_service,
+                        &config.clone(),
+                    ),
+                )
                 .nest(
                     "/video",
-                    routes::video::configure(state.clone(), config.channel_id).await?,
+                    routes::video::configure(video_service, account_service, jwt)?,
                 ),
         )
         .layer(CookieManagerLayer::new())

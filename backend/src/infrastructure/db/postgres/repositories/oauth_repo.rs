@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
@@ -11,17 +10,13 @@ use crate::{
         },
     },
     errors::LMSError,
+    infrastructure::db::postgres::RepositoryPostgres,
 };
-
-#[derive(Clone)]
-pub struct OAuthRepositoryPostgres {
-    pub pool: PgPool,
-}
 
 // FIX: this is awful implementation, fix it later
 
 #[async_trait]
-impl OAuthRepository for OAuthRepositoryPostgres {
+impl OAuthRepository for RepositoryPostgres {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, LMSError> {
         let id = sqlx::query_scalar!(
             r#"
