@@ -7,10 +7,7 @@ use axum::{
 use rand::{Rng, distr::Alphanumeric};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::json;
-use tower_cookies::{
-    Cookie, Cookies,
-    cookie::{SameSite, time::OffsetDateTime},
-};
+use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 use tracing::warn;
 use validator::Validate;
 
@@ -55,11 +52,7 @@ pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
 }
 
 pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
-    let cookie = Cookie::build((name, ""))
-        .expires(OffsetDateTime::now_utc())
-        .build();
-
-    cookies.remove(cookie);
+    add_cookie(cookies, (name, String::new()));
 }
 
 pub async fn send_and_parse<T: serde::de::DeserializeOwned>(

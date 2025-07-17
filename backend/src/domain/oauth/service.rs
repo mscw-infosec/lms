@@ -18,7 +18,7 @@ use super::{
 #[derive(Deserialize, Debug)]
 pub struct AccessTokenResponse {
     pub access_token: String,
-    pub scope: String,
+    pub scope: Option<String>,
     pub token_type: String,
 }
 

@@ -1,7 +1,9 @@
 #![allow(clippy::needless_for_each)]
 
-use utoipa::openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme};
-use utoipa::{Modify, OpenApi};
+use utoipa::{
+    Modify, OpenApi,
+    openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme},
+};
 
 struct BearerAuthAddon;
 impl Modify for BearerAuthAddon {

@@ -9,6 +9,9 @@ pub struct Config {
     pub github_client_id: String,
     pub github_client_secret: String,
 
+    pub yandex_client_id: String,
+    pub yandex_client_secret: String,
+
     pub channel_id: String,
     pub iam_key_file: String,
 }
@@ -26,6 +29,8 @@ impl Config {
             server_port: env("PORT").parse()?,
             github_client_id: env("GITHUB_CLIENT_ID"),
             github_client_secret: env("GITHUB_CLIENT_SECRET"),
+            yandex_client_id: env("YANDEX_CLIENT_ID"),
+            yandex_client_secret: env("YANDEX_CLIENT_SECRET"),
             channel_id: env("CHANNEL_ID"),
             iam_key_file: env("IAM_KEY_FILE"),
         })
