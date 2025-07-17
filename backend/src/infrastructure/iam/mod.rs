@@ -46,7 +46,8 @@ pub struct IAMTokenManager {
 
 impl IAMTokenManager {
     pub fn new(iam_key_file: impl AsRef<Path>) -> Result<Self> {
-        let content = fs::read_to_string(iam_key_file).unwrap();
+        let content =
+            fs::read_to_string(iam_key_file).expect("You forgot about putting iam key file.");
         let schema = serde_json::from_str(&content)?;
         let state = TokenState {
             token: None,
@@ -111,7 +112,8 @@ impl IAMTokenManager {
         let channel = Endpoint::from_static("https://iam.api.cloud.yandex.net")
             .connect()
             .await
-            .unwrap();
+            // TODO: do something about this `bad` error handling
+            .expect("Yandex is down?");
 
         let mut client = IamTokenServiceClient::new(channel);
 

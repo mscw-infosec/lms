@@ -5,7 +5,6 @@ pub struct Config {
     pub jwt_secret: String,
 
     pub server_port: u16,
-    pub base_url: String,
 
     pub github_client_id: String,
     pub github_client_secret: String,
@@ -27,7 +26,6 @@ impl Config {
             server_port: env("PORT").parse()?,
             github_client_id: env("GITHUB_CLIENT_ID"),
             github_client_secret: env("GITHUB_CLIENT_SECRET"),
-            base_url: env("BASE_URL"),
             channel_id: env("CHANNEL_ID"),
             iam_key_file: env("IAM_KEY_FILE"),
         })
