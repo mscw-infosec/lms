@@ -1,9 +1,12 @@
+use std::{collections::HashMap, hash::BuildHasher};
+
 use axum::{
     Json,
     extract::{FromRequest, Request},
 };
 use rand::{Rng, distr::Alphanumeric};
-use serde::de::DeserializeOwned;
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::json;
 use tower_cookies::{
     Cookie, Cookies,
     cookie::{SameSite, time::OffsetDateTime},
@@ -79,4 +82,25 @@ pub async fn send_and_parse<T: serde::de::DeserializeOwned>(
             );
             LMSError::Unknown("Internal Server Error".into())
         })
+}
+
+pub fn to_pairs<T: Serialize>(s: &T) -> Vec<(String, String)> {
+    let json = serde_json::to_value(s).expect("s implement Serialize");
+    match json {
+        serde_json::Value::Object(map) => {
+            map.into_iter().map(|(k, v)| (k, v.to_string())).collect()
+        }
+        _ => vec![],
+    }
+}
+
+pub fn from_pairs<T, S>(map: HashMap<String, String, S>) -> serde_json::Result<T>
+where
+    T: DeserializeOwned,
+    S: BuildHasher,
+{
+    let json_map = map.into_iter().map(|(k, v)| (k, json!(v))).collect();
+    let value = serde_json::Value::Object(json_map);
+
+    serde_json::from_value(value)
 }

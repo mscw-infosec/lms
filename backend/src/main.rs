@@ -20,10 +20,7 @@
 )]
 
 use crate::{
-    api::{
-        oauth,
-        routes::{self, video},
-    },
+    api::routes,
     config::Config,
     infrastructure::{
         db::postgres::{PostgresClient, run_migrations},
@@ -105,10 +102,10 @@ async fn main() -> anyhow::Result<()> {
                 .nest("/account", routes::account::configure(state.clone()))
                 .nest("/auth", routes::auth::configure(state.clone()))
                 .nest("/basic", routes::basic::configure(state.clone()))
-                .nest("/oauth", oauth::configure(state.clone()))
+                .nest("/oauth", routes::oauth::configure(state.clone()))
                 .nest(
                     "/video",
-                    video::configure(state.clone(), config.channel_id).await?,
+                    routes::video::configure(state.clone(), config.channel_id).await?,
                 ),
         )
         .layer(CookieManagerLayer::new())

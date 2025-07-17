@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use redis::{AsyncCommands, HashFieldExpirationOptions, SetExpiry};
 use serde_json;
@@ -10,6 +12,7 @@ use crate::{
     },
     errors::LMSError,
     infrastructure::db::redis::RedisClient,
+    utils::{from_pairs, to_pairs},
 };
 
 pub struct RefreshTokenRepositoryRedis {
@@ -36,11 +39,10 @@ impl RefreshTokenRepository for RefreshTokenRepositoryRedis {
         let mut conn = self.client.conn();
         let key = Self::token_key(jti);
 
-        let data_json: String = serde_json::to_string(&data)?;
         let set_expiry = SetExpiry::EX(30 * 24 * 60 * 60);
         let ex = HashFieldExpirationOptions::default().set_expiration(set_expiry);
 
-        let _: () = conn.hset_ex(key, &ex, &[("data", &data_json)]).await?;
+        let _: () = conn.hset_ex(key, &ex, &to_pairs(&data)).await?;
 
         Ok(())
     }
@@ -49,9 +51,9 @@ impl RefreshTokenRepository for RefreshTokenRepositoryRedis {
         let mut conn = self.client.conn();
         let key = Self::token_key(jti);
 
-        let data_json: Option<String> = conn.hget(&key, "data").await?;
+        let data_json: Option<HashMap<String, String>> = conn.hgetall(&key).await?;
         match data_json {
-            Some(json) => Ok(Some(serde_json::from_str(&json)?)),
+            Some(json) => Ok(Some(from_pairs(json)?)),
             None => Ok(None),
         }
     }
