@@ -1,6 +1,6 @@
 pub mod routes;
 
-use axum::extract::FromRef;
+use axum_macros::FromRef;
 use std::sync::Arc;
 use utoipa_axum::routes;
 
@@ -12,7 +12,7 @@ use crate::{
     infrastructure::jwt::JWT,
 };
 
-#[derive(Clone)]
+#[derive(FromRef, Clone)]
 pub struct VideoState {
     pub video_service: Arc<VideoService>,
     pub account_service: Arc<AccountService>,
@@ -36,16 +36,4 @@ pub fn configure(
         .with_state(state);
 
     Ok(router)
-}
-
-impl FromRef<VideoState> for Arc<JWT> {
-    fn from_ref(input: &VideoState) -> Self {
-        input.jwt.clone()
-    }
-}
-
-impl FromRef<VideoState> for Arc<AccountService> {
-    fn from_ref(input: &VideoState) -> Self {
-        input.account_service.clone()
-    }
 }

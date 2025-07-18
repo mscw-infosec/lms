@@ -44,6 +44,7 @@ pub fn configure(
         client: client.clone(),
         client_id: config.github_client_id.clone(),
         client_secret: config.github_client_secret.clone(),
+        callback_url: config.github_callback_url.clone(),
     };
 
     let github_state = GithubState {
@@ -62,6 +63,7 @@ pub fn configure(
         client,
         client_id: config.yandex_client_id.clone(),
         client_secret: config.yandex_client_secret.clone(),
+        callback_url: config.yandex_callback_url.clone(),
     };
 
     let yandex_state = YandexState {

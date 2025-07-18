@@ -21,6 +21,7 @@ pub struct YandexProvider {
     pub client: reqwest::Client,
     pub client_id: String,
     pub client_secret: String,
+    pub callback_url: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -55,10 +56,7 @@ impl OAuthProvider for YandexProvider {
                     ("code", &code),
                     ("client_id", &self.client_id),
                     ("client_secret", &self.client_secret),
-                    (
-                        "redirect_uri",
-                        "http://localhost:8000/api/oauth/github/callback",
-                    ),
+                    ("redirect_uri", &self.callback_url),
                     ("code_verifier", &code_verifier),
                     ("code_verifier_method", "S256"),
                 ]),

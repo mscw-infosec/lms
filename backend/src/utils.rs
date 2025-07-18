@@ -52,7 +52,8 @@ pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
 }
 
 pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
-    add_cookie(cookies, (name, String::new()));
+    let cookie = Cookie::new(name, String::new());
+    cookies.remove(cookie);
 }
 
 pub async fn send_and_parse<T: serde::de::DeserializeOwned>(
