@@ -63,7 +63,6 @@ impl OAuthProvider for GithubProvider {
                     ("client_secret", &self.client_secret),
                     ("redirect_uri", &self.callback_url),
                     ("code_verifier", &code_verifier),
-                    ("code_challenge_method", "S256"),
                 ])
                 .header(ACCEPT, "application/json"),
             "GitHub token endpoint",

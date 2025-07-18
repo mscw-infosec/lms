@@ -32,7 +32,7 @@ pub async fn callback(
     cookies: Cookies,
     Query(query): Query<OAuthCallbackQuery>,
     State(state): State<GithubState>,
-) -> Result<String, LMSError> {
+) -> Result<Json<OAuthResponse>, LMSError> {
     let (oauth_state, code_verifier) = OAuthService::parse_cookies(&cookies)?;
 
     if oauth_state != query.state {

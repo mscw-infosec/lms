@@ -58,7 +58,6 @@ impl OAuthProvider for YandexProvider {
                     ("client_secret", &self.client_secret),
                     ("redirect_uri", &self.callback_url),
                     ("code_verifier", &code_verifier),
-                    ("code_challenge_method", "S256"),
                 ]),
             "Yandex token endpoint",
         )
