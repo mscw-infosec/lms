@@ -1,4 +1,6 @@
-#[derive(Clone)]
+use validator::Validate;
+
+#[derive(Clone, Validate)]
 pub struct Config {
     pub database_url: String,
     pub redis_url: String,
@@ -8,10 +10,12 @@ pub struct Config {
 
     pub github_client_id: String,
     pub github_client_secret: String,
+    #[validate(url)]
     pub github_callback_url: String,
 
     pub yandex_client_id: String,
     pub yandex_client_secret: String,
+    #[validate(url)]
     pub yandex_callback_url: String,
 
     pub channel_id: String,
@@ -24,7 +28,7 @@ pub fn env(key: &str) -> String {
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
-        Ok(Self {
+        let config = Self {
             database_url: env("DATABASE_URL"),
             redis_url: env("REDIS_URL"),
             jwt_secret: env("JWT_SECRET"),
@@ -37,6 +41,10 @@ impl Config {
             yandex_callback_url: env("YANDEX_CALLBACK_URL"),
             channel_id: env("CHANNEL_ID"),
             iam_key_file: env("IAM_KEY_FILE"),
-        })
+        };
+
+        config.validate().expect("Config should be correct");
+
+        Ok(config)
     }
 }

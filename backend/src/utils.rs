@@ -52,7 +52,7 @@ pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
 }
 
 pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
-    let cookie = Cookie::build((name, String::new())).removal().build();
+    let cookie = Cookie::build((name, "")).removal().build();
     cookies.remove(cookie);
 }
 

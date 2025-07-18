@@ -77,8 +77,8 @@ impl OAuthProvider for YandexProvider {
             username: user.display_name,
             email: user.default_email,
             avatar_url: format!(
-                "{YANDEX_AVATAR_URL}/{}/{YANDEX_AVATAR_SIZE}",
-                user.default_avatar_id
+                "{}/{}/{}",
+                YANDEX_AVATAR_URL, user.default_avatar_id, YANDEX_AVATAR_SIZE,
             ),
             provider: Providers::Yandex,
         };
