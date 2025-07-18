@@ -57,7 +57,9 @@ impl Config {
             s3_bucket_name: env("S3_BUCKET_NAME"),
         };
 
-        config.validate().expect("Config should be correct");
+        if let Err(validation_errors) = config.validate() {
+            return Err(anyhow::anyhow!("Config validation failed: {:?}", validation_errors));
+        }
 
         Ok(config)
     }
