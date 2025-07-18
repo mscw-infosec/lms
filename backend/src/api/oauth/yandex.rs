@@ -1,4 +1,5 @@
 use axum::{
+    Json,
     extract::{Query, State},
     response::Redirect,
 };
@@ -7,7 +8,7 @@ use tower_cookies::Cookies;
 use crate::{
     api::oauth::YandexState,
     domain::oauth::service::{OAuthProvider, OAuthService},
-    dto::oauth::OAuthCallbackQuery,
+    dto::oauth::{OAuthCallbackQuery, OAuthResponse},
     errors::LMSError,
     utils::{add_cookie, remove_cookie},
 };
@@ -30,7 +31,7 @@ pub async fn callback(
     cookies: Cookies,
     Query(query): Query<OAuthCallbackQuery>,
     State(state): State<YandexState>,
-) -> Result<String, LMSError> {
+) -> Result<Json<OAuthResponse>, LMSError> {
     let (oauth_state, code_verifier) = OAuthService::parse_cookies(&cookies)?;
 
     if oauth_state != query.state {
@@ -56,5 +57,5 @@ pub async fn callback(
     remove_cookie(&cookies, "oauth_state");
     remove_cookie(&cookies, "code_verifier");
 
-    Ok(access_token)
+    Ok(Json(OAuthResponse { access_token }))
 }
