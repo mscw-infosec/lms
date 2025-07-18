@@ -9,11 +9,11 @@ pub mod routes;
 
 #[derive(FromRef, Clone)]
 pub struct AuthState {
-    pub refresh_service: Arc<RefreshTokenService>,
+    pub refresh_service: RefreshTokenService,
     pub jwt: Arc<JWT>,
 }
 
-pub fn configure(refresh_service: Arc<RefreshTokenService>, jwt: Arc<JWT>) -> OpenApiRouter {
+pub fn configure(refresh_service: RefreshTokenService, jwt: Arc<JWT>) -> OpenApiRouter {
     let auth_state = AuthState {
         refresh_service,
         jwt,

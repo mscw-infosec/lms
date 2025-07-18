@@ -10,11 +10,11 @@ use crate::{domain::account::service::AccountService, infrastructure::jwt::JWT};
 
 #[derive(FromRef, Clone)]
 pub struct AccountState {
-    pub account_service: Arc<AccountService>,
+    pub account_service: AccountService,
     pub jwt: Arc<JWT>,
 }
 
-pub fn configure(account_service: Arc<AccountService>, jwt: Arc<JWT>) -> OpenApiRouter {
+pub fn configure(account_service: AccountService, jwt: Arc<JWT>) -> OpenApiRouter {
     let state = AccountState {
         account_service,
         jwt,
@@ -22,5 +22,6 @@ pub fn configure(account_service: Arc<AccountService>, jwt: Arc<JWT>) -> OpenApi
 
     OpenApiRouter::new()
         .routes(routes!(get_user))
+        .routes(routes!(upload_avatar))
         .with_state(state)
 }

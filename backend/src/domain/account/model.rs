@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
+use redis_macros::{FromRedisValue, ToRedisArgs};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::{FromRow, Type};
 use utoipa::ToSchema;
@@ -19,7 +20,7 @@ pub enum UserRole {
     Admin,
 }
 
-#[derive(Serialize, Deserialize, Default, FromRow)]
+#[derive(Serialize, Deserialize, Default, FromRow, Debug, FromRedisValue, ToRedisArgs)]
 pub struct UserModel {
     pub id: Uuid,
     pub username: String,

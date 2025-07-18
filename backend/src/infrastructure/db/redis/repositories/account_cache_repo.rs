@@ -4,7 +4,7 @@ use crate::{
     infrastructure::db::redis::RepositoryRedis,
 };
 use async_trait::async_trait;
-use redis::AsyncTypedCommands;
+use redis::JsonAsyncCommands;
 use uuid::Uuid;
 
 #[async_trait]
@@ -17,19 +17,29 @@ impl AccountCacheRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::user_key(id);
 
-        let data_json: Option<String> = conn.get(key).await?;
-        match data_json {
-            Some(data) => Ok(Some(serde_json::from_str(&data)?)),
-            None => Ok(None),
-        }
+        Ok(conn.json_get(&key, "$").await?)
     }
 
     async fn store_user(&self, user: &UserModel) -> Result<()> {
         let mut conn = self.conn();
         let key = Self::user_key(user.id);
 
-        let value = serde_json::to_string(user)?;
-        conn.set_ex(key, value, 24 * 60 * 60).await?;
+        let mut pipe = redis::pipe();
+
+        pipe.atomic()
+            .json_set(&key, "$", &user)?
+            .expire(key, 24 * 60 * 60);
+
+        pipe.query_async::<()>(&mut conn).await?;
+
+        Ok(())
+    }
+
+    async fn update_avatar(&self, id: Uuid, avatar_path: &str) -> Result<()> {
+        let mut conn = self.conn();
+        let key = Self::user_key(id);
+
+        let _: () = conn.json_set(key, "avatar_url", &avatar_path).await?;
 
         Ok(())
     }

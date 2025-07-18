@@ -7,14 +7,16 @@ use super::{model::BasicUser, repository::BasicAuthRepository};
 use crate::{
     errors::{LMSError, Result},
     infrastructure::crypto::Argon,
+    repo,
 };
 
+#[derive(Clone)]
 pub struct BasicAuthService {
-    repo: Arc<dyn BasicAuthRepository + Send + Sync>,
+    repo: repo!(BasicAuthRepository),
 }
 
 impl BasicAuthService {
-    pub const fn new(repo: Arc<dyn BasicAuthRepository + Send + Sync>) -> Self {
+    pub const fn new(repo: repo!(BasicAuthRepository)) -> Self {
         Self { repo }
     }
 

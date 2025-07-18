@@ -20,31 +20,31 @@ use crate::{
 #[derive(Clone)]
 pub struct GithubState {
     pub jwt: Arc<JWT>,
-    pub oauth_service: Arc<OAuthService>,
+    pub oauth_service: OAuthService,
     pub github_provider: GithubProvider,
-    pub refresh_token_service: Arc<RefreshTokenService>,
+    pub refresh_token_service: RefreshTokenService,
 }
 
 #[derive(Clone)]
 pub struct YandexState {
     pub jwt: Arc<JWT>,
-    pub oauth_service: Arc<OAuthService>,
+    pub oauth_service: OAuthService,
     pub yandex_provider: YandexProvider,
-    pub refresh_token_service: Arc<RefreshTokenService>,
+    pub refresh_token_service: RefreshTokenService,
 }
 
 pub fn configure(
     jwt: Arc<JWT>,
     client: reqwest::Client,
-    oauth_service: Arc<OAuthService>,
-    refresh_token_service: Arc<RefreshTokenService>,
-    config: &Arc<Config>,
+    oauth_service: OAuthService,
+    refresh_token_service: RefreshTokenService,
+    config: Config,
 ) -> OpenApiRouter {
     let github_provider = GithubProvider {
         client: client.clone(),
-        client_id: config.github_client_id.clone(),
-        client_secret: config.github_client_secret.clone(),
-        callback_url: config.github_callback_url.clone(),
+        client_id: config.github_client_id,
+        client_secret: config.github_client_secret,
+        callback_url: config.github_callback_url,
     };
 
     let github_state = GithubState {
@@ -61,9 +61,9 @@ pub fn configure(
 
     let yandex_provider = YandexProvider {
         client,
-        client_id: config.yandex_client_id.clone(),
-        client_secret: config.yandex_client_secret.clone(),
-        callback_url: config.yandex_callback_url.clone(),
+        client_id: config.yandex_client_id,
+        client_secret: config.yandex_client_secret,
+        callback_url: config.yandex_callback_url,
     };
 
     let yandex_state = YandexState {

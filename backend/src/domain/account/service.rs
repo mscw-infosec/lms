@@ -1,5 +1,5 @@
+use s3::post_policy::PresignedPost;
 use std::sync::Arc;
-
 use uuid::Uuid;
 
 use crate::{
@@ -8,22 +8,27 @@ use crate::{
         repository::{AccountCacheRepository, AccountRepository},
     },
     errors::{LMSError, Result},
+    infrastructure::s3::S3Manager,
+    repo,
 };
 
 #[derive(Clone)]
 pub struct AccountService {
-    db_repo: Arc<dyn AccountRepository + Send + Sync>,
-    cache_repo: Arc<dyn AccountCacheRepository + Send + Sync>,
+    db_repo: repo!(AccountRepository),
+    cache_repo: repo!(AccountCacheRepository),
+    s3: S3Manager,
 }
 
 impl AccountService {
     pub const fn new(
-        db_repo: Arc<dyn AccountRepository + Send + Sync>,
-        cache_repo: Arc<dyn AccountCacheRepository + Send + Sync>,
+        db_repo: repo!(AccountRepository),
+        cache_repo: repo!(AccountCacheRepository),
+        s3: S3Manager,
     ) -> Self {
         Self {
             db_repo,
             cache_repo,
+            s3,
         }
     }
 
@@ -43,17 +48,16 @@ impl AccountService {
         Ok(user)
     }
 
-    // TODO: future me, you need to implement those
-    //
-    // pub fn change_password(&self, id: Uuid) -> Result<()> {
-    //     todo!()
-    // }
-    //
-    // pub fn set_role(&self, id: Uuid, role: UserRole) -> Result<UserModel> {
-    //     todo!()
-    // }
-    //
-    // pub fn set_attributes(&self, id: Uuid, attributes: &Attributes) -> Result<UserModel> {
-    //     todo!()
-    // }
+    pub async fn presigned_url(&self, id: Uuid) -> Result<PresignedPost> {
+        let path = format!("avatars/{id}");
+        let presigned = self.s3.presign_post(&path).await?;
+
+        let url = format!("{}/{}", presigned.url, path);
+
+        let db_future = self.db_repo.update_avatar(id, &url);
+        let cache_future = self.cache_repo.update_avatar(id, &url);
+        tokio::try_join!(db_future, cache_future)?;
+
+        Ok(presigned)
+    }
 }

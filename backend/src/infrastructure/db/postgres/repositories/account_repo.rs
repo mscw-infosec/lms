@@ -58,4 +58,20 @@ impl AccountRepository for RepositoryPostgres {
 
         Ok(user)
     }
+
+    async fn update_avatar(&self, id: Uuid, avatar_path: &str) -> Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE users
+            SET avatar_url = $2
+            WHERE id = $1
+            "#,
+            id,
+            avatar_path
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
 }

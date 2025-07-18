@@ -8,7 +8,7 @@ use tower_cookies::Cookies;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{errors::LMSError, utils::generate_random_string};
+use crate::{errors::LMSError, repo, utils::generate_random_string};
 
 use super::{
     model::{OAuth, OAuthUser},
@@ -28,12 +28,13 @@ pub trait OAuthProvider {
     async fn get_user(&self, code: String, code_verifier: String) -> Result<OAuth, LMSError>;
 }
 
+#[derive(Clone)]
 pub struct OAuthService {
-    repo: Arc<dyn OAuthRepository + Send + Sync>,
+    repo: repo!(OAuthRepository),
 }
 
 impl OAuthService {
-    pub const fn new(repo: Arc<dyn OAuthRepository + Send + Sync>) -> Self {
+    pub const fn new(repo: repo!(OAuthRepository)) -> Self {
         Self { repo }
     }
 

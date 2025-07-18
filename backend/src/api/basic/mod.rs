@@ -12,14 +12,14 @@ pub mod routes;
 
 #[derive(Clone)]
 pub struct BasicAuthState {
-    pub basic_auth_service: Arc<BasicAuthService>,
-    pub refresh_service: Arc<RefreshTokenService>,
+    pub basic_auth_service: BasicAuthService,
+    pub refresh_service: RefreshTokenService,
     pub jwt: Arc<JWT>,
 }
 
 pub fn configure(
-    basic_auth_service: Arc<BasicAuthService>,
-    refresh_service: Arc<RefreshTokenService>,
+    basic_auth_service: BasicAuthService,
+    refresh_service: RefreshTokenService,
     jwt: Arc<JWT>,
 ) -> OpenApiRouter {
     let state = BasicAuthState {

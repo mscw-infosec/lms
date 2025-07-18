@@ -6,7 +6,6 @@ use axum::{
 };
 use rand::{Rng, distr::Alphanumeric};
 use serde::{Serialize, de::DeserializeOwned};
-use serde_json::json;
 use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 use tracing::warn;
 use validator::Validate;
@@ -93,8 +92,16 @@ where
     T: DeserializeOwned,
     S: BuildHasher,
 {
-    let json_map = map.into_iter().map(|(k, v)| (k, json!(v))).collect();
-    let value = serde_json::Value::Object(json_map);
+    let json_map = map
+        .into_iter()
+        .map(|(k, v)| {
+            (
+                k,
+                serde_json::from_str(&v).expect("Got values from redis where the are all json"),
+            )
+        })
+        .collect();
 
+    let value = serde_json::Value::Object(json_map);
     serde_json::from_value(value)
 }
