@@ -24,6 +24,7 @@ pub struct OAuthUser {
     pub username: String,
     pub email: String,
     pub role: UserRole,
+    pub avatar_url: String,
     pub provider: Providers,
     pub provider_user_id: String,
 }
@@ -35,6 +36,7 @@ impl From<OAuth> for OAuthUser {
             username: value.username,
             email: value.email,
             role: UserRole::Student,
+            avatar_url: value.avatar_url,
             provider: value.provider,
             provider_user_id: value.client_id,
         }

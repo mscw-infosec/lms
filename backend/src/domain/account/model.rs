@@ -28,6 +28,7 @@ pub struct UserModel {
 
     pub password: Option<String>,
     pub attributes: Attributes,
+    pub avatar_url: Option<String>,
 
     pub created_at: DateTime<Utc>,
 }
