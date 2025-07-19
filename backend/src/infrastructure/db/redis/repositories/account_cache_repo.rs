@@ -34,13 +34,4 @@ impl AccountCacheRepository for RepositoryRedis {
 
         Ok(())
     }
-
-    async fn update_avatar(&self, id: Uuid, avatar_path: &str) -> Result<()> {
-        let mut conn = self.conn();
-        let key = Self::user_key(id);
-
-        let _: () = conn.json_set(key, "avatar_url", &avatar_path).await?;
-
-        Ok(())
-    }
 }

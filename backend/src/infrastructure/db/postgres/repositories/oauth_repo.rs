@@ -37,14 +37,13 @@ impl OAuthRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-            INSERT INTO users(id, username, email, role, avatar_url)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO users(id, username, email, role)
+            VALUES ($1, $2, $3, $4)
             "#,
             user.id,
             user.username,
             user.email,
             user.role as UserRole,
-            user.avatar_url
         )
         .execute(tx.as_mut())
         .await?;

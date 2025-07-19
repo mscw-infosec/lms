@@ -35,7 +35,7 @@ impl AccountRepository for RepositoryPostgres {
 
         let user = sqlx::query!(
             r#"
-            SELECT u.id, u.username, u.email, u.created_at, u.avatar_url,
+            SELECT u.id, u.username, u.email, u.created_at,
                    u.role as "role: UserRole", ac.password_hash as password
             FROM users u
             LEFT JOIN auth_credentials ac ON ac.user_id = u.id
@@ -52,26 +52,9 @@ impl AccountRepository for RepositoryPostgres {
             role: x.role,
             password: x.password,
             attributes,
-            avatar_url: x.avatar_url,
             created_at: x.created_at,
         });
 
         Ok(user)
-    }
-
-    async fn update_avatar(&self, id: Uuid, avatar_path: &str) -> Result<()> {
-        sqlx::query!(
-            r#"
-            UPDATE users
-            SET avatar_url = $2
-            WHERE id = $1
-            "#,
-            id,
-            avatar_path
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
     }
 }

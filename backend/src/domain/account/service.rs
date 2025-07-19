@@ -52,12 +52,6 @@ impl AccountService {
         let path = format!("avatars/{id}");
         let presigned = self.s3.presign_post(&path).await?;
 
-        let url = format!("{}/{}", presigned.url, path);
-
-        let db_future = self.db_repo.update_avatar(id, &url);
-        let cache_future = self.cache_repo.update_avatar(id, &url);
-        tokio::try_join!(db_future, cache_future)?;
-
         Ok(presigned)
     }
 }

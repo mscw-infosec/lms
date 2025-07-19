@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use axum::body::Bytes;
 use s3::post_policy::PresignedPost;
 use serde::Serialize;
 use utoipa::ToSchema;
@@ -14,7 +13,6 @@ pub struct GetUserResponseDTO {
     pub username: String,
     pub email: String,
     pub role: UserRole,
-    pub avatar_url: Option<String>,
 }
 
 impl From<UserModel> for GetUserResponseDTO {
@@ -24,15 +22,8 @@ impl From<UserModel> for GetUserResponseDTO {
             username: value.username,
             email: value.email,
             role: value.role,
-            avatar_url: value.avatar_url,
         }
     }
-}
-
-#[derive(ToSchema)]
-pub struct AvatarUpload {
-    #[schema(value_type = String, format = Binary)]
-    pub avatar: Bytes,
 }
 
 #[derive(Serialize, ToSchema)]

@@ -58,18 +58,18 @@ async fn main() -> anyhow::Result<()> {
     let db_repo = Arc::new(RepositoryPostgres::new(&config.database_url).await?);
     run_migrations(&db_repo).await?;
 
-    let s3 = S3Manager::new(config.clone()).await?;
-    let jwt = Arc::new(JWT::new(&config.jwt_secret));
-    let iam = IAMTokenManager::new(&config.iam_key_file)?;
-    let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
     let client = reqwest::Client::builder()
         .user_agent("LMS Backend")
         .build()
         .expect("Failed to build client");
+    let s3 = S3Manager::new(config.clone(), client.clone()).await?;
+    let jwt = Arc::new(JWT::new(&config.jwt_secret));
+    let iam = IAMTokenManager::new(&config.iam_key_file)?;
+    let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
 
     let account_service = AccountService::new(db_repo.clone(), rdb_repo.clone(), s3.clone());
     let basic_auth_service = BasicAuthService::new(db_repo.clone());
-    let oauth_service = OAuthService::new(db_repo.clone());
+    let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
