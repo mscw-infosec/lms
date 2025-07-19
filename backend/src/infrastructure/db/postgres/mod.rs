@@ -1,13 +1,11 @@
 pub mod repositories;
 
-use std::sync::Arc;
-
 use crate::errors::LMSError;
 use sqlx::{PgPool, Postgres, migrate::Migrator, pool::PoolConnection};
 
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 
-pub async fn run_migrations(pool: &Arc<RepositoryPostgres>) -> anyhow::Result<()> {
+pub async fn run_migrations(pool: &RepositoryPostgres) -> anyhow::Result<()> {
     MIGRATOR.run(&pool.client()).await?;
     Ok(())
 }

@@ -1,14 +1,5 @@
 #![deny(clippy::unwrap_used)]
-#![warn(
-    clippy::all,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::style,
-    clippy::nursery,
-    clippy::correctness,
-    clippy::suspicious,
-    clippy::complexity
-)]
+#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 #![allow(
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
@@ -20,7 +11,6 @@
 )]
 
 use crate::{
-    api::routes,
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
@@ -31,6 +21,7 @@ use crate::{
         db::postgres::{RepositoryPostgres, run_migrations},
         iam::IAMTokenManager,
         logging::init_tracing,
+        s3::S3Manager,
     },
 };
 
@@ -62,28 +53,25 @@ pub mod utils;
 async fn main() -> anyhow::Result<()> {
     init_tracing();
 
-    let config = Arc::new(Config::from_env()?);
+    let config = Config::from_env()?;
 
     let db_repo = Arc::new(RepositoryPostgres::new(&config.database_url).await?);
     run_migrations(&db_repo).await?;
 
-    let jwt = Arc::new(JWT::new(&config.jwt_secret));
-    let iam = IAMTokenManager::new(&config.iam_key_file)?;
-    let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
     let client = reqwest::Client::builder()
         .user_agent("LMS Backend")
         .build()
         .expect("Failed to build client");
+    let s3 = S3Manager::new(config.clone(), client.clone()).await?;
+    let jwt = Arc::new(JWT::new(&config.jwt_secret));
+    let iam = IAMTokenManager::new(&config.iam_key_file)?;
+    let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
 
-    let account_service = Arc::new(AccountService::new(db_repo.clone(), rdb_repo.clone()));
-    let basic_auth_service = Arc::new(BasicAuthService::new(db_repo.clone()));
-    let oauth_service = Arc::new(OAuthService::new(db_repo.clone()));
-    let refresh_token_service = Arc::new(RefreshTokenService::new(rdb_repo.clone(), jwt.clone()));
-    let video_service = Arc::new(VideoService::new(
-        db_repo.clone(),
-        config.channel_id.clone(),
-        iam,
-    )?);
+    let account_service = AccountService::new(db_repo.clone(), rdb_repo.clone(), s3.clone());
+    let basic_auth_service = BasicAuthService::new(db_repo.clone());
+    let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
+    let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
+    let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
@@ -93,15 +81,15 @@ async fn main() -> anyhow::Result<()> {
                 .route("/health", get(|| async { StatusCode::OK }))
                 .nest(
                     "/account",
-                    routes::account::configure(account_service.clone(), jwt.clone()),
+                    api::account::configure(account_service.clone(), jwt.clone()),
                 )
                 .nest(
                     "/auth",
-                    routes::auth::configure(refresh_token_service.clone(), jwt.clone()),
+                    api::auth::configure(refresh_token_service.clone(), jwt.clone()),
                 )
                 .nest(
                     "/basic",
-                    routes::basic::configure(
+                    api::basic::configure(
                         basic_auth_service,
                         refresh_token_service.clone(),
                         jwt.clone(),
@@ -109,17 +97,17 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/oauth",
-                    routes::oauth::configure(
+                    api::oauth::configure(
                         jwt.clone(),
                         client,
                         oauth_service,
                         refresh_token_service,
-                        &config.clone(),
+                        config.clone(),
                     ),
                 )
                 .nest(
                     "/video",
-                    routes::video::configure(video_service, account_service, jwt)?,
+                    api::video::configure(video_service, account_service, jwt)?,
                 ),
         )
         .layer(CookieManagerLayer::new())

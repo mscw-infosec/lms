@@ -8,7 +8,7 @@ use tower_cookies::Cookies;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{errors::LMSError, utils::generate_random_string};
+use crate::{errors::LMSError, infrastructure::s3::S3Manager, repo, utils::generate_random_string};
 
 use super::{
     model::{OAuth, OAuthUser},
@@ -18,7 +18,7 @@ use super::{
 #[derive(Deserialize, Debug)]
 pub struct AccessTokenResponse {
     pub access_token: String,
-    pub scope: String,
+    pub scope: Option<String>,
     pub token_type: String,
 }
 
@@ -28,27 +28,34 @@ pub trait OAuthProvider {
     async fn get_user(&self, code: String, code_verifier: String) -> Result<OAuth, LMSError>;
 }
 
+#[derive(Clone)]
 pub struct OAuthService {
-    repo: Arc<dyn OAuthRepository + Send + Sync>,
+    repo: repo!(OAuthRepository),
+    s3: S3Manager,
 }
 
 impl OAuthService {
-    pub const fn new(repo: Arc<dyn OAuthRepository + Send + Sync>) -> Self {
-        Self { repo }
+    pub const fn new(repo: repo!(OAuthRepository), s3: S3Manager) -> Self {
+        Self { repo, s3 }
     }
 
     pub async fn save_user(&self, oauth_user: OAuth) -> Result<Uuid, LMSError> {
         let user_id = self.repo.find_by_email(&oauth_user.email).await?;
 
-        let user_id = if let Some(user) = user_id {
+        if let Some(user) = user_id {
             self.repo.add_provider(user, oauth_user).await?;
-            user
-        } else {
-            let user: OAuthUser = oauth_user.into();
-            let user_id = user.id;
-            self.repo.create_user_with_provider(user).await?;
-            user_id
-        };
+            return Ok(user);
+        }
+
+        let user: OAuthUser = oauth_user.into();
+        let user_id = user.id;
+        let avatar_url = user.avatar_url.clone();
+
+        self.repo.create_user_with_provider(user).await?;
+
+        self.s3
+            .save_from_url(&format!("avatars/{user_id}"), &avatar_url)
+            .await?;
 
         Ok(user_id)
     }

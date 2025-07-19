@@ -21,6 +21,11 @@ pub struct BasicRegisterResponse {
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
+pub struct BasicLoginResponse {
+    pub access_token: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct BasicLoginRequest {
     #[schema(example = "John Doe")]
     pub username: String,

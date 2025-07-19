@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO users(id, username, email, role)\n            VALUES ($1, $2, $3, $4)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "userrole",
+            "kind": {
+              "Enum": [
+                "Student",
+                "Teacher",
+                "Admin"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "77ee6a8f97ee0c957a9ce700b1a4e3d58ffb4c6d932edf0f1f4fc87ea0e5bbd9"
+}

@@ -2,7 +2,9 @@ use axum::{Json, extract::State};
 use tower_cookies::Cookies;
 
 use crate::{
-    dto::basic::{BasicLoginRequest, BasicRegisterRequest, BasicRegisterResponse},
+    dto::basic::{
+        BasicLoginRequest, BasicLoginResponse, BasicRegisterRequest, BasicRegisterResponse,
+    },
     errors::LMSError,
     utils::{ValidatedJson, add_cookie},
 };
@@ -53,7 +55,7 @@ pub async fn register(
     path = "/login",
     request_body = BasicLoginRequest,
     responses(
-        (status = 200, description = "Set session cookie", headers(
+        (status = 200, body = BasicLoginResponse, description = "Returns access and refresh tokens", headers(
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 403, description = "Wrong email or password")
@@ -63,7 +65,7 @@ pub async fn login(
     cookies: Cookies,
     State(state): State<BasicAuthState>,
     Json(payload): Json<BasicLoginRequest>,
-) -> Result<String, LMSError> {
+) -> Result<Json<BasicLoginResponse>, LMSError> {
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.basic_auth_service.login(username, password).await?;
@@ -73,5 +75,5 @@ pub async fn login(
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
-    Ok(access_token)
+    Ok(Json(BasicLoginResponse { access_token }))
 }

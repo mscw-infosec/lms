@@ -43,7 +43,7 @@ impl OAuthRepository for RepositoryPostgres {
             user.id,
             user.username,
             user.email,
-            user.role as UserRole
+            user.role as UserRole,
         )
         .execute(tx.as_mut())
         .await?;

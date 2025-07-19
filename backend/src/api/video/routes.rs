@@ -4,7 +4,7 @@ use axum::{
 };
 
 use crate::{
-    api::routes::video::VideoState,
+    api::video::VideoState,
     domain::account::model::{UserModel, UserRole},
     dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO, GetVideoUrlResponseDTO},
     errors::{LMSError, Result},

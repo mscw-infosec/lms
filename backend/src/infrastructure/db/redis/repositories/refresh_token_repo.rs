@@ -1,5 +1,3 @@
-use std::collections::{HashMap, HashSet};
-
 use async_trait::async_trait;
 use redis::{AsyncTypedCommands, HashFieldExpirationOptions, SetExpiry};
 use serde_json;
@@ -41,7 +39,7 @@ impl RefreshTokenRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::token_key(jti);
 
-        let data_json: HashMap<String, String> = conn.hgetall(&key).await?;
+        let data_json = conn.hgetall(&key).await?;
         if data_json.is_empty() {
             return Ok(None);
         }
@@ -90,7 +88,7 @@ impl RefreshTokenRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::user_sessions_key(user_id);
 
-        let jtis: HashSet<String> = conn.smembers(&key).await?;
+        let jtis = conn.smembers(&key).await?;
         let mut sessions = Vec::new();
 
         for jti_str in jtis {
@@ -113,7 +111,7 @@ impl RefreshTokenRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::user_sessions_key(user_id);
 
-        let jtis: HashSet<String> = conn.smembers(&key).await?;
+        let jtis = conn.smembers(&key).await?;
 
         for jti_str in jtis {
             if let Ok(jti) = Uuid::parse_str(&jti_str) {

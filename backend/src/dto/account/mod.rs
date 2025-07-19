@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use s3::post_policy::PresignedPost;
 use serde::Serialize;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -19,6 +22,21 @@ impl From<UserModel> for GetUserResponseDTO {
             username: value.username,
             email: value.email,
             role: value.role,
+        }
+    }
+}
+
+#[derive(Serialize, ToSchema)]
+pub struct AvatarUploadResponse {
+    pub url: String,
+    pub fields: HashMap<String, String>,
+}
+
+impl From<PresignedPost> for AvatarUploadResponse {
+    fn from(value: PresignedPost) -> Self {
+        Self {
+            url: value.url,
+            fields: value.fields,
         }
     }
 }

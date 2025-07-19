@@ -65,6 +65,9 @@ pub enum LMSError {
 
     #[error("{0}")]
     GRPCError(#[from] tonic_exports::Status),
+
+    #[error("{0}")]
+    S3Error(#[from] s3::error::S3Error),
 }
 
 impl IntoResponse for LMSError {
@@ -79,7 +82,8 @@ impl IntoResponse for LMSError {
             | Self::DeployError(_)
             | Self::RedisError(_)
             | Self::SerdeError(_)
-            | Self::GRPCError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            | Self::GRPCError(_)
+            | Self::S3Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unimplemented => StatusCode::NOT_IMPLEMENTED,
             Self::Forbidden(_) | Self::InvalidToken(_) => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError => StatusCode::CONFLICT,

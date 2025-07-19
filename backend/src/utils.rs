@@ -6,11 +6,7 @@ use axum::{
 };
 use rand::{Rng, distr::Alphanumeric};
 use serde::{Serialize, de::DeserializeOwned};
-use serde_json::json;
-use tower_cookies::{
-    Cookie, Cookies,
-    cookie::{SameSite, time::OffsetDateTime},
-};
+use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 use tracing::warn;
 use validator::Validate;
 
@@ -55,10 +51,7 @@ pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
 }
 
 pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
-    let cookie = Cookie::build((name, ""))
-        .expires(OffsetDateTime::now_utc())
-        .build();
-
+    let cookie = Cookie::build((name, "")).removal().build();
     cookies.remove(cookie);
 }
 
@@ -99,8 +92,16 @@ where
     T: DeserializeOwned,
     S: BuildHasher,
 {
-    let json_map = map.into_iter().map(|(k, v)| (k, json!(v))).collect();
-    let value = serde_json::Value::Object(json_map);
+    let json_map = map
+        .into_iter()
+        .map(|(k, v)| {
+            (
+                k,
+                serde_json::from_str(&v).expect(&format!("Failed to parse Redis value as JSON: {}", v)),
+            )
+        })
+        .collect();
 
+    let value = serde_json::Value::Object(json_map);
     serde_json::from_value(value)
 }
