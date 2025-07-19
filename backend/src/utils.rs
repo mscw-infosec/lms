@@ -97,7 +97,7 @@ where
         .map(|(k, v)| {
             (
                 k,
-                serde_json::from_str(&v).expect("Got values from redis where they are all json"),
+                serde_json::from_str(&v).expect(&format!("Failed to parse Redis value as JSON: {}", v)),
             )
         })
         .collect();

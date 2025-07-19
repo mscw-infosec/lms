@@ -80,7 +80,7 @@ impl S3Manager {
 
         let content_type = response
             .headers()
-            .get("content_type")
+            .get("Content-Type")
             .unwrap_or(&HeaderValue::from_static("image/jpeg"))
             .to_str()
             .map_or_else(|_| "image/jpeg".to_string(), String::from);
