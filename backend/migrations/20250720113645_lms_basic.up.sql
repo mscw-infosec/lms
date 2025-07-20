@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS tasks
     id            SERIAL PRIMARY KEY,
     title         TEXT      NOT NULL,
     description   TEXT,
-    tries_count   INTEGER   NOT NULL DEFAULT 1,
+    tries_count   INTEGER   NOT NULL DEFAULT 0,
     task_type     TASK_TYPE NOT NULL,
     points        INTEGER   NOT NULL,
     configuration JSONB     NOT NULL

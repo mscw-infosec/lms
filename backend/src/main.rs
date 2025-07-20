@@ -18,7 +18,7 @@ use crate::{
         video::service::VideoService,
     },
     infrastructure::{
-        db::postgres::{run_migrations, RepositoryPostgres},
+        db::postgres::{RepositoryPostgres, run_migrations},
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
@@ -113,7 +113,7 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/task",
-                    api::task::configure(task_service, account_service, jwt)?,
+                    api::task::configure(task_service, account_service, jwt),
                 ),
         )
         .layer(CookieManagerLayer::new())

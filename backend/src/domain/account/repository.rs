@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use dyn_clone::{clone_trait_object, DynClone};
+use dyn_clone::{DynClone, clone_trait_object};
 use uuid::Uuid;
 
 use super::model::UserModel;

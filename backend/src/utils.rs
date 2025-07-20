@@ -1,12 +1,12 @@
 use std::{collections::HashMap, hash::BuildHasher};
 
 use axum::{
-    extract::{FromRequest, Request},
     Json,
+    extract::{FromRequest, Request},
 };
-use rand::{distr::Alphanumeric, Rng};
-use serde::{de::DeserializeOwned, Serialize};
-use tower_cookies::{cookie::SameSite, Cookie, Cookies};
+use rand::{Rng, distr::Alphanumeric};
+use serde::{Serialize, de::DeserializeOwned};
+use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 use tracing::warn;
 use validator::Validate;
 
