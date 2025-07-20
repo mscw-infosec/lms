@@ -1,8 +1,8 @@
 #![allow(clippy::needless_for_each)]
 
 use utoipa::{
-    Modify, OpenApi,
-    openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme},
+    openapi::security::{ApiKey, ApiKeyValue, HttpAuthScheme, HttpBuilder, SecurityScheme}, Modify,
+    OpenApi,
 };
 
 struct BearerAuthAddon;
@@ -44,6 +44,7 @@ impl Modify for CookieAuthAddon {
         (name = "OAuth", description = "OAuth providers with callback and login routes"),
         (name = "Auth", description = "Token refresh and session management"),
         (name = "Video", description = "Video creation and streaming"),
+        (name = "Task", description = "Task management")
     ),
     info(title = "LMS Backend"),
     modifiers(&BearerAuthAddon, &CookieAuthAddon)

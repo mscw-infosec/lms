@@ -18,7 +18,7 @@ use crate::{
         video::service::VideoService,
     },
     infrastructure::{
-        db::postgres::{RepositoryPostgres, run_migrations},
+        db::postgres::{run_migrations, RepositoryPostgres},
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
@@ -36,6 +36,7 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
+use crate::domain::task::service::TaskService;
 #[cfg(feature = "swagger")]
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -72,6 +73,7 @@ async fn main() -> anyhow::Result<()> {
     let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
+    let task_service = TaskService::new(db_repo.clone());
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
@@ -107,7 +109,11 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/video",
-                    api::video::configure(video_service, account_service, jwt)?,
+                    api::video::configure(video_service, account_service.clone(), jwt.clone())?,
+                )
+                .nest(
+                    "/task",
+                    api::task::configure(task_service, account_service, jwt)?,
                 ),
         )
         .layer(CookieManagerLayer::new())

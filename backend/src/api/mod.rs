@@ -3,4 +3,5 @@ pub mod auth;
 pub mod basic;
 pub mod middlewares;
 pub mod oauth;
+pub mod task;
 pub mod video;
