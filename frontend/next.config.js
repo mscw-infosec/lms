@@ -5,6 +5,10 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+	output: "standalone",
+	reactStrictMode: true,
+	trailingSlash: false,
+};
 
 export default config;
