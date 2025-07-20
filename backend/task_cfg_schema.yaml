@@ -1,0 +1,48 @@
+---
+name: single_choice
+pretty_name: "Single choice"
+options:
+  - "foo"
+  - "bar"
+  - "baz"
+correct: 0 # 0 - foo
+shuffle: true # true - random shuffling, false - use config order
+---
+name: multiple_choice
+pretty_name: "Multiple choice"
+options:
+  - "foo"
+  - "bar"
+  - "baz"
+  - "prikol"
+correct: [0, 1] # 0 - foo, 1 - bar
+shuffle: true # true - random shuffling, false - use config order
+partial_score: true # true - give {max_point / len(options)} points for every correct ans,
+# reduce for {max_point / len(options)} for every incorrect ans, minimum score is 0
+---
+name: short_text
+pretty_name: "Short text"
+auto_grade: true # true - field answer is not undefined, false - just task collecting texts
+max_chars_count: 100 # default = 100, max = 500
+answers: ["answer1_for_task", "answer2_for_task"] # Vec<Option<String>>
+---
+name: long_text
+pretty_name: "Long text"
+max_chars_count: 500
+---
+name: ordering
+pretty_name: "Ordering"
+items: # always shuffle
+  - "asd"
+  - "fgh"
+  - "jkl"
+  - "qwe"
+answers: [[0, 3, 2, 1], [3, 2, 1, 0]] # 0, 3, 2, 1 = asd,
+---
+name: file_upload
+pretty_name: "File upload"
+max_size: 10MB
+---
+name: ctfd
+pretty_name: "CTFd task"
+task_id: 412 # Task id on CTFd
