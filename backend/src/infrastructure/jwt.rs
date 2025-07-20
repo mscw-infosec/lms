@@ -15,7 +15,7 @@ pub struct AccessTokenClaim {
     pub exp: i64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RefreshTokenClaim {
     pub iss: String,
     pub sub: Uuid,
@@ -96,7 +96,7 @@ impl JWT {
             &self.decoding_key,
             &Validation::new(Algorithm::HS256),
         )
-        .map_err(|_| LMSError::Unauthorized("Invalid token format".to_string()))?;
+        .map_err(|e| LMSError::Unauthorized(format!("Invalid token - {e:?}")))?;
 
         Ok(claim.claims)
     }

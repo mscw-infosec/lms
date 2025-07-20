@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use redis::{AsyncTypedCommands, HashFieldExpirationOptions, SetExpiry};
-use serde_json;
 use uuid::Uuid;
 
 use crate::{
@@ -51,13 +50,21 @@ impl RefreshTokenRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::token_key(jti);
 
-        if let Some(mut data) = self.get_token(jti).await? {
-            data.rotated = true;
-            let data_json = serde_json::to_string(&data)?;
-            conn.hset(&key, "data", data_json).await?;
+        conn.hset(&key, "rotated", "true").await?;
+        Ok(())
+    }
+
+    async fn check_if_rotated(&self, jti: Uuid) -> Result<bool, LMSError> {
+        let mut conn = self.conn();
+        let key = Self::token_key(jti);
+
+        if let Some(rotated) = conn.hget(&key, "rotated").await?
+            && rotated == "false"
+        {
+            return Ok(false);
         }
 
-        Ok(())
+        Ok(true)
     }
 
     async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError> {

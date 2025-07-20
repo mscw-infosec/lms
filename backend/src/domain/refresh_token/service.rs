@@ -64,9 +64,16 @@ impl RefreshTokenService {
         }
 
         self.repo.mark_as_rotated(token.jti).await?;
+        self.repo
+            .remove_from_user_sessions(token.sub, token.jti)
+            .await?;
 
         let (new_token, new_jti) = self.create_refresh_token(token.sub).await?;
         Ok((new_token, new_jti))
+    }
+
+    pub async fn check_if_rotated(&self, jti: Uuid) -> Result<bool> {
+        self.repo.check_if_rotated(jti).await
     }
 
     pub async fn get_user_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>> {

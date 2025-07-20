@@ -3,6 +3,7 @@ use crate::{
     domain::account::model::UserModel,
     dto::account::{AvatarUploadResponse, GetUserResponseDTO},
     errors::LMSError,
+    infrastructure::jwt::AccessTokenClaim,
 };
 use axum::{Json, extract::State};
 
@@ -34,9 +35,9 @@ pub async fn get_user(user: UserModel) -> Result<Json<GetUserResponseDTO>, LMSEr
     )
 )]
 pub async fn upload_avatar(
-    user: UserModel,
+    user: AccessTokenClaim,
     State(state): State<AccountState>,
 ) -> Result<Json<AvatarUploadResponse>, LMSError> {
-    let presigned = state.account_service.presigned_url(user.id).await?;
+    let presigned = state.account_service.presigned_url(user.sub).await?;
     Ok(Json(presigned.into()))
 }

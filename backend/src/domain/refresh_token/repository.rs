@@ -18,6 +18,7 @@ pub trait RefreshTokenRepository: DynClone {
     async fn store_token(&self, jti: Uuid, data: RefreshTokenData) -> Result<(), LMSError>;
     async fn get_token(&self, jti: Uuid) -> Result<Option<RefreshTokenData>, LMSError>;
     async fn mark_as_rotated(&self, jti: Uuid) -> Result<(), LMSError>;
+    async fn check_if_rotated(&self, jti: Uuid) -> Result<bool, LMSError>;
     async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError>;
     async fn add_to_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;
     async fn remove_from_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;

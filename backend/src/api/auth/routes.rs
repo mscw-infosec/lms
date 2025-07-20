@@ -55,11 +55,10 @@ pub async fn refresh(
     )
 )]
 pub async fn get_sessions(
-    token: AccessTokenClaim,
+    AccessTokenClaim { sub, .. }: AccessTokenClaim,
     State(state): State<AuthState>,
 ) -> Result<Json<Vec<SessionInfo>>, LMSError> {
-    let user_id = token.sub;
-    let sessions = state.refresh_service.get_user_sessions(user_id).await?;
+    let sessions = state.refresh_service.get_user_sessions(sub).await?;
     Ok(Json(sessions))
 }
 
@@ -77,11 +76,11 @@ pub async fn get_sessions(
     )
 )]
 pub async fn logout_session(
-    token: AccessTokenClaim,
+    AccessTokenClaim { sub, .. }: AccessTokenClaim,
     Path(jti): Path<Uuid>,
     State(state): State<AuthState>,
 ) -> Result<(), LMSError> {
-    state.refresh_service.logout_session(token.sub, jti).await
+    state.refresh_service.logout_session(sub, jti).await
 }
 
 /// Invalidate all refresh tokens
@@ -98,9 +97,8 @@ pub async fn logout_session(
     )
 )]
 pub async fn logout_all(
-    token: AccessTokenClaim,
+    AccessTokenClaim { sub, .. }: AccessTokenClaim,
     State(state): State<AuthState>,
 ) -> Result<(), LMSError> {
-    let user_id = token.sub;
-    state.refresh_service.logout_all_sessions(user_id).await
+    state.refresh_service.logout_all_sessions(sub).await
 }
