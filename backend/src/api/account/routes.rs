@@ -5,7 +5,7 @@ use crate::{
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
 };
-use axum::{extract::State, Json};
+use axum::{Json, extract::State};
 
 /// Return user object
 #[utoipa::path(

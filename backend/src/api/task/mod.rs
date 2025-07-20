@@ -7,7 +7,6 @@ use std::sync::Arc;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
 mod routes;
-use crate::errors::Result;
 
 #[derive(FromRef, Clone)]
 pub struct TaskState {
@@ -20,16 +19,17 @@ pub fn configure(
     task_service: TaskService,
     account_service: AccountService,
     jwt: Arc<JWT>,
-) -> Result<OpenApiRouter> {
+) -> OpenApiRouter {
     let state = TaskState {
         task_service,
         account_service,
         jwt,
     };
 
-    let router = OpenApiRouter::new()
+    OpenApiRouter::new()
         .routes(routes!(create))
-        .with_state(state);
-
-    Ok(router)
+        .routes(routes!(get_by_id))
+        .routes(routes!(delete_task))
+        .routes(routes!(update_task))
+        .with_state(state)
 }

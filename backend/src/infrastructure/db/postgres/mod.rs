@@ -1,7 +1,7 @@
 pub mod repositories;
 
 use crate::errors::LMSError;
-use sqlx::{migrate::Migrator, pool::PoolConnection, PgPool, Postgres};
+use sqlx::{PgPool, Postgres, migrate::Migrator, pool::PoolConnection};
 
 static MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 

@@ -1,6 +1,6 @@
 use axum::{
-    extract::{Path, State},
     Json,
+    extract::{Path, State},
 };
 
 use crate::{
@@ -19,6 +19,7 @@ use crate::{
     request_body = CreateVideoRequestDTO,
     responses(
         (status = 200, body = CreateVideoResponseDTO),
+        (status = 401, description = "No auth data found"),
         (status = 403, description = "User has no permission to upload videos")
     ),
     security(
@@ -32,13 +33,12 @@ pub async fn create(
 ) -> Result<Json<CreateVideoResponseDTO>> {
     if matches!(user.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
-            "You can not upload or create videos".to_string(),
+            "You can't upload or create videos".to_string(),
         ));
     }
 
     let video = state.video_service.create(payload).await?;
-    let response = video.into();
-    Ok(Json(response))
+    Ok(Json(video.into()))
 }
 
 /// Return video player url by video id
@@ -47,17 +47,17 @@ pub async fn create(
     path = "/{video_id}",
     tag = "Video",
     responses(
-        (status = 200, body = GetVideoUrlResponseDTO)
+        (status = 200, body = GetVideoUrlResponseDTO),
     ),
     security(
-        ("CookieAuth" = [])
+        ("BearerAuth" = [])
     )
 )]
 pub async fn get_video_url(
     Path(video_id): Path<String>,
     State(state): State<VideoState>,
 ) -> Result<Json<GetVideoUrlResponseDTO>> {
+    // TODO: add ACL for videos
     let url = state.video_service.get_player_url(video_id).await?;
-    let response = url.into();
-    Ok(Json(response))
+    Ok(Json(url.into()))
 }

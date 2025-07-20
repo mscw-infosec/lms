@@ -1,19 +1,83 @@
-use crate::domain::task::model::{Task, TaskConfig, TaskType};
+use crate::domain::task::model::{PublicTaskConfig, Task, TaskConfig, TaskType};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use sqlx::types::JsonValue;
 use sqlx::FromRow;
+use sqlx::types::JsonValue;
 use utoipa::ToSchema;
 use validator::Validate;
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
-pub struct CreateTaskRequestDTO {
+pub struct UpsertTaskRequestDTO {
+    #[validate(length(min = 1, max = 50))]
     pub title: String,
     pub description: Option<String>,
+    #[validate(range(min = 0))]
     pub tries_count: i32,
     pub task_type: TaskType,
+    #[validate(range(min = 0))]
     pub points: i32,
+    #[validate(nested)]
     pub configuration: TaskConfig,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct TaskId {
+    #[validate(range(min = 1))]
+    pub id: i32,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct PublicTaskDTO {
+    pub id: i64,
+    pub title: String,
+    pub description: Option<String>,
+    pub tries_count: i64,
+    pub task_type: TaskType,
+    pub points: i64,
+    pub configuration: PublicTaskConfig,
+}
+
+impl From<Task> for PublicTaskDTO {
+    fn from(value: Task) -> Self {
+        Self {
+            id: value.id,
+            title: value.title,
+            description: value.description,
+            tries_count: value.tries_count,
+            task_type: value.task_type,
+            points: value.points,
+            configuration: value.configuration.into(),
+        }
+    }
+}
+
+impl From<TaskConfig> for PublicTaskConfig {
+    fn from(value: TaskConfig) -> Self {
+        match value {
+            TaskConfig::SingleChoice { options, .. } => Self::SingleChoice { options },
+
+            TaskConfig::MultipleChoice {
+                options,
+                partial_score,
+                ..
+            } => Self::MultipleChoice {
+                options,
+                partial_score,
+            },
+
+            TaskConfig::ShortText {
+                max_chars_count, ..
+            } => Self::ShortText { max_chars_count },
+
+            TaskConfig::LongText { max_chars_count } => Self::LongText { max_chars_count },
+
+            TaskConfig::Ordering { items, .. } => Self::Ordering { items },
+
+            TaskConfig::FileUpload { max_size } => Self::FileUpload { max_size },
+
+            TaskConfig::CTFd { task_id } => Self::CTFd { task_id },
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, ToSchema, FromRow)]

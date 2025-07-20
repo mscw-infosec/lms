@@ -2,15 +2,15 @@ use std::{fs, path::Path};
 
 use crate::errors::Result;
 use chrono::{DateTime, Duration, Utc};
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use yandex_cloud::{
     tonic_exports::Endpoint,
     yandex::cloud::iam::v1::{
-        create_iam_token_request::Identity, iam_token_service_client::IamTokenServiceClient,
-        CreateIamTokenRequest,
+        CreateIamTokenRequest, create_iam_token_request::Identity,
+        iam_token_service_client::IamTokenServiceClient,
     },
 };
 
