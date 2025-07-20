@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["Maksim Nikitin <cfrt.dev@gmail.com>", "Mikhail Reznichenko <me@justmarfix.ru>"]
 license = "MIT"
 repository = "https://github.com/mscw-infosec/lms"
+rust-version = "1.88"
 publish = false
 
 [features]
