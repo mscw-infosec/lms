@@ -1,5 +1,4 @@
 use crate::domain::task::model::{PublicTaskConfig, Task, TaskConfig, TaskType};
-use axum::Json;
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
 use sqlx::FromRow;
@@ -89,12 +88,6 @@ pub struct CreateTaskResponseDTO {
 impl From<Task> for CreateTaskResponseDTO {
     fn from(val: Task) -> Self {
         Self { id: val.id }
-    }
-}
-
-impl From<Task> for Json<CreateTaskResponseDTO> {
-    fn from(val: Task) -> Self {
-        Self(val.into())
     }
 }
 

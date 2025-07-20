@@ -37,7 +37,7 @@ pub async fn create(
 
     let task = state.task_service.create_task(payload).await?;
 
-    Ok((StatusCode::CREATED, task.into()))
+    Ok((StatusCode::CREATED, Json(task.into())))
 }
 
 /// Get task by id
