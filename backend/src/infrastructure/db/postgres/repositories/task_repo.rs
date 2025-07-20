@@ -26,8 +26,8 @@ impl TaskRepository for RepositoryPostgres {
             to_value(config.configuration)
                 .expect("Shit happened while converting configuration to serde Value")
         )
-        .fetch_one(conn.as_mut())
-        .await?;
+            .fetch_one(conn.as_mut())
+            .await?;
 
         Ok(task)
     }
@@ -44,8 +44,8 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-        .fetch_one(conn.as_mut())
-        .await.map_err(|e| match e {
+            .fetch_one(conn.as_mut())
+            .await.map_err(|e| match e {
             sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
             _ => LMSError::DatabaseError(e),
         })?;
@@ -72,12 +72,12 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-        .fetch_one(conn.as_mut())
-        .await
-        .map_err(|e| match e {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-            _ => LMSError::DatabaseError(e),
-        })?;
+            .fetch_one(conn.as_mut())
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+                _ => LMSError::DatabaseError(e),
+            })?;
 
         Ok(())
     }
@@ -90,13 +90,14 @@ impl TaskRepository for RepositoryPostgres {
             r#"
             UPDATE tasks
             SET title = $1,
-            description = $2,
-            tries_count = $3,
-            task_type = $4,
-            points = $5,
-            configuration = $6
+                description = $2,
+                tries_count = $3,
+                task_type = $4,
+                points = $5,
+                configuration = $6
             WHERE id = $7
-            RETURNING id, title, description, tries_count, task_type AS "task_type: TaskType", points, configuration
+            RETURNING id, title, description, tries_count,
+                      task_type AS "task_type: TaskType", points, configuration
             "#,
             task_data.title,
             task_data.description,
@@ -107,12 +108,12 @@ impl TaskRepository for RepositoryPostgres {
                 .expect("Shit happened while converting configuration to serde Value"),
             task_id
         )
-        .fetch_one(conn.as_mut())
-        .await
-        .map_err(|e| match e {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-            _ => LMSError::DatabaseError(e),
-        })?;
+            .fetch_one(conn.as_mut())
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+                _ => LMSError::DatabaseError(e),
+            })?;
 
         Ok(task)
     }
