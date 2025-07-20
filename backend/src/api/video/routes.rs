@@ -38,8 +38,7 @@ pub async fn create(
     }
 
     let video = state.video_service.create(payload).await?;
-    let response = video.into();
-    Ok(Json(response))
+    Ok(Json(video.into()))
 }
 
 /// Return video player url by video id
@@ -60,6 +59,5 @@ pub async fn get_video_url(
 ) -> Result<Json<GetVideoUrlResponseDTO>> {
     // TODO: add ACL for videos
     let url = state.video_service.get_player_url(video_id).await?;
-    let response = url.into();
-    Ok(Json(response))
+    Ok(Json(url.into()))
 }
