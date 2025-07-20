@@ -3,8 +3,8 @@ use std::{borrow::Cow, sync::Arc};
 use axum::http::HeaderValue;
 use futures::StreamExt;
 use s3::{
-    Bucket, BucketConfiguration, PostPolicy, PostPolicyField, PostPolicyValue, Region,
-    creds::Credentials, error::S3Error, post_policy::PresignedPost,
+    creds::Credentials, error::S3Error, post_policy::PresignedPost, Bucket, BucketConfiguration, PostPolicy,
+    PostPolicyField, PostPolicyValue, Region,
 };
 use tokio_util::io::StreamReader;
 use tracing::warn;

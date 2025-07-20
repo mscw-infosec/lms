@@ -1,6 +1,6 @@
 use axum::{
-    Json,
     extract::{Path, State},
+    Json,
 };
 
 use crate::{
@@ -18,7 +18,8 @@ use crate::{
     tag = "Video",
     request_body = CreateVideoRequestDTO,
     responses(
-        (status = 200, body = CreateVideoResponseDTO)
+        (status = 200, body = CreateVideoResponseDTO),
+        (status = 403, description = "User has no permission to upload videos")
     ),
     security(
         ("BearerAuth" = [])

@@ -1,7 +1,7 @@
 use axum::http::HeaderMap;
 use chrono::{Duration, Utc};
-use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tower_cookies::Cookies;
 use uuid::Uuid;
 

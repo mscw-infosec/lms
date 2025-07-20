@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
+use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use tower_cookies::Cookies;

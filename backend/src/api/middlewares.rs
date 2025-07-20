@@ -12,7 +12,7 @@ use crate::{
         refresh_token::service::RefreshTokenService,
     },
     errors::LMSError,
-    infrastructure::jwt::{AccessTokenClaim, JWT, RefreshTokenClaim},
+    infrastructure::jwt::{AccessTokenClaim, RefreshTokenClaim, JWT},
 };
 
 impl<S> FromRequestParts<S> for AccessTokenClaim

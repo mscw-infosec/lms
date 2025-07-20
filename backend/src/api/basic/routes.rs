@@ -1,4 +1,4 @@
-use axum::{Json, extract::State};
+use axum::{extract::State, Json};
 use tower_cookies::Cookies;
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
         BasicLoginRequest, BasicLoginResponse, BasicRegisterRequest, BasicRegisterResponse,
     },
     errors::LMSError,
-    utils::{ValidatedJson, add_cookie},
+    utils::{add_cookie, ValidatedJson},
 };
 
 use super::BasicAuthState;

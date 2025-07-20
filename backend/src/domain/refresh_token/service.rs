@@ -9,7 +9,7 @@ use crate::{
         repository::RefreshTokenRepository,
     },
     errors::{LMSError, Result},
-    infrastructure::jwt::{JWT, RefreshTokenClaim},
+    infrastructure::jwt::{RefreshTokenClaim, JWT},
     repo,
 };
 

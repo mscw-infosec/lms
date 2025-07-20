@@ -58,7 +58,10 @@ impl Config {
         };
 
         if let Err(validation_errors) = config.validate() {
-            return Err(anyhow::anyhow!("Config validation failed: {:?}", validation_errors));
+            return Err(anyhow::anyhow!(
+                "Config validation failed: {:?}",
+                validation_errors
+            ));
         }
 
         Ok(config)
