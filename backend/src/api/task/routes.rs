@@ -27,7 +27,7 @@ pub async fn create(
 ) -> Result<Json<CreateTaskResponseDTO>, LMSError> {
     if matches!(user.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
-            "You can not upload or create videos".to_string(),
+            "You can not create tasks".to_string(),
         ));
     }
 
