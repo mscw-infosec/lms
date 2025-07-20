@@ -21,14 +21,14 @@ pub struct CreateTaskResponseDTO {
     pub id: i64,
 }
 
-impl Into<CreateTaskResponseDTO> for Task {
-    fn into(self) -> CreateTaskResponseDTO {
-        CreateTaskResponseDTO { id: self.id }
+impl From<Task> for CreateTaskResponseDTO {
+    fn from(val: Task) -> Self {
+        Self { id: val.id }
     }
 }
 
-impl Into<TaskConfig> for JsonValue {
-    fn into(self) -> TaskConfig {
-        from_value(self).expect("Invalid JSON for TaskConfig")
+impl From<JsonValue> for TaskConfig {
+    fn from(val: JsonValue) -> Self {
+        from_value(val).expect("Invalid JSON for TaskConfig")
     }
 }

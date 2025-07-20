@@ -1,7 +1,8 @@
+use crate::domain::task::model::Task;
+use crate::dto::task::CreateTaskRequestDTO;
+use crate::errors::Result;
 use crate::{domain::task::repository::TaskRepository, repo};
 use std::sync::Arc;
-use crate::dto::task::{CreateTaskRequestDTO, CreateTaskResponseDTO};
-use crate::errors::Result;
 
 #[derive(Clone)]
 pub struct TaskService {
@@ -13,7 +14,7 @@ impl TaskService {
         Self { repo }
     }
 
-    pub async fn create(&self, task: CreateTaskRequestDTO) -> Result<CreateTaskResponseDTO> {
-        Ok(self.repo.create(task).await?.into())
+    pub async fn create(&self, task: CreateTaskRequestDTO) -> Result<Task> {
+        self.repo.create(task).await
     }
 }

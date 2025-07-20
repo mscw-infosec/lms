@@ -26,12 +26,10 @@ pub async fn create(
     ValidatedJson(payload): ValidatedJson<CreateTaskRequestDTO>,
 ) -> Result<Json<CreateTaskResponseDTO>, LMSError> {
     if matches!(user.role, UserRole::Student) {
-        return Err(LMSError::Forbidden(
-            "You can not create tasks".to_string(),
-        ));
+        return Err(LMSError::Forbidden("You can not create tasks".to_string()));
     }
 
     let task = state.task_service.create(payload).await?;
 
-    Ok(Json(task))
+    Ok(Json(task.into()))
 }
