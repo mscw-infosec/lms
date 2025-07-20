@@ -1,0 +1,22 @@
+---
+# single_choice
+answer: "asd"
+---
+# multiple_choice
+answers: ["asd", "qwe"]
+---
+# short_text
+answer: "my_prikol is here"
+---
+# long_text
+answer: "look:\nqwe"
+---
+# ordering
+answer: ["asd", "qwe", "qaz", "wsx"]
+---
+# file_upload
+file_id: fffff-fffff-fffff-fffff # uuid
+---
+# ctfd
+# button in user profile: "sync ctfd" + auto-sync every hour
+# QoL: iframes?
