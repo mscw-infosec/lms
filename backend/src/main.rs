@@ -14,8 +14,8 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        oauth::service::OAuthService, refresh_token::service::RefreshTokenService,
-        video::service::VideoService,
+        courses::service::CourseService, oauth::service::OAuthService,
+        refresh_token::service::RefreshTokenService, video::service::VideoService,
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
@@ -31,7 +31,11 @@ use openapi::ApiDoc;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
-use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
+use tower_http::{
+    compression::CompressionLayer,
+    cors::CorsLayer,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+};
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
@@ -70,6 +74,7 @@ async fn main() -> anyhow::Result<()> {
 
     let account_service = AccountService::new(db_repo.clone(), rdb_repo.clone(), s3.clone());
     let basic_auth_service = BasicAuthService::new(db_repo.clone());
+    let course_service = CourseService::new(db_repo.clone());
     let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
@@ -98,6 +103,10 @@ async fn main() -> anyhow::Result<()> {
                     ),
                 )
                 .nest(
+                    "/courses",
+                    api::course::configure(course_service, account_service.clone(), jwt.clone()),
+                )
+                .nest(
                     "/oauth",
                     api::oauth::configure(
                         jwt.clone(),
@@ -117,7 +126,11 @@ async fn main() -> anyhow::Result<()> {
                 ),
         )
         .layer(CookieManagerLayer::new())
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                .on_response(DefaultOnResponse::new().include_headers(true)),
+        )
         .layer(CompressionLayer::new())
         .layer(CorsLayer::permissive())
         .split_for_parts();

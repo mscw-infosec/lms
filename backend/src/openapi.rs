@@ -40,11 +40,12 @@ impl Modify for CookieAuthAddon {
 #[openapi(
     tags(
         (name = "Account", description = "User management"),
-        (name = "Basic", description = "Auth using email and password"),
-        (name = "OAuth", description = "OAuth providers with callback and login routes"),
         (name = "Auth", description = "Token refresh and session management"),
+        (name = "Basic", description = "Auth using email and password"),
+        (name = "Course", description = "Courses management"),
+        (name = "OAuth", description = "OAuth providers with callback and login routes"),
+        (name = "Task", description = "Task management"),
         (name = "Video", description = "Video creation and streaming"),
-        (name = "Task", description = "Task management")
     ),
     info(title = "LMS Backend"),
     modifiers(&BearerAuthAddon, &CookieAuthAddon)

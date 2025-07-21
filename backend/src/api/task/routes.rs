@@ -132,8 +132,8 @@ pub async fn delete_task(
 )]
 pub async fn update_task(
     user: UserModel,
-    State(state): State<TaskState>,
     Path(task_id): Path<i32>,
+    State(state): State<TaskState>,
     ValidatedJson(payload): ValidatedJson<UpsertTaskRequestDTO>,
 ) -> Result<Json<Task>, LMSError> {
     // TODO: ACL for tasks (owners)

@@ -44,8 +44,9 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-            .fetch_one(conn.as_mut())
-            .await.map_err(|e| match e {
+        .fetch_one(conn.as_mut())
+        .await
+        .map_err(|e| match e {
             sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
             _ => LMSError::DatabaseError(e),
         })?;
@@ -72,12 +73,12 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-            .fetch_one(conn.as_mut())
-            .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-                _ => LMSError::DatabaseError(e),
-            })?;
+        .fetch_one(conn.as_mut())
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+            _ => LMSError::DatabaseError(e),
+        })?;
 
         Ok(())
     }
@@ -108,12 +109,12 @@ impl TaskRepository for RepositoryPostgres {
                 .expect("Shit happened while converting configuration to serde Value"),
             task_id
         )
-            .fetch_one(conn.as_mut())
-            .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-                _ => LMSError::DatabaseError(e),
-            })?;
+        .fetch_one(conn.as_mut())
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+            _ => LMSError::DatabaseError(e),
+        })?;
 
         Ok(task)
     }
