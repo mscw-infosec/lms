@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE tasks\n            SET title = $1,\n            description = $2,\n            tries_count = $3,\n            task_type = $4,\n            points = $5,\n            configuration = $6\n            WHERE id = $7\n            RETURNING id, title, description, tries_count, task_type AS \"task_type: TaskType\", points, configuration\n            ",
+  "query": "\n            UPDATE tasks\n            SET title = $1,\n                description = $2,\n                tries_count = $3,\n                task_type = $4,\n                points = $5,\n                configuration = $6\n            WHERE id = $7\n            RETURNING id, title, description, tries_count,\n                      task_type AS \"task_type: TaskType\", points, configuration\n            ",
   "describe": {
     "columns": [
       {
@@ -90,5 +90,5 @@
       false
     ]
   },
-  "hash": "74640f05838a49cc81c9c1707f2af4373ba5636c6b7a6119966f59da527df07b"
+  "hash": "e48b885c1dfdcb655026f724dc5334b3f93df3e245e762085cb9df0eb2f6d5ad"
 }
