@@ -85,7 +85,7 @@ impl TopicRepository for RepositoryPostgres {
         .execute(&self.pool)
         .await
         .map_err(|err| match err {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+            sqlx::Error::RowNotFound => LMSError::NotFound("Topic not found".to_string()),
             _ => err.into(),
         })?;
 
