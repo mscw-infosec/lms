@@ -5,4 +5,5 @@ pub mod course;
 pub mod middlewares;
 pub mod oauth;
 pub mod task;
+pub mod topics;
 pub mod video;

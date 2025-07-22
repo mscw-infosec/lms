@@ -4,4 +4,5 @@ pub mod basic;
 pub mod course;
 pub mod oauth;
 pub mod task;
+pub mod topics;
 pub mod video;
