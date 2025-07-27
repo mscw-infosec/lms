@@ -1,9 +1,10 @@
-use crate::domain::task::model::{PublicTaskConfig, Task, TaskConfig, TaskType};
+use crate::domain::task::model::{PublicTaskConfig, Task, TaskAnswer, TaskConfig, TaskType};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use sqlx::FromRow;
 use sqlx::types::JsonValue;
+use sqlx::FromRow;
 use utoipa::ToSchema;
+use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
@@ -95,4 +96,29 @@ impl From<JsonValue> for TaskConfig {
     fn from(val: JsonValue) -> Self {
         from_value(val).expect("Invalid JSON for TaskConfig")
     }
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct TaskAttempt {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub task_id: i32,
+    pub answer: TaskAnswer,
+}
+
+impl From<JsonValue> for TaskAnswer {
+    fn from(val: JsonValue) -> Self {
+        from_value(val).expect("Invalid JSON for TaskAnswer")
+    }
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(tag = "verdict", rename_all = "snake_case")]
+pub enum TaskVerdict {
+    FullScore,
+    PartialScore {
+        score_multiplier: f64
+    },
+    Incorrect,
+    OnReview
 }
