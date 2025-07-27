@@ -1,10 +1,11 @@
-use crate::domain::task::model::{Task, TaskType};
+use crate::domain::task::model::{Task, TaskAnswer, TaskType};
 use crate::domain::task::repository::TaskRepository;
-use crate::dto::task::UpsertTaskRequestDTO;
+use crate::dto::task::{TaskAttempt, UpsertTaskRequestDTO};
 use crate::errors::{LMSError, Result};
 use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
 use serde_json::to_value;
+use uuid::Uuid;
 
 #[async_trait]
 impl TaskRepository for RepositoryPostgres {
@@ -44,12 +45,12 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-        .fetch_one(conn.as_mut())
-        .await
-        .map_err(|e| match e {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-            _ => LMSError::DatabaseError(e),
-        })?;
+            .fetch_one(conn.as_mut())
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+                _ => LMSError::DatabaseError(e),
+            })?;
 
         Ok(task)
     }
@@ -73,12 +74,12 @@ impl TaskRepository for RepositoryPostgres {
             "#,
             id
         )
-        .fetch_one(conn.as_mut())
-        .await
-        .map_err(|e| match e {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-            _ => LMSError::DatabaseError(e),
-        })?;
+            .fetch_one(conn.as_mut())
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+                _ => LMSError::DatabaseError(e),
+            })?;
 
         Ok(())
     }
@@ -109,13 +110,41 @@ impl TaskRepository for RepositoryPostgres {
                 .expect("Shit happened while converting configuration to serde Value"),
             task_id
         )
-        .fetch_one(conn.as_mut())
-        .await
-        .map_err(|e| match e {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
-            _ => LMSError::DatabaseError(e),
-        })?;
+            .fetch_one(conn.as_mut())
+            .await
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => LMSError::NotFound("Task not found".to_string()),
+                _ => LMSError::DatabaseError(e),
+            })?;
 
         Ok(task)
+    }
+
+    async fn get_user_attempts(&self, task_id: i32, user_id: Uuid) -> Result<Vec<TaskAttempt>> {
+        let mut conn = self.pool.acquire().await?;
+
+        let attempts = sqlx::query_as!(TaskAttempt, r#"
+        SELECT id, user_id, task_id, answer
+        FROM attempts
+        WHERE user_id = $1 AND task_id = $2
+        "#, user_id, task_id)
+            .fetch_all(conn.as_mut())
+            .await
+            .map_err(LMSError::DatabaseError)?;
+
+        Ok(attempts)
+    }
+
+    async fn answer_task(&self, task_id: i32, user_id: Uuid, answer: TaskAnswer) -> Result<()> {
+        let mut conn = self.pool.acquire().await?;
+        
+        let _ = sqlx::query!(r#"
+        INSERT INTO attempts (user_id, task_id, answer) VALUES ($1, $2, $3)
+        "#, user_id, task_id, to_value(answer).expect("Shit happened while converting task answer to serde Value"))
+            .execute(conn.as_mut())
+            .await
+            .map_err(LMSError::DatabaseError)?;
+        
+        Ok(())
     }
 }
