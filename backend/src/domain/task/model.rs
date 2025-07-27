@@ -160,6 +160,7 @@ impl TaskConfig {
                     errors.add("max_chars_count", error);
                 }
             }
+            // checking if order answers belong in items vec & all items are included in ordering
             Self::Ordering { items, answers } => {
                 if answers
                     .iter()
