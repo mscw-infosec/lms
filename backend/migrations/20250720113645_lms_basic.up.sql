@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS course_owners
 CREATE TABLE IF NOT EXISTS topics
 (
     id          SERIAL PRIMARY KEY,
-    course_id   INTEGER REFERENCES courses (id) ON DELETE CASCADE,
-    title       TEXT    NOT NULL,
-    order_index INTEGER NOT NULL
+    course_id   INTEGER REFERENCES courses (id) ON DELETE CASCADE NOT NULL,
+    title       TEXT                                              NOT NULL,
+    order_index INTEGER                                           NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS lectures

@@ -45,7 +45,8 @@ impl Modify for CookieAuthAddon {
         (name = "Course", description = "Courses management"),
         (name = "OAuth", description = "OAuth providers with callback and login routes"),
         (name = "Task", description = "Task management"),
-        (name = "Video", description = "Video creation and streaming"),
+        (name = "Topic", description = "Topic management"),
+        (name = "Video", description = "Video creation and streaming")
     ),
     info(title = "LMS Backend"),
     modifiers(&BearerAuthAddon, &CookieAuthAddon)

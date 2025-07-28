@@ -4,4 +4,5 @@ pub mod courses;
 pub mod oauth;
 pub mod refresh_token;
 pub mod task;
+pub mod topics;
 pub mod video;

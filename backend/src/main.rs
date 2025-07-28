@@ -15,7 +15,8 @@ use crate::{
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
         courses::service::CourseService, oauth::service::OAuthService,
-        refresh_token::service::RefreshTokenService, video::service::VideoService,
+        refresh_token::service::RefreshTokenService, topics::service::TopicService,
+        video::service::VideoService,
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
@@ -79,6 +80,7 @@ async fn main() -> anyhow::Result<()> {
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
     let task_service = TaskService::new(db_repo.clone());
+    let topic_service = TopicService::new(db_repo.clone());
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
@@ -104,7 +106,12 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/courses",
-                    api::course::configure(course_service, account_service.clone(), jwt.clone()),
+                    api::course::configure(
+                        jwt.clone(),
+                        topic_service.clone(),
+                        course_service.clone(),
+                        account_service.clone(),
+                    ),
                 )
                 .nest(
                     "/oauth",
@@ -122,7 +129,11 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/task",
-                    api::task::configure(task_service, account_service, jwt),
+                    api::task::configure(task_service, account_service.clone(), jwt.clone()),
+                )
+                .nest(
+                    "/topics",
+                    api::topics::configure(topic_service, account_service.clone(), jwt.clone()),
                 ),
         )
         .layer(CookieManagerLayer::new())
