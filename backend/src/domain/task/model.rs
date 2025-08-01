@@ -10,7 +10,6 @@ pub struct Task {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    pub tries_count: i64,
     pub task_type: TaskType,
     pub points: i64,
     pub configuration: TaskConfig,
@@ -162,11 +161,12 @@ impl TaskConfig {
             }
             // checking if order answers belong in items vec & all items are included in ordering
             Self::Ordering { items, answers } => {
-                if answers
-                    .iter()
-                    .any(|answer| answer.iter().any(|&position| position >= items.len() ||
-                        answer.iter().collect::<HashSet<_>>().len() != items.len()))
-                {
+                if answers.iter().any(|answer| {
+                    answer.iter().any(|&position| {
+                        position >= items.len()
+                            || answer.iter().collect::<HashSet<_>>().len() != items.len()
+                    })
+                }) {
                     let mut error = ValidationError::new("invalid_ordering");
                     error.message = Some("Invalid order index specified for answer".into());
                     errors.add("answers", error);
@@ -194,22 +194,10 @@ impl TaskConfig {
 #[derive(Serialize, Deserialize, ToSchema, Clone)]
 #[serde(tag = "name", rename_all = "snake_case")]
 pub enum TaskAnswer {
-    SingleChoice {
-        answer: String,
-    },
-    MultipleChoice {
-        answers: Vec<String>,
-    },
-    ShortText {
-        answer: String,
-    },
-    LongText {
-        answer: String,
-    },
-    Ordering {
-        answer: Vec<String>,
-    },
-    FileUpload {
-        file_id: Uuid,
-    },
+    SingleChoice { answer: String },
+    MultipleChoice { answers: Vec<String> },
+    ShortText { answer: String },
+    LongText { answer: String },
+    Ordering { answer: Vec<String> },
+    FileUpload { file_id: Uuid },
 }

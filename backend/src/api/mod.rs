@@ -2,6 +2,7 @@ pub mod account;
 pub mod auth;
 pub mod basic;
 pub mod course;
+pub mod exam;
 pub mod middlewares;
 pub mod oauth;
 pub mod task;

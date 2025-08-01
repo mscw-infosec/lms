@@ -41,6 +41,7 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
+use crate::domain::exam::service::ExamService;
 use crate::domain::task::service::TaskService;
 #[cfg(feature = "swagger")]
 use utoipa_swagger_ui::SwaggerUi;
@@ -80,6 +81,7 @@ async fn main() -> anyhow::Result<()> {
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
     let task_service = TaskService::new(db_repo.clone());
+    let exam_service = ExamService::new(db_repo.clone());
     let topic_service = TopicService::new(db_repo.clone());
 
     #[allow(unused_variables)]
@@ -130,6 +132,10 @@ async fn main() -> anyhow::Result<()> {
                 .nest(
                     "/task",
                     api::task::configure(task_service, account_service.clone(), jwt.clone()),
+                )
+                .nest(
+                    "/exam",
+                    api::exam::configure(exam_service, account_service.clone(), jwt.clone()),
                 )
                 .nest(
                     "/topics",

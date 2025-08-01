@@ -1,10 +1,9 @@
 use crate::domain::task::model::{PublicTaskConfig, Task, TaskAnswer, TaskConfig, TaskType};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
-use sqlx::types::JsonValue;
 use sqlx::FromRow;
+use sqlx::types::JsonValue;
 use utoipa::ToSchema;
-use uuid::Uuid;
 use validator::Validate;
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
@@ -12,8 +11,6 @@ pub struct UpsertTaskRequestDTO {
     #[validate(length(min = 1, max = 50))]
     pub title: String,
     pub description: Option<String>,
-    #[validate(range(min = 0))]
-    pub tries_count: i32,
     pub task_type: TaskType,
     #[validate(range(min = 0))]
     pub points: i32,
@@ -32,7 +29,6 @@ pub struct PublicTaskDTO {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    pub tries_count: i64,
     pub task_type: TaskType,
     pub points: i64,
     pub configuration: PublicTaskConfig,
@@ -44,7 +40,6 @@ impl From<Task> for PublicTaskDTO {
             id: value.id,
             title: value.title,
             description: value.description,
-            tries_count: value.tries_count,
             task_type: value.task_type,
             points: value.points,
             configuration: value.configuration.into(),
@@ -98,14 +93,6 @@ impl From<JsonValue> for TaskConfig {
     }
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
-pub struct TaskAttempt {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub task_id: i32,
-    pub answer: TaskAnswer,
-}
-
 impl From<JsonValue> for TaskAnswer {
     fn from(val: JsonValue) -> Self {
         from_value(val).expect("Invalid JSON for TaskAnswer")
@@ -116,9 +103,7 @@ impl From<JsonValue> for TaskAnswer {
 #[serde(tag = "verdict", rename_all = "snake_case")]
 pub enum TaskVerdict {
     FullScore,
-    PartialScore {
-        score_multiplier: f64
-    },
+    PartialScore { score_multiplier: f64 },
     Incorrect,
-    OnReview
+    OnReview,
 }

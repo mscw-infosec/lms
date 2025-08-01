@@ -1,7 +1,7 @@
 use crate::api::task::TaskState;
 use crate::domain::account::model::{UserModel, UserRole};
-use crate::domain::task::model::{Task, TaskAnswer, TaskConfig};
-use crate::dto::task::{CreateTaskResponseDTO, PublicTaskDTO, TaskVerdict, UpsertTaskRequestDTO};
+use crate::domain::task::model::{Task, TaskConfig};
+use crate::dto::task::{CreateTaskResponseDTO, PublicTaskDTO, UpsertTaskRequestDTO};
 use crate::errors::LMSError;
 use crate::utils::ValidatedJson;
 use axum::Json;
@@ -107,7 +107,6 @@ pub async fn get_full_by_id(
     Ok(task.into())
 }
 
-
 /// Delete task by id
 #[utoipa::path(
     delete,
@@ -174,38 +173,4 @@ pub async fn update_task(
 
     let task = state.task_service.update_task(task_id, payload).await?;
     Ok(task.into())
-}
-
-/// Answer a task
-#[utoipa::path(
-    post,
-    tag = "Task",
-    path = "/answer/{task_id}",
-    params(
-        ("task_id" = i32, Path)
-    ),
-    request_body = TaskAnswer,
-    responses(
-        (status = 200, description = "Successfully answered task"),
-        (status = 400, description = "Wrong data format"),
-        (status = 401, description = "No auth data found"),
-        (status = 403, description = "You can't submit an answer due to limit reach or access issues"),
-        (status = 404, description = "Task not found")
-    ),
-    security(
-        ("BearerAuth" = [])
-    )
-)]
-pub async fn answer_task(
-    user: UserModel,
-    Path(task_id): Path<i32>,
-    State(state): State<TaskState>,
-    Json(payload): Json<TaskAnswer>,
-) -> Result<Json<TaskVerdict>, LMSError> {
-    if !state.task_service.check_if_can_answer(task_id, user.id).await? {
-        return Err(LMSError::Forbidden("You've reached your limit".to_string()))
-    }
-
-    let verdict = state.task_service.answer_task(task_id, user.id, payload).await?;
-    Ok(verdict.into())
 }
