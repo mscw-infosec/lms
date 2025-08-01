@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO tasks (title, description, task_type, points, configuration)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "task_type: TaskType",
+        "type_info": {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "points",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "configuration",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        },
+        "Int4",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5af966142f5885a2788557e6821052f859731a61af3bf37d88e27e1f9597c0e9"
+}

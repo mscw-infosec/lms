@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO tasks (title, description, tries_count, task_type, points, configuration)\n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING id, title, description, tries_count, task_type AS \"task_type: TaskType\", points, configuration\n            ",
+  "query": "\n        SELECT id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n        FROM tasks\n        WHERE id = ANY($1)\n        ",
   "describe": {
     "columns": [
       {
@@ -20,11 +20,6 @@
       },
       {
         "ordinal": 3,
-        "name": "tries_count",
-        "type_info": "Int4"
-      },
-      {
-        "ordinal": 4,
         "name": "task_type: TaskType",
         "type_info": {
           "Custom": {
@@ -44,39 +39,19 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 4,
         "name": "points",
         "type_info": "Int4"
       },
       {
-        "ordinal": 6,
+        "ordinal": 5,
         "name": "configuration",
         "type_info": "Jsonb"
       }
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Text",
-        "Int4",
-        {
-          "Custom": {
-            "name": "task_type",
-            "kind": {
-              "Enum": [
-                "single_choice",
-                "multiple_choice",
-                "short_text",
-                "long_text",
-                "ordering",
-                "file_upload",
-                "ctfd"
-              ]
-            }
-          }
-        },
-        "Int4",
-        "Jsonb"
+        "Int4Array"
       ]
     },
     "nullable": [
@@ -85,9 +60,8 @@
       true,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "3c5da8722d166d0798bb9325ffb46ee3a6224f9b08ed2920acfdd865e5912eed"
+  "hash": "98c2d854e86b6e552125052207074819cdb76017802ab0b72cb34b5a1c3498e4"
 }

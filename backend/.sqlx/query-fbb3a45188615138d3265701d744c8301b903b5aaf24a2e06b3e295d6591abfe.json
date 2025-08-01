@@ -1,0 +1,56 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, topic_id, tries_count, duration, exam_type AS \"exam_type: ExamType\"\n        FROM exams\n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "topic_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "tries_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "duration",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "exam_type: ExamType",
+        "type_info": {
+          "Custom": {
+            "name": "exam_type",
+            "kind": {
+              "Enum": [
+                "Instant",
+                "Delayed"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "fbb3a45188615138d3265701d744c8301b903b5aaf24a2e06b3e295d6591abfe"
+}
