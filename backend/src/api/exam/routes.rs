@@ -163,7 +163,7 @@ pub async fn update_exam_tasks(
 ) -> Result<(), LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(user.role, UserRole::Student) {
-        return Err(LMSError::Forbidden("You can't update tasks".to_string()));
+        return Err(LMSError::Forbidden("You can't update exam tasks".to_string()));
     }
 
     let () = state.exam_service.update_tasks(exam_id, payload).await?;
