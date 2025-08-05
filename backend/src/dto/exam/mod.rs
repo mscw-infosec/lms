@@ -73,7 +73,7 @@ impl From<ExamAttempt> for ExamAttemptSchema {
             started_at: value.started_at,
             active: value.active,
             answer_data: value.answer_data.into(),
-            scoring_data: value.scoring_data.0.into(),
+            scoring_data: Some(value.scoring_data.into()),
         }
     }
 }
