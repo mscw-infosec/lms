@@ -93,7 +93,7 @@ pub async fn delete_exam(
 ) -> Result<StatusCode, LMSError> {
     // TODO: ACL for exams (has access to exam)
     if matches!(user.role, UserRole::Student) {
-        return Err(LMSError::Forbidden("You can't delete tasks".to_string()));
+        return Err(LMSError::Forbidden("You can't delete exams".to_string()));
     }
 
     let () = state.exam_service.delete_exam(exam_id).await?;
