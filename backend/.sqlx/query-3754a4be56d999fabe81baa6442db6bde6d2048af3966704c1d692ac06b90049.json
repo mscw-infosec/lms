@@ -1,0 +1,61 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data)\n            VALUES ($1, $2, $3, $4)\n            RETURNING id, exam_id, user_id, started_at, active,\n            answer_data as \"answer_data: Json<ExamAnswer>\", scoring_data as \"scoring_data: Json<ScoringData>\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "exam_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "started_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "answer_data: Json<ExamAnswer>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "scoring_data: Json<ScoringData>",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3754a4be56d999fabe81baa6442db6bde6d2048af3966704c1d692ac06b90049"
+}

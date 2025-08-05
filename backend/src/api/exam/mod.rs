@@ -29,6 +29,8 @@ pub fn configure(
 
     OpenApiRouter::new()
         .routes(routes!(create, get_by_id, delete_exam, update_exam))
-        .routes(routes!(update_exam_tasks))
+        .routes(routes!(update_exam_tasks, start_new_attempt))
+        .routes(routes!(stop_attempt, patch_attempt, get_last_attempt))
+        .routes(routes!(get_tasks))
         .with_state(state)
 }

@@ -1,9 +1,8 @@
 use crate::domain::exam::model::Exam;
-use crate::domain::task::model::{Task, TaskAnswer, TaskConfig};
-use crate::dto::task::{TaskVerdict, UpsertTaskRequestDTO};
+use crate::domain::task::model::Task;
+use crate::dto::task::UpsertTaskRequestDTO;
 use crate::errors::{LMSError, Result};
 use crate::{domain::task::repository::TaskRepository, repo};
-use std::collections::HashSet;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -52,83 +51,4 @@ impl TaskService {
     //     }
     //     Ok(true)
     // }
-
-    #[allow(clippy::cast_precision_loss)]
-    #[allow(clippy::cast_possible_wrap)]
-    pub async fn check_answer(&self, task_id: i32, task_answer: TaskAnswer) -> Result<TaskVerdict> {
-        let task = self.get_task(task_id).await?;
-        match (task_answer.clone(), task.configuration) {
-            (
-                TaskAnswer::SingleChoice { answer },
-                TaskConfig::SingleChoice {
-                    options, correct, ..
-                },
-            ) => {
-                if answer == options[correct] {
-                    return Ok(TaskVerdict::FullScore);
-                }
-                Ok(TaskVerdict::Incorrect)
-            }
-
-            (
-                TaskAnswer::MultipleChoice { answers },
-                TaskConfig::MultipleChoice {
-                    options,
-                    correct,
-                    partial_score,
-                    ..
-                },
-            ) => {
-                let correct_answers: HashSet<_> = correct.iter().map(|&i| &options[i]).collect();
-                let user_answers: HashSet<_> = answers.iter().collect();
-
-                if user_answers == correct_answers {
-                    return Ok(TaskVerdict::FullScore);
-                }
-                if !partial_score {
-                    return Ok(TaskVerdict::Incorrect);
-                }
-
-                let correct_count = correct_answers.intersection(&user_answers).count() as f64;
-                let incorrect_count = user_answers.difference(&correct_answers).count() as f64;
-                // punish for wrong answers, not for missing
-                let score_multiplier =
-                    (correct_count - incorrect_count) / correct_answers.len() as f64;
-                if score_multiplier <= 0f64 {
-                    return Ok(TaskVerdict::Incorrect);
-                }
-
-                Ok(TaskVerdict::PartialScore { score_multiplier })
-            }
-
-            (TaskAnswer::ShortText { answer }, TaskConfig::ShortText { answers, .. }) => {
-                if answers.contains(&answer) {
-                    Ok(TaskVerdict::FullScore)
-                } else {
-                    Ok(TaskVerdict::Incorrect)
-                }
-            }
-            (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {
-                let precomputed_answers: Vec<Vec<String>> = answers
-                    .iter()
-                    .map(|correct| correct.iter().map(|&i| items[i].clone()).collect())
-                    .collect();
-                if precomputed_answers
-                    .iter()
-                    .any(|precomputed| precomputed == &answer)
-                {
-                    Ok(TaskVerdict::FullScore)
-                } else {
-                    Ok(TaskVerdict::Incorrect)
-                }
-            }
-            (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
-            | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
-                Ok(TaskVerdict::OnReview)
-            }
-            _ => Err(LMSError::ShitHappened(
-                "You've sent an answer for another task".to_string(),
-            )),
-        }
-    }
 }

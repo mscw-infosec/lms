@@ -99,11 +99,18 @@ impl From<JsonValue> for TaskAnswer {
     }
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
 #[serde(tag = "verdict", rename_all = "snake_case")]
 pub enum TaskVerdict {
-    FullScore,
-    PartialScore { score_multiplier: f64 },
-    Incorrect,
+    FullScore {
+        comment: Option<String>, // for manual review
+    },
+    PartialScore {
+        score_multiplier: f64,
+        comment: Option<String>,
+    },
+    Incorrect {
+        comment: Option<String>,
+    },
     OnReview,
 }

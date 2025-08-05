@@ -41,10 +41,12 @@ ALTER TABLE tasks
 DROP TABLE IF EXISTS attempts;
 CREATE TABLE attempts
 (
-    id          UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
-    exam_id     UUID        NOT NULL REFERENCES exams (id) ON DELETE CASCADE,
-    user_id     UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    started_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    active      BOOLEAN     NOT NULL DEFAULT TRUE,
-    answer_data JSONB       NOT NULL
+    id           UUID PRIMARY KEY     DEFAULT gen_random_uuid(),
+    exam_id      UUID        NOT NULL REFERENCES exams (id) ON DELETE CASCADE,
+    user_id      UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    started_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    active       BOOLEAN     NOT NULL DEFAULT TRUE,
+    answer_data  JSONB       NOT NULL,
+    scoring_data JSONB       NOT NULL
 );
+CREATE INDEX idx_exam_attempt_active_started ON attempts (active, started_at);

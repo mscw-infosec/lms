@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT id, exam_id, user_id, started_at, active, answer_data\n        FROM attempts\n        WHERE exam_id = $1 AND user_id = $2\n        ",
+  "query": "\n        SELECT id, exam_id, user_id, started_at, active,\n        answer_data as \"answer_data: Json<ExamAnswer>\", scoring_data as \"scoring_data: Json<ScoringData>\"\n        FROM attempts\n        WHERE exam_id = $1 AND user_id = $2\n        ORDER BY started_at ASC\n        ",
   "describe": {
     "columns": [
       {
@@ -30,7 +30,12 @@
       },
       {
         "ordinal": 5,
-        "name": "answer_data",
+        "name": "answer_data: Json<ExamAnswer>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "scoring_data: Json<ScoringData>",
         "type_info": "Jsonb"
       }
     ],
@@ -46,8 +51,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "41865209cdc1da0d883eef8063534b0ed62439d0d9d6f33911adf062384bc835"
+  "hash": "d2cb2c6c964ba5bd38058bad063c75a46b89fb095a08af4dfb2bef41f95227f1"
 }
