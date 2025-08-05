@@ -162,10 +162,10 @@ impl TaskConfig {
             // checking if order answers belong in items vec & all items are included in ordering
             Self::Ordering { items, answers } => {
                 if answers.iter().any(|answer| {
-                    answer.iter().any(|&position| {
-                        position >= items.len()
-                            || answer.iter().collect::<HashSet<_>>().len() != items.len()
-                    })
+                    // Check if any position is out of bounds
+                    answer.iter().any(|&position| position >= items.len())
+                        // Or if the answer does not contain all items (duplicates or missing)
+                        || answer.iter().collect::<HashSet<_>>().len() != items.len()
                 }) {
                     let mut error = ValidationError::new("invalid_ordering");
                     error.message = Some("Invalid order index specified for answer".into());
