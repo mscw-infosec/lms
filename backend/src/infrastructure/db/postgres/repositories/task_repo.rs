@@ -7,7 +7,6 @@ use crate::errors::{LMSError, Result};
 use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
 use serde_json::to_value;
-use uuid::Uuid;
 
 #[async_trait]
 impl TaskRepository for RepositoryPostgres {
@@ -57,32 +56,20 @@ impl TaskRepository for RepositoryPostgres {
     }
 
     async fn get_exams(&self, id: i32) -> Result<Vec<Exam>> {
-        let mut tx = self.pool.begin().await?;
-
-        let exam_ids: Vec<Uuid> = sqlx::query_scalar!(
-            r#"
-        SELECT exam_id FROM exam_tasks WHERE task_id = $1
-        "#,
-            id
-        )
-        .fetch_all(tx.as_mut())
-        .await
-        .map_err(LMSError::DatabaseError)?;
-
         let exams: Vec<Exam> = sqlx::query_as!(
             Exam,
             r#"
-        SELECT id, topic_id, tries_count, duration, exam_type AS "exam_type: ExamType"
-        FROM exams
-        WHERE id = ANY($1)
+        SELECT e.id, e.topic_id, e.tries_count, e.duration, e.exam_type AS "exam_type: ExamType"
+        FROM exam_tasks et
+        LEFT JOIN exams e ON e.id = et.exam_id
+        WHERE et.task_id = $1
         "#,
-            &exam_ids
+            id
         )
-        .fetch_all(tx.as_mut())
+        .fetch_all(&self.pool)
         .await
         .map_err(LMSError::DatabaseError)?;
 
-        tx.commit().await?;
         Ok(exams)
     }
 

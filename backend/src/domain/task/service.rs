@@ -24,7 +24,8 @@ impl TaskService {
     }
 
     pub async fn delete_task(&self, task_id: i32) -> Result<()> {
-        self.repo.delete_task(task_id).await // FIXME: order indexes in exam should be recalculated after deletion
+        let () = self.repo.delete_task(task_id).await?; // FIXME: order indexes in exam should be recalculated after deletion
+        Ok(())
     }
 
     pub async fn get_exams(&self, task_id: i32) -> Result<Vec<Exam>> {

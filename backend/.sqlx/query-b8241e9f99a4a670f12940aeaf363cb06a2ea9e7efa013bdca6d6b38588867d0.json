@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT id, topic_id, tries_count, duration, exam_type AS \"exam_type: ExamType\"\n        FROM exams\n        WHERE id = ANY($1)\n        ",
+  "query": "\n        SELECT e.id, e.topic_id, e.tries_count, e.duration, e.exam_type AS \"exam_type: ExamType\"\n        FROM exam_tasks et\n        LEFT JOIN exams e ON e.id = et.exam_id\n        WHERE et.task_id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -41,7 +41,7 @@
     ],
     "parameters": {
       "Left": [
-        "UuidArray"
+        "Int4"
       ]
     },
     "nullable": [
@@ -52,5 +52,5 @@
       false
     ]
   },
-  "hash": "2f7c10b3dae2359f38dda3e603e6a928dca4bc4e350e9639b38cc049d47afd9a"
+  "hash": "b8241e9f99a4a670f12940aeaf363cb06a2ea9e7efa013bdca6d6b38588867d0"
 }
