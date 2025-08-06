@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT\n            t.id, t.title, t.description, t.task_type AS \"task_type: TaskType\", t.points, t.configuration\n        FROM exam_tasks et\n        LEFT JOIN tasks t ON et.task_id = t.id\n        WHERE et.exam_id = $1\n        ",
+  "query": "\n                UPDATE tasks\n                SET title = $1,\n                    description = $2,\n                    task_type = $3,\n                    points = $4,\n                    configuration = $5\n                WHERE id = $6\n                RETURNING id, title, description, task_type AS \"task_type: TaskType\",\n                          points, configuration\n            ",
   "describe": {
     "columns": [
       {
@@ -51,7 +51,27 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        },
+        "Int4",
+        "Jsonb",
+        "Int4"
       ]
     },
     "nullable": [
@@ -63,5 +83,5 @@
       false
     ]
   },
-  "hash": "71352cbc86e453c47d68f76a1c003dcb659665699ffa8412987f96b624df6974"
+  "hash": "a9fcb65b68538d7705e484897acaa1a57f86b9aa5d9c59618b5df0d4f512d1ea"
 }

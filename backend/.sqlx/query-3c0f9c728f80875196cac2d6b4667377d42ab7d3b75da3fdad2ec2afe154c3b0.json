@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n        FROM tasks\n        WHERE id = ANY($1)\n        ",
+  "query": "\n                SELECT id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n                FROM tasks\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -51,7 +51,7 @@
     ],
     "parameters": {
       "Left": [
-        "Int4Array"
+        "Int4"
       ]
     },
     "nullable": [
@@ -63,5 +63,5 @@
       false
     ]
   },
-  "hash": "98c2d854e86b6e552125052207074819cdb76017802ab0b72cb34b5a1c3498e4"
+  "hash": "3c0f9c728f80875196cac2d6b4667377d42ab7d3b75da3fdad2ec2afe154c3b0"
 }

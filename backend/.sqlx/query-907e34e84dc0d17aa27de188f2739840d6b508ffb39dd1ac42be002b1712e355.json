@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n            FROM tasks\n            WHERE id = $1\n            ",
+  "query": "\n                SELECT\n                    t.id, t.title, t.description, t.task_type AS \"task_type: TaskType\", t.points, t.configuration\n                FROM exam_tasks et\n                LEFT JOIN tasks t ON et.task_id = t.id\n                WHERE et.exam_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -51,7 +51,7 @@
     ],
     "parameters": {
       "Left": [
-        "Int4"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -63,5 +63,5 @@
       false
     ]
   },
-  "hash": "7d36ec398274ccfa6bd7be0b3ac6b393788ebfa0d6812d1b299b133f055f279a"
+  "hash": "907e34e84dc0d17aa27de188f2739840d6b508ffb39dd1ac42be002b1712e355"
 }

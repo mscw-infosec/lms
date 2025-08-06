@@ -10,7 +10,7 @@ pub struct Exam {
     pub topic_id: i32,
     pub tries_count: i32,
     pub duration: i32,
-    pub exam_type: ExamType,
+    pub r#type: ExamType,
 }
 
 #[derive(Serialize, Deserialize, sqlx::Type, ToSchema)]

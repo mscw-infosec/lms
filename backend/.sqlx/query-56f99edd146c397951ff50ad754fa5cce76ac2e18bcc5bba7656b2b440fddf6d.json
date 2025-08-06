@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO tasks (title, description, task_type, points, configuration)\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n            ",
+  "query": "\n                SELECT id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n                FROM tasks\n                WHERE id = ANY($1)\n            ",
   "describe": {
     "columns": [
       {
@@ -51,26 +51,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Text",
-        {
-          "Custom": {
-            "name": "task_type",
-            "kind": {
-              "Enum": [
-                "single_choice",
-                "multiple_choice",
-                "short_text",
-                "long_text",
-                "ordering",
-                "file_upload",
-                "ctfd"
-              ]
-            }
-          }
-        },
-        "Int4",
-        "Jsonb"
+        "Int4Array"
       ]
     },
     "nullable": [
@@ -82,5 +63,5 @@
       false
     ]
   },
-  "hash": "5af966142f5885a2788557e6821052f859731a61af3bf37d88e27e1f9597c0e9"
+  "hash": "56f99edd146c397951ff50ad754fa5cce76ac2e18bcc5bba7656b2b440fddf6d"
 }

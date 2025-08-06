@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            DELETE FROM exams\n            WHERE id = $1\n            RETURNING id\n            ",
+  "query": "\n                DELETE FROM exams\n                WHERE id = $1\n                RETURNING id\n            ",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "f209173fb4e36e5e9843b36dfd520eaec178f810f80a0bede8e7104d67ba4caa"
+  "hash": "6599a27c23d7bc023f31cf0244f79d621111fd0176614f6d51a5053a2af45ac4"
 }

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT CASE\n                     WHEN MAX(order_index) IS NULL THEN 0\n                     ELSE MAX(order_index) + 1\n                   END AS next_order_index\n                FROM exam_ordering\n                WHERE topic_id = $1;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "next_order_index",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "a5aeb9aa07f3d8b9b48058d1917d2860b890e9d3a4e8cf5bae817d5eff8ba360"
+}

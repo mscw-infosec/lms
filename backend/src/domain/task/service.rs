@@ -42,14 +42,4 @@ impl TaskService {
         }
         self.repo.update_task(task_id, task_data).await
     }
-
-    // #[allow(clippy::cast_possible_wrap)]
-    // pub async fn check_if_can_answer(&self, task_id: i32, user_id: Uuid) -> Result<bool> {
-    //     let task = self.repo.get_task(task_id).await?;
-    //     let user_attempts = self.get_user_task_attempts(task_id, user_id).await?;
-    //     if task.tries_count != 0 && task.tries_count <= user_attempts.len() as i64 {
-    //         return Ok(false);
-    //     }
-    //     Ok(true)
-    // }
 }

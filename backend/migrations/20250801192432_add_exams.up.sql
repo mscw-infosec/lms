@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS exams
     topic_id    INTEGER   NOT NULL REFERENCES topics (id) ON DELETE CASCADE, -- exams can't exist without topic
     tries_count INTEGER   NOT NULL,                                          -- 0 means unlimited
     duration    INTEGER   NOT NULL,                                          -- time in seconds, 0 means unlimited
-    exam_type   EXAM_TYPE NOT NULL
+    type   EXAM_TYPE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS exam_ordering

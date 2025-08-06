@@ -256,11 +256,11 @@ impl ExamService {
                 | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
                     scoring_data.results.insert(task_id, TaskVerdict::OnReview);
                 }
-                _ => (), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
+                _ => unreachable!(), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
             }
         }
 
-        if matches!(exam.exam_type, ExamType::Instant) {
+        if matches!(exam.r#type, ExamType::Instant) {
             scoring_data.show_results = true;
         }
         self.repo

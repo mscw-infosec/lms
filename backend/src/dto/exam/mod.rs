@@ -16,7 +16,7 @@ pub struct UpsertExamRequestDTO {
     pub topic_id: i32,
     pub tries_count: i32,
     pub duration: i32,
-    pub exam_type: ExamType,
+    pub r#type: ExamType,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, FromRow)]
@@ -47,7 +47,7 @@ pub struct TaskAnswerDTO {
     pub answer: TaskAnswer,
 }
 
-#[derive(Serialize, Deserialize, FromRow, ToSchema, Clone)]
+#[derive(Serialize, Deserialize, FromRow, ToSchema, Clone, Default)]
 pub struct ScoringData {
     pub show_results: bool, // true when exam type is instant
     pub results: HashMap<usize, TaskVerdict>,
@@ -78,7 +78,7 @@ impl From<ExamAttempt> for ExamAttemptSchema {
     }
 }
 
-#[derive(Serialize, Deserialize, ToSchema, FromRow, Clone)]
+#[derive(Serialize, Deserialize, ToSchema, FromRow, Clone, Default)]
 pub struct ExamAnswer {
     pub answers: HashMap<usize, TaskAnswer>,
 }

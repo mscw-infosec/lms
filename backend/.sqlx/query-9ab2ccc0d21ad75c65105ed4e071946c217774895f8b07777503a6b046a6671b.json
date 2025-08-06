@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO exams\n        (topic_id, tries_count, duration, exam_type)\n        VALUES ($1, $2, $3, $4)\n        RETURNING id, topic_id, tries_count, duration, exam_type AS \"exam_type: ExamType\"\n        ",
+  "query": "\n                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS \"type: ExamType\"\n                FROM exam_tasks et\n                LEFT JOIN exams e ON e.id = et.exam_id\n                WHERE et.task_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,7 +25,7 @@
       },
       {
         "ordinal": 4,
-        "name": "exam_type: ExamType",
+        "name": "type: ExamType",
         "type_info": {
           "Custom": {
             "name": "exam_type",
@@ -41,20 +41,7 @@
     ],
     "parameters": {
       "Left": [
-        "Int4",
-        "Int4",
-        "Int4",
-        {
-          "Custom": {
-            "name": "exam_type",
-            "kind": {
-              "Enum": [
-                "Instant",
-                "Delayed"
-              ]
-            }
-          }
-        }
+        "Int4"
       ]
     },
     "nullable": [
@@ -65,5 +52,5 @@
       false
     ]
   },
-  "hash": "4e497c2e1b2436f4cb500688e1ed29facc77b5524bdcaa3a80d6805245930367"
+  "hash": "9ab2ccc0d21ad75c65105ed4e071946c217774895f8b07777503a6b046a6671b"
 }

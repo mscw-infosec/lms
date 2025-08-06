@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data)\n            VALUES ($1, $2, $3, $4)\n            RETURNING id, exam_id, user_id, started_at, active,\n            answer_data as \"answer_data: Json<ExamAnswer>\", scoring_data as \"scoring_data: Json<ScoringData>\"\n            ",
+  "query": "\n                SELECT id, exam_id, user_id, started_at, active,\n                answer_data as \"answer_data: Json<ExamAnswer>\", scoring_data as \"scoring_data: Json<ScoringData>\"\n                FROM attempts\n                WHERE exam_id = $1 AND user_id = $2\n                ORDER BY started_at DESC\n                LIMIT 1\n            ",
   "describe": {
     "columns": [
       {
@@ -42,9 +42,7 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid",
-        "Jsonb",
-        "Jsonb"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -57,5 +55,5 @@
       false
     ]
   },
-  "hash": "3754a4be56d999fabe81baa6442db6bde6d2048af3966704c1d692ac06b90049"
+  "hash": "32101d60be9fa5661f26ebbbe41504e396aa2c7ba8e920c15ab3d455254a0135"
 }

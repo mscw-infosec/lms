@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE tasks\n            SET title = $1,\n                description = $2,\n                task_type = $3,\n                points = $4,\n                configuration = $5\n            WHERE id = $6\n            RETURNING id, title, description, task_type AS \"task_type: TaskType\",\n                      points, configuration\n            ",
+  "query": "\n                INSERT INTO tasks (title, description, task_type, points, configuration)\n                VALUES ($1, $2, $3, $4, $5)\n                RETURNING id, title, description, task_type AS \"task_type: TaskType\", points, configuration\n            ",
   "describe": {
     "columns": [
       {
@@ -70,8 +70,7 @@
           }
         },
         "Int4",
-        "Jsonb",
-        "Int4"
+        "Jsonb"
       ]
     },
     "nullable": [
@@ -83,5 +82,5 @@
       false
     ]
   },
-  "hash": "5781b2527813fdaaddd09f19f4b23f7e8bbe56e1d174f7275ab703d910c6fdd1"
+  "hash": "d4662f58c98eb126d4dc153f76bf9ffee10744fae0081e5717546c6a5eafae14"
 }

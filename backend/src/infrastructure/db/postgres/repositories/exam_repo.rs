@@ -9,7 +9,6 @@ use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
 use serde_json::to_value;
 use sqlx::types::Json;
-use std::collections::HashMap;
 use uuid::Uuid;
 
 #[async_trait]
@@ -20,56 +19,51 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-        INSERT INTO exams
-        (topic_id, tries_count, duration, exam_type)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, topic_id, tries_count, duration, exam_type AS "exam_type: ExamType"
-        "#,
+                INSERT INTO exams
+                (topic_id, tries_count, duration, type)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType"
+            "#,
             exam_data.topic_id,
             exam_data.tries_count,
             exam_data.duration,
-            exam_data.exam_type as ExamType
+            exam_data.r#type as ExamType
         )
         .fetch_one(tx.as_mut())
         .await
         .map_err(|err| match err {
-            sqlx::Error::Database(ref e) => {
-                if e.is_foreign_key_violation() {
-                    return LMSError::Conflict("Topic with such id doesn't exist".to_string());
-                }
-                LMSError::DatabaseError(err)
+            sqlx::Error::Database(ref e) if e.is_foreign_key_violation() => {
+                LMSError::Conflict("Topic with such id doesn't exist".to_string())
             }
             _ => LMSError::DatabaseError(err),
         })?;
 
         let new_exam_index = sqlx::query_scalar!(
             r#"
-            SELECT CASE
-                 WHEN MAX(order_index) IS NULL THEN 0
-                 ELSE MAX(order_index) + 1
-               END AS next_order_index
-            FROM exam_ordering
-            WHERE topic_id = $1;
+                SELECT CASE
+                     WHEN MAX(order_index) IS NULL THEN 0
+                     ELSE MAX(order_index) + 1
+                   END AS next_order_index
+                FROM exam_ordering
+                WHERE topic_id = $1;
             "#,
             exam.topic_id
         )
         .fetch_one(tx.as_mut())
-        .await
-        .map_err(LMSError::DatabaseError)?
+        .await?
         .expect("SQL mess happened with max_order_index!");
 
         let _ = sqlx::query!(
             r#"
-        INSERT INTO exam_ordering (exam_id, topic_id, order_index)
-        VALUES ($1, $2, $3);
-        "#,
+                INSERT INTO exam_ordering (exam_id, topic_id, order_index)
+                VALUES ($1, $2, $3);
+            "#,
             exam.id,
             exam.topic_id,
             new_exam_index
         )
         .execute(tx.as_mut())
-        .await
-        .map_err(LMSError::DatabaseError)?;
+        .await?;
 
         tx.commit().await?;
 
@@ -80,10 +74,10 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-        SELECT id, topic_id, tries_count, duration, exam_type AS "exam_type: ExamType"
-        FROM exams
-        WHERE id = $1
-        "#,
+                SELECT id, topic_id, tries_count, duration, type AS "type: ExamType"
+                FROM exams
+                WHERE id = $1
+            "#,
             id,
         )
         .fetch_one(&self.pool)
@@ -102,18 +96,18 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-        UPDATE exams SET
-            topic_id = $1,
-            tries_count = $2,
-            duration = $3,
-            exam_type = $4
-        WHERE id = $5
-        RETURNING id, topic_id, tries_count, duration, exam_type AS "exam_type: ExamType"
-        "#,
+                UPDATE exams SET
+                    topic_id = $1,
+                    tries_count = $2,
+                    duration = $3,
+                    type = $4
+                WHERE id = $5
+                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType"
+            "#,
             exam_data.topic_id,
             exam_data.tries_count,
             exam_data.duration,
-            exam_data.exam_type as ExamType,
+            exam_data.r#type as ExamType,
             id
         )
         .fetch_one(&self.pool)
@@ -131,9 +125,9 @@ impl ExamRepository for RepositoryPostgres {
     async fn delete(&self, id: Uuid) -> Result<()> {
         let _ = sqlx::query!(
             r#"
-            DELETE FROM exams
-            WHERE id = $1
-            RETURNING id
+                DELETE FROM exams
+                WHERE id = $1
+                RETURNING id
             "#,
             id
         )
@@ -153,36 +147,35 @@ impl ExamRepository for RepositoryPostgres {
         let tasks: Vec<Task> = sqlx::query_as!(
             Task,
             r#"
-        SELECT
-            t.id, t.title, t.description, t.task_type AS "task_type: TaskType", t.points, t.configuration
-        FROM exam_tasks et
-        LEFT JOIN tasks t ON et.task_id = t.id
-        WHERE et.exam_id = $1
-        "#,
+                SELECT
+                    t.id, t.title, t.description, t.task_type AS "task_type: TaskType", t.points, t.configuration
+                FROM exam_tasks et
+                LEFT JOIN tasks t ON et.task_id = t.id
+                WHERE et.exam_id = $1
+            "#,
             id
         )
             .fetch_all(&self.pool)
-            .await
-            .map_err(LMSError::DatabaseError)?;
+            .await?;
         Ok(tasks)
     }
 
     #[allow(clippy::cast_possible_wrap)]
+    #[allow(clippy::cast_possible_truncation)]
     async fn update_tasks(&self, id: Uuid, tasks: Vec<i32>) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 
         let found_tasks = sqlx::query_as!(
             Task,
             r#"
-        SELECT id, title, description, task_type AS "task_type: TaskType", points, configuration
-        FROM tasks
-        WHERE id = ANY($1)
-        "#,
+                SELECT id, title, description, task_type AS "task_type: TaskType", points, configuration
+                FROM tasks
+                WHERE id = ANY($1)
+            "#,
             &tasks
         )
-        .fetch_all(tx.as_mut())
-        .await
-        .map_err(LMSError::DatabaseError)?;
+            .fetch_all(tx.as_mut())
+            .await?;
 
         if tasks.len() != found_tasks.len() {
             return Err(LMSError::Conflict(
@@ -192,29 +185,26 @@ impl ExamRepository for RepositoryPostgres {
 
         let _ = sqlx::query!(
             r#"
-        DELETE FROM exam_tasks
-        WHERE exam_id = $1
-        "#,
+                DELETE FROM exam_tasks
+                WHERE exam_id = $1
+            "#,
             id
         )
         .execute(tx.as_mut())
-        .await
-        .map_err(LMSError::DatabaseError)?;
+        .await?;
 
-        for (index, task) in tasks.iter().enumerate() {
-            let _ = sqlx::query!(
-                r#"
-            INSERT INTO exam_tasks (exam_id, task_id, order_index)
-            VALUES ($1, $2, $3)
+        let _ = sqlx::query!(
+            r#"
+                INSERT INTO exam_tasks (exam_id, task_id, order_index)
+                SELECT $1, x.task_id, x.order_index
+                FROM UNNEST($2::INT[], $3::INT[]) AS x(task_id, order_index)
             "#,
-                id,
-                task,
-                index as i64
-            )
-            .execute(tx.as_mut())
-            .await
-            .map_err(LMSError::DatabaseError)?;
-        }
+            id,
+            &tasks,
+            &(0..tasks.len()).map(|x| x as i32).collect::<Vec<i32>>()
+        )
+        .execute(tx.as_mut())
+        .await?;
 
         tx.commit().await?;
 
@@ -225,39 +215,40 @@ impl ExamRepository for RepositoryPostgres {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
             r#"
-        SELECT id, exam_id, user_id, started_at, active,
-        answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
-        FROM attempts
-        WHERE exam_id = $1 AND user_id = $2
-        ORDER BY started_at ASC
-        "#,
+                SELECT id, exam_id, user_id, started_at, active,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                FROM attempts
+                WHERE exam_id = $1 AND user_id = $2
+                ORDER BY started_at ASC
+            "#,
             id,
             user_id
         )
             .fetch_all(&self.pool)
-            .await
-            .map_err(LMSError::DatabaseError)?;
+            .await?;
 
         Ok(attempts)
     }
 
     async fn get_user_last_attempt(&self, id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        let attempt = sqlx::query_as!(ExamAttempt, r#"
-        SELECT id, exam_id, user_id, started_at, active,
-        answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
-        FROM attempts
-        WHERE exam_id = $1 AND user_id = $2
-        ORDER BY started_at DESC
-        LIMIT 1
-        "#,
+        let attempt = sqlx::query_as!(
+            ExamAttempt,
+            r#"
+                SELECT id, exam_id, user_id, started_at, active,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                FROM attempts
+                WHERE exam_id = $1 AND user_id = $2
+                ORDER BY started_at DESC
+                LIMIT 1
+            "#,
             id,
             user_id
         )
             .fetch_one(&self.pool)
             .await
-            .map_err(|e| match e {
+            .map_err(|err| match err {
                 sqlx::Error::RowNotFound => LMSError::NotFound("Such user has no attempts in this exam".to_string()),
-                _ => LMSError::DatabaseError(e),
+                _ => LMSError::DatabaseError(err),
             })?;
 
         Ok(attempt)
@@ -266,15 +257,14 @@ impl ExamRepository for RepositoryPostgres {
     async fn stop_attempt(&self, attempt_id: Uuid) -> Result<()> {
         let _ = sqlx::query!(
             r#"
-                    UPDATE attempts
-                    SET active = false
-                    WHERE id = $1
-                    "#,
+                UPDATE attempts
+                SET active = false
+                WHERE id = $1
+            "#,
             attempt_id
         )
         .execute(&self.pool)
-        .await
-        .map_err(LMSError::DatabaseError)?;
+        .await?;
 
         Ok(())
     }
@@ -288,17 +278,16 @@ impl ExamRepository for RepositoryPostgres {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
             r#"
-        SELECT id, exam_id, user_id, started_at, active,
-        answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
-        FROM attempts
-        WHERE exam_id = $1 AND user_id = $2
-        "#,
+                SELECT id, exam_id, user_id, started_at, active,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                FROM attempts
+                WHERE exam_id = $1 AND user_id = $2
+            "#,
             id,
             user_id
         )
             .fetch_all(tx.as_mut())
-            .await
-            .map_err(LMSError::DatabaseError)?;
+            .await?;
 
         if attempts.iter().any(|att| att.active)
             || (attempts.len() >= exam.tries_count as usize && exam.tries_count != 0)
@@ -309,29 +298,23 @@ impl ExamRepository for RepositoryPostgres {
             ));
         }
 
-        let empty_answer_data = ExamAnswer {
-            answers: HashMap::default(),
-        };
-        let empty_scoring_data = ScoringData {
-            show_results: false,
-            results: HashMap::default(),
-        };
+        let empty_answer_data = ExamAnswer::default();
+        let empty_scoring_data = ScoringData::default();
         let attempt: ExamAttempt = sqlx::query_as!(
             ExamAttempt,
             r#"
-            INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, exam_id, user_id, started_at, active,
-            answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, exam_id, user_id, started_at, active,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
             "#,
-                id,
-                user_id,
-                to_value(empty_answer_data).expect("Something bad happened with ExamAnswer data"),
-                to_value(empty_scoring_data).expect("Something bad happened with ScoringData"),
+            id,
+            user_id,
+            to_value(empty_answer_data).expect("Something bad happened with ExamAnswer data"),
+            to_value(empty_scoring_data).expect("Something bad happened with ScoringData"),
         )
             .fetch_one(tx.as_mut())
-            .await
-            .map_err(LMSError::DatabaseError)?;
+            .await?;
 
         tx.commit().await?;
 
@@ -352,17 +335,16 @@ impl ExamRepository for RepositoryPostgres {
             active_attempt.answer_data = answer_data;
             let _ = sqlx::query!(
                 r#"
-            UPDATE attempts
-            SET answer_data = $1
-            WHERE id = $2
-            "#,
+                    UPDATE attempts
+                    SET answer_data = $1
+                    WHERE id = $2
+                "#,
                 to_value(&active_attempt.answer_data)
                     .expect("Something bad happened with AnswerData"),
                 active_attempt.id
             )
             .execute(&self.pool)
-            .await
-            .map_err(LMSError::DatabaseError)?;
+            .await?;
             return Ok(active_attempt.clone());
         }
         Err(LMSError::NotFound("No active attempt found".to_string()))
@@ -375,16 +357,15 @@ impl ExamRepository for RepositoryPostgres {
     ) -> Result<()> {
         let _ = sqlx::query!(
             r#"
-        UPDATE attempts
-        SET scoring_data = $1
-        WHERE id = $2
-        "#,
+                UPDATE attempts
+                SET scoring_data = $1
+                WHERE id = $2
+            "#,
             to_value(&attempt_score).expect("Something bad happened with ScoringData"),
             attempt_id
         )
         .execute(&self.pool)
-        .await
-        .map_err(LMSError::DatabaseError)?;
+        .await?;
 
         Ok(())
     }
