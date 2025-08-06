@@ -14,7 +14,7 @@ cp .env.example .env
 Для работы с Yandex.Cloud Video API (храним там видео лекций) понадобится токен от сервис-аккаунта, его можно получить так:
 
 ```shell
-yc iam create-token
+yc iam key create --service-account-name sa-video-api --output iam-key.json
 ```
 
 Путь до полученного IAM-ключа нужно указать в переменных.
