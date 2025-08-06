@@ -1,0 +1,87 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE tasks\n                SET title = $1,\n                    description = $2,\n                    task_type = $3,\n                    points = $4,\n                    configuration = $5\n                WHERE id = $6\n                RETURNING id, title, description, task_type AS \"task_type: TaskType\",\n                          points, configuration\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "task_type: TaskType",
+        "type_info": {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "points",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "configuration",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        },
+        "Int4",
+        "Jsonb",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "a9fcb65b68538d7705e484897acaa1a57f86b9aa5d9c59618b5df0d4f512d1ea"
+}

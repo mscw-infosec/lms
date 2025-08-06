@@ -1,0 +1,3 @@
+answers:
+  1: # task_id
+    ... # answer from task_answers_schema.yml here (see TaskAnswer enum)

@@ -19,9 +19,9 @@ impl AccountRepository for RepositoryPostgres {
 
         let attributes = sqlx::query!(
             r#"
-            SELECT key, value
-            FROM attributes
-            WHERE user_id = $1
+                SELECT key, value
+                FROM attributes
+                WHERE user_id = $1
             "#,
             id
         )
@@ -35,11 +35,11 @@ impl AccountRepository for RepositoryPostgres {
 
         let user = sqlx::query!(
             r#"
-            SELECT u.id, u.username, u.email, u.created_at,
-                   u.role as "role: UserRole", ac.password_hash as password
-            FROM users u
-            LEFT JOIN auth_credentials ac ON ac.user_id = u.id
-            WHERE u.id = $1
+                SELECT u.id, u.username, u.email, u.created_at,
+                       u.role as "role: UserRole", ac.password_hash as password
+                FROM users u
+                LEFT JOIN auth_credentials ac ON ac.user_id = u.id
+                WHERE u.id = $1
             "#,
             id
         )

@@ -1,3 +1,5 @@
+use crate::domain::exam::model::Exam;
+use crate::domain::exam::model::ExamType;
 use crate::domain::task::model::{Task, TaskType};
 use crate::domain::task::repository::TaskRepository;
 use crate::dto::task::UpsertTaskRequestDTO;
@@ -14,13 +16,12 @@ impl TaskRepository for RepositoryPostgres {
         let task = sqlx::query_as!(
             Task,
             r#"
-            INSERT INTO tasks (title, description, tries_count, task_type, points, configuration)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING id, title, description, tries_count, task_type AS "task_type: TaskType", points, configuration
+                INSERT INTO tasks (title, description, task_type, points, configuration)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, title, description, task_type AS "task_type: TaskType", points, configuration
             "#,
             config.title,
             config.description,
-            config.tries_count,
             config.task_type as TaskType,
             config.points,
             to_value(config.configuration)
@@ -38,9 +39,9 @@ impl TaskRepository for RepositoryPostgres {
         let task = sqlx::query_as!(
             Task,
             r#"
-            SELECT id, title, description, tries_count, task_type AS "task_type: TaskType", points, configuration
-            FROM tasks
-            WHERE id = $1
+                SELECT id, title, description, task_type AS "task_type: TaskType", points, configuration
+                FROM tasks
+                WHERE id = $1
             "#,
             id
         )
@@ -52,6 +53,23 @@ impl TaskRepository for RepositoryPostgres {
         })?;
 
         Ok(task)
+    }
+
+    async fn get_exams(&self, id: i32) -> Result<Vec<Exam>> {
+        let exams: Vec<Exam> = sqlx::query_as!(
+            Exam,
+            r#"
+                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS "type: ExamType"
+                FROM exam_tasks et
+                LEFT JOIN exams e ON e.id = et.exam_id
+                WHERE et.task_id = $1
+            "#,
+            id
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(exams)
     }
 
     async fn get_topic_tasks(&self) -> Result<Vec<Task>> {
@@ -67,9 +85,9 @@ impl TaskRepository for RepositoryPostgres {
 
         let _ = sqlx::query!(
             r#"
-            DELETE FROM tasks
-            WHERE id = $1
-            RETURNING id
+                DELETE FROM tasks
+                WHERE id = $1
+                RETURNING id
             "#,
             id
         )
@@ -89,20 +107,18 @@ impl TaskRepository for RepositoryPostgres {
         let task = sqlx::query_as!(
             Task,
             r#"
-            UPDATE tasks
-            SET title = $1,
-                description = $2,
-                tries_count = $3,
-                task_type = $4,
-                points = $5,
-                configuration = $6
-            WHERE id = $7
-            RETURNING id, title, description, tries_count,
-                      task_type AS "task_type: TaskType", points, configuration
+                UPDATE tasks
+                SET title = $1,
+                    description = $2,
+                    task_type = $3,
+                    points = $4,
+                    configuration = $5
+                WHERE id = $6
+                RETURNING id, title, description, task_type AS "task_type: TaskType",
+                          points, configuration
             "#,
             task_data.title,
             task_data.description,
-            task_data.tries_count,
             task_data.task_type as TaskType,
             task_data.points,
             to_value(task_data.configuration)

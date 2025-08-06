@@ -12,9 +12,9 @@ impl TopicRepository for RepositoryPostgres {
         let topic = sqlx::query_as!(
             TopicModel,
             r#"
-            SELECT id, title, course_id, order_index
-            FROM topics
-            WHERE id = $1
+                SELECT id, title, course_id, order_index
+                FROM topics
+                WHERE id = $1
             "#,
             id
         )
@@ -28,10 +28,10 @@ impl TopicRepository for RepositoryPostgres {
         let topics = sqlx::query_as!(
             TopicModel,
             r#"
-            SELECT id, title, course_id, order_index
-            FROM topics
-            WHERE course_id = $1
-            ORDER BY order_index
+                SELECT id, title, course_id, order_index
+                FROM topics
+                WHERE course_id = $1
+                ORDER BY order_index
             "#,
             course_id
         )
@@ -41,11 +41,31 @@ impl TopicRepository for RepositoryPostgres {
         Ok(topics)
     }
 
+    async fn add_topic_to_course(&self, topic: UpsertTopicRequestDTO) -> Result<()> {
+        sqlx::query!(
+            r#"
+                INSERT INTO topics (course_id, title, order_index)
+                VALUES ($1, $2, $3)
+            "#,
+            topic.course_id,
+            topic.title,
+            topic.order_index
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|err| match err {
+            sqlx::Error::RowNotFound => LMSError::NotFound("Topic not found".to_string()),
+            _ => err.into(),
+        })?;
+
+        Ok(())
+    }
+
     async fn delete_topic(&self, id: i32) -> Result<()> {
         sqlx::query!(
             r#"
-            DELETE FROM topics
-            WHERE id = $1
+                DELETE FROM topics
+                WHERE id = $1
             "#,
             id
         )
@@ -58,9 +78,9 @@ impl TopicRepository for RepositoryPostgres {
     async fn update_topic(&self, id: i32, topic: UpsertTopicRequestDTO) -> Result<()> {
         sqlx::query!(
             r#"
-            UPDATE topics
-            SET title = $1, order_index = $2
-            WHERE id = $3
+                UPDATE topics
+                SET title = $1, order_index = $2
+                WHERE id = $3
             "#,
             topic.title,
             topic.order_index,
@@ -68,26 +88,6 @@ impl TopicRepository for RepositoryPostgres {
         )
         .execute(&self.pool)
         .await?;
-
-        Ok(())
-    }
-
-    async fn add_topic_to_course(&self, topic: UpsertTopicRequestDTO) -> Result<()> {
-        sqlx::query!(
-            r#"
-            INSERT INTO topics (course_id, title, order_index)
-            VALUES ($1, $2, $3)
-            "#,
-            topic.course_id,
-            topic.title,
-            topic.order_index
-        )
-        .execute(&self.pool)
-        .await
-        .map_err(|err| match err {
-            sqlx::Error::RowNotFound => LMSError::NotFound("Topic not found".to_string()),
-            _ => err.into(),
-        })?;
 
         Ok(())
     }

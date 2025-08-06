@@ -1,0 +1,69 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO exams\n                (topic_id, tries_count, duration, type)\n                VALUES ($1, $2, $3, $4)\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "topic_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "tries_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "duration",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "type: ExamType",
+        "type_info": {
+          "Custom": {
+            "name": "exam_type",
+            "kind": {
+              "Enum": [
+                "Instant",
+                "Delayed"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4",
+        {
+          "Custom": {
+            "name": "exam_type",
+            "kind": {
+              "Enum": [
+                "Instant",
+                "Delayed"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f82ccb60b98eacc47f9efe4a5d361c06ad0c025d9c455a9af640b3f10f0a33c9"
+}

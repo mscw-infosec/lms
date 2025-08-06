@@ -1,0 +1,272 @@
+use crate::domain::exam::model::{Exam, ExamType};
+use crate::domain::exam::repository::ExamRepository;
+use crate::domain::task::model::{Task, TaskAnswer, TaskConfig};
+use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
+use crate::dto::task::TaskVerdict;
+use crate::errors::{LMSError, Result};
+use crate::repo;
+use chrono::{Duration, Utc};
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
+use uuid::Uuid;
+
+#[derive(Clone)]
+pub struct ExamService {
+    repo: repo!(ExamRepository),
+}
+
+impl ExamService {
+    pub fn new(repo: repo!(ExamRepository)) -> Self {
+        Self { repo }
+    }
+
+    pub async fn create_exam(&self, exam: UpsertExamRequestDTO) -> Result<Exam> {
+        self.repo.create(exam).await
+    }
+
+    pub async fn get_exam(&self, exam_id: Uuid) -> Result<Exam> {
+        self.repo.get(exam_id).await
+    }
+
+    pub async fn delete_exam(&self, exam_id: Uuid) -> Result<()> {
+        self.repo.delete(exam_id).await
+    }
+
+    pub async fn update_exam(
+        &self,
+        exam_id: Uuid,
+        exam_data: UpsertExamRequestDTO,
+    ) -> Result<Exam> {
+        self.repo.update(exam_id, exam_data).await
+    }
+
+    pub async fn get_tasks(&self, exam_id: Uuid) -> Result<Vec<Task>> {
+        self.repo.get_tasks(exam_id).await
+    }
+
+    pub async fn update_tasks(&self, exam_id: Uuid, tasks: Vec<i32>) -> Result<()> {
+        if tasks.iter().collect::<HashSet<_>>().len() != tasks.len() {
+            return Err(LMSError::Conflict(
+                "You can use tasks only once in exam".to_string(),
+            ));
+        }
+        self.repo.update_tasks(exam_id, tasks).await
+    }
+
+    pub async fn get_user_attempts(
+        &self,
+        exam_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Vec<ExamAttempt>> {
+        let exam = self.get_exam(exam_id).await?;
+        let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
+        self.update_attempts_status(i64::from(exam.duration), &mut attempts)
+            .await?;
+        Ok(attempts)
+    }
+
+    pub async fn get_user_last_attempt(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+        self.repo.get_user_last_attempt(exam_id, user_id).await
+    }
+
+    pub async fn update_attempts_status(
+        &self,
+        exam_duration: i64,
+        attempts: &mut Vec<ExamAttempt>,
+    ) -> Result<()> {
+        for attempt in attempts {
+            if attempt.active && attempt.started_at + Duration::seconds(exam_duration) < Utc::now()
+            {
+                attempt.active = false;
+                self.repo.stop_attempt(attempt.id).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn start_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+        let exam = self.get_exam(exam_id).await?;
+        let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
+        let () = self
+            .update_attempts_status(i64::from(exam.duration), &mut attempts)
+            .await?;
+        self.repo.start_exam(exam_id, user_id).await
+    }
+
+    pub async fn stop_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<()> {
+        let attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
+        if !attempt.active {
+            return Err(LMSError::NotFound(
+                "You have no active attempts".to_string(),
+            ));
+        }
+        let () = self.repo.stop_attempt(attempt.id).await?;
+        let _ = self.score_attempt(attempt).await?;
+        Ok(())
+    }
+
+    #[allow(clippy::cast_possible_wrap)]
+    pub async fn modify_attempt(
+        &self,
+        exam_id: Uuid,
+        user_id: Uuid,
+        task_id: usize,
+        answer: TaskAnswer,
+    ) -> Result<ExamAttempt> {
+        let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
+        if !attempt.active {
+            return Err(LMSError::NotFound(
+                "You have no active attempts".to_string(),
+            ));
+        }
+        let tasks = self.get_tasks(exam_id).await?;
+        if let Some(task) = tasks.iter().find(|t| t.id == task_id as i64) {
+            match (&task.configuration, answer.clone()) {
+                (TaskConfig::SingleChoice { .. }, TaskAnswer::SingleChoice { .. })
+                | (TaskConfig::MultipleChoice { .. }, TaskAnswer::MultipleChoice { .. })
+                | (TaskConfig::ShortText { .. }, TaskAnswer::ShortText { .. })
+                | (TaskConfig::LongText { .. }, TaskAnswer::LongText { .. })
+                | (TaskConfig::Ordering { .. }, TaskAnswer::Ordering { .. })
+                | (TaskConfig::FileUpload { .. }, TaskAnswer::FileUpload { .. }) => {
+                    self.repo
+                        .modify_attempt(exam_id, user_id, task_id, answer)
+                        .await
+                }
+                _ => Err(LMSError::ShitHappened(
+                    "You've sent an answer for another task type".to_string(),
+                )),
+            }
+        } else {
+            Err(LMSError::NotFound("This exam has no such task".to_string()))
+        }
+    }
+
+    #[allow(clippy::too_many_lines)]
+    #[allow(clippy::cast_possible_wrap)]
+    #[allow(clippy::cast_precision_loss)]
+    pub async fn score_attempt(&self, attempt: ExamAttempt) -> Result<ScoringData> {
+        let mut scoring_data = ScoringData {
+            show_results: false,
+            results: HashMap::default(),
+        };
+        let exam = self.get_exam(attempt.exam_id).await?;
+        let tasks = self.get_tasks(attempt.exam_id).await?;
+        for (task_id, user_answer) in attempt.answer_data.answers.clone() {
+            let task = tasks
+                .iter()
+                .find(|t| t.id == task_id as i64)
+                .expect("There are answers for tasks that are not in exam");
+            match (user_answer.clone(), &task.configuration) {
+                (
+                    TaskAnswer::SingleChoice { answer },
+                    TaskConfig::SingleChoice {
+                        options, correct, ..
+                    },
+                ) => {
+                    if answer == options[*correct] {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        continue;
+                    }
+
+                    scoring_data
+                        .results
+                        .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                }
+
+                (
+                    TaskAnswer::MultipleChoice { answers },
+                    TaskConfig::MultipleChoice {
+                        options,
+                        correct,
+                        partial_score,
+                        ..
+                    },
+                ) => {
+                    let correct_answers: HashSet<_> =
+                        correct.iter().map(|&i| &options[i]).collect();
+                    let user_answers: HashSet<_> = answers.iter().collect();
+
+                    if user_answers == correct_answers {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        continue;
+                    }
+                    if !partial_score {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        continue;
+                    }
+
+                    let correct_count = correct_answers.intersection(&user_answers).count() as f64;
+                    let incorrect_count = user_answers.difference(&correct_answers).count() as f64;
+                    // punish for wrong answers, not for missing
+                    let score_multiplier =
+                        (correct_count - incorrect_count) / correct_answers.len() as f64;
+                    if score_multiplier <= 0f64 {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        continue;
+                    }
+
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::PartialScore {
+                            score_multiplier,
+                            comment: None,
+                        },
+                    );
+                }
+
+                (TaskAnswer::ShortText { answer }, TaskConfig::ShortText { answers, .. }) => {
+                    if answers.contains(&answer) {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                    } else {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                    }
+                }
+
+                (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {
+                    let precomputed_answers: Vec<Vec<String>> = answers
+                        .iter()
+                        .map(|correct| correct.iter().map(|&i| items[i].clone()).collect())
+                        .collect();
+                    if precomputed_answers
+                        .iter()
+                        .any(|precomputed| precomputed == &answer)
+                    {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                    } else {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                    }
+                }
+                (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
+                | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
+                    scoring_data.results.insert(task_id, TaskVerdict::OnReview);
+                }
+                _ => unreachable!(), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
+            }
+        }
+
+        if matches!(exam.r#type, ExamType::Instant) {
+            scoring_data.show_results = true;
+        }
+        self.repo
+            .update_attempt_score(attempt.id, &scoring_data)
+            .await?;
+
+        Ok(scoring_data)
+    }
+}

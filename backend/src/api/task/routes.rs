@@ -77,6 +77,36 @@ pub async fn get_by_id(
     Ok(Json(task.into()))
 }
 
+/// Get administrative view of the task by id
+#[utoipa::path(
+    get,
+    tag = "Task",
+    path = "/{task_id}/admin",
+    params(
+        ("task_id" = i32, Path)
+    ),
+    responses(
+        (status = 200, body = Task, description = "Found task"),
+        (status = 401, description = "No auth data found"),
+        (status = 404, description = "Task not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn get_full_by_id(
+    user: UserModel,
+    State(state): State<TaskState>,
+    Path(task_id): Path<i32>,
+) -> Result<Json<Task>, LMSError> {
+    // TODO: ACL for tasks (owners + hidden tasks)
+    if matches!(user.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't admin tasks".to_string()));
+    }
+    let task = state.task_service.get_task(task_id).await?;
+    Ok(task.into())
+}
+
 /// Delete task by id
 #[utoipa::path(
     delete,

@@ -13,8 +13,8 @@ impl BasicAuthRepository for RepositoryPostgres {
 
         let _ = sqlx::query!(
             r#"
-            INSERT INTO users(id, username, email, created_at)
-            VALUES ($1, $2, $3, $4)
+                INSERT INTO users(id, username, email, created_at)
+                VALUES ($1, $2, $3, $4)
             "#,
             user.id,
             user.username,
@@ -32,8 +32,8 @@ impl BasicAuthRepository for RepositoryPostgres {
 
         let _ = sqlx::query!(
             r#"
-            INSERT INTO auth_credentials(user_id, provider, password_hash)
-            VALUES ($1, $2, $3)
+                INSERT INTO auth_credentials(user_id, provider, password_hash)
+                VALUES ($1, $2, $3)
             "#,
             user.id,
             "basic",
@@ -47,14 +47,29 @@ impl BasicAuthRepository for RepositoryPostgres {
         Ok(())
     }
 
+    async fn is_exists(&self, username: &str, email: &str) -> Result<bool> {
+        let id = sqlx::query!(
+            r#"
+                SELECT id FROM users
+                WHERE username = $1 OR email = $2
+            "#,
+            username,
+            email
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(id.is_some())
+    }
+
     async fn get_by_username(&self, username: &str) -> Result<Option<BasicUser>> {
         let user = sqlx::query!(
             r#"
-            SELECT u.id, u.username, u.email, u.created_at,
-                   ac.password_hash as password
-            FROM users u
-            LEFT JOIN auth_credentials ac ON u.id = ac.user_id
-            WHERE u.username = $1 AND ac.provider = 'basic'
+                SELECT u.id, u.username, u.email, u.created_at,
+                       ac.password_hash as password
+                FROM users u
+                LEFT JOIN auth_credentials ac ON u.id = ac.user_id
+                WHERE u.username = $1 AND ac.provider = 'basic'
             "#,
             username
         )
@@ -69,20 +84,5 @@ impl BasicAuthRepository for RepositoryPostgres {
         });
 
         Ok(user)
-    }
-
-    async fn is_exists(&self, username: &str, email: &str) -> Result<bool> {
-        let id = sqlx::query!(
-            r#"
-            SELECT id FROM users
-            WHERE username = $1 OR email = $2
-            "#,
-            username,
-            email
-        )
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(id.is_some())
     }
 }

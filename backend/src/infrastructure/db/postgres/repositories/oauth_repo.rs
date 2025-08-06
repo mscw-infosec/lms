@@ -20,8 +20,8 @@ impl OAuthRepository for RepositoryPostgres {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, LMSError> {
         let id = sqlx::query_scalar!(
             r#"
-            SELECT id FROM users
-            WHERE email = $1
+                SELECT id FROM users
+                WHERE email = $1
             "#,
             email
         )
@@ -37,8 +37,8 @@ impl OAuthRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-            INSERT INTO users(id, username, email, role)
-            VALUES ($1, $2, $3, $4)
+                INSERT INTO users(id, username, email, role)
+                VALUES ($1, $2, $3, $4)
             "#,
             user.id,
             user.username,
@@ -50,8 +50,8 @@ impl OAuthRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-            INSERT INTO auth_credentials(user_id, provider, provider_user_id)
-            VALUES ($1, $2, $3)
+                INSERT INTO auth_credentials(user_id, provider, provider_user_id)
+                VALUES ($1, $2, $3)
             "#,
             user.id,
             user.provider.to_string(),
@@ -68,10 +68,10 @@ impl OAuthRepository for RepositoryPostgres {
     async fn add_provider(&self, id: Uuid, provider: OAuth) -> Result<(), LMSError> {
         sqlx::query!(
             r#"
-            INSERT INTO auth_credentials(user_id, provider, provider_user_id)
-            VALUES ($1, $2, $3)
-            ON CONFLICT
-            DO NOTHING
+                INSERT INTO auth_credentials(user_id, provider, provider_user_id)
+                VALUES ($1, $2, $3)
+                ON CONFLICT
+                DO NOTHING
             "#,
             id,
             provider.provider.to_string(),

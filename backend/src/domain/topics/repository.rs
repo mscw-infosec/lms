@@ -2,7 +2,6 @@ use crate::{
     domain::topics::model::TopicModel, dto::topics::UpsertTopicRequestDTO, errors::Result,
 };
 use async_trait::async_trait;
-use uuid::Uuid;
 
 #[async_trait]
 pub trait TopicRepository {

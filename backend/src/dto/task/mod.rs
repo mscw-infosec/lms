@@ -1,4 +1,4 @@
-use crate::domain::task::model::{PublicTaskConfig, Task, TaskConfig, TaskType};
+use crate::domain::task::model::{PublicTaskConfig, Task, TaskAnswer, TaskConfig, TaskType};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
 use sqlx::FromRow;
@@ -11,8 +11,6 @@ pub struct UpsertTaskRequestDTO {
     #[validate(length(min = 1, max = 50))]
     pub title: String,
     pub description: Option<String>,
-    #[validate(range(min = 0))]
-    pub tries_count: i32,
     pub task_type: TaskType,
     #[validate(range(min = 0))]
     pub points: i32,
@@ -31,7 +29,6 @@ pub struct PublicTaskDTO {
     pub id: i64,
     pub title: String,
     pub description: Option<String>,
-    pub tries_count: i64,
     pub task_type: TaskType,
     pub points: i64,
     pub configuration: PublicTaskConfig,
@@ -43,7 +40,6 @@ impl From<Task> for PublicTaskDTO {
             id: value.id,
             title: value.title,
             description: value.description,
-            tries_count: value.tries_count,
             task_type: value.task_type,
             points: value.points,
             configuration: value.configuration.into(),
@@ -95,4 +91,26 @@ impl From<JsonValue> for TaskConfig {
     fn from(val: JsonValue) -> Self {
         from_value(val).expect("Invalid JSON for TaskConfig")
     }
+}
+
+impl From<JsonValue> for TaskAnswer {
+    fn from(val: JsonValue) -> Self {
+        from_value(val).expect("Invalid JSON for TaskAnswer")
+    }
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
+#[serde(tag = "verdict", rename_all = "snake_case")]
+pub enum TaskVerdict {
+    FullScore {
+        comment: Option<String>, // for manual review
+    },
+    PartialScore {
+        score_multiplier: f64,
+        comment: Option<String>,
+    },
+    Incorrect {
+        comment: Option<String>,
+    },
+    OnReview,
 }
