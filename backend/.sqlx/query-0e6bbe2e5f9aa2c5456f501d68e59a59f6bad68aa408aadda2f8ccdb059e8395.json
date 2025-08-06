@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT u.id, u.username, u.email, u.created_at,\n                   ac.password_hash as password\n            FROM users u\n            LEFT JOIN auth_credentials ac ON u.id = ac.user_id\n            WHERE u.username = $1 AND ac.provider = 'basic'\n            ",
+  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       ac.password_hash as password\n                FROM users u\n                LEFT JOIN auth_credentials ac ON u.id = ac.user_id\n                WHERE u.username = $1 AND ac.provider = 'basic'\n            ",
   "describe": {
     "columns": [
       {
@@ -42,5 +42,5 @@
       true
     ]
   },
-  "hash": "d5dcffef400a9ffb429fb3222889d8dfaa12197e1c72c7dec55d410f793e2725"
+  "hash": "0e6bbe2e5f9aa2c5456f501d68e59a59f6bad68aa408aadda2f8ccdb059e8395"
 }

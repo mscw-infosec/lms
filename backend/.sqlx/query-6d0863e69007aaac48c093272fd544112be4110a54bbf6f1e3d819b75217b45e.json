@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            UPDATE courses\n            SET title = $1, description = $2\n            WHERE id = $3\n            RETURNING id, title, description, created_at\n            ",
+  "query": "\n                SELECT id, title, description, created_at\n                FROM courses\n                ORDER BY created_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -25,11 +25,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Varchar",
-        "Varchar",
-        "Int4"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -38,5 +34,5 @@
       false
     ]
   },
-  "hash": "0ccfff8dabd44f18f8a31259b07f8d0946b4585eadcdf6636a827322b61e1610"
+  "hash": "6d0863e69007aaac48c093272fd544112be4110a54bbf6f1e3d819b75217b45e"
 }

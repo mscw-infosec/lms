@@ -19,9 +19,9 @@ impl CourseRepository for RepositoryPostgres {
 
         let (course_id, created_at) = sqlx::query!(
             r#"
-            INSERT INTO courses (title, description)
-            VALUES ($1, $2)
-            RETURNING id, created_at
+                INSERT INTO courses (title, description)
+                VALUES ($1, $2)
+                RETURNING id, created_at
             "#,
             course.name,
             course.description
@@ -32,8 +32,8 @@ impl CourseRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-            INSERT INTO course_owners (course_id, user_id)
-            VALUES ($1, $2)
+                INSERT INTO course_owners (course_id, user_id)
+                VALUES ($1, $2)
             "#,
             course_id,
             user_id
@@ -88,10 +88,10 @@ impl CourseRepository for RepositoryPostgres {
         let course_model = sqlx::query_as!(
             CourseModel,
             r#"
-            UPDATE courses
-            SET title = $1, description = $2
-            WHERE id = $3
-            RETURNING id, title, description, created_at
+                UPDATE courses
+                SET title = $1, description = $2
+                WHERE id = $3
+                RETURNING id, title, description, created_at
             "#,
             course.name,
             course.description,
@@ -134,8 +134,8 @@ impl CourseRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-            DELETE FROM courses
-            WHERE id = $1
+                DELETE FROM courses
+                WHERE id = $1
             "#,
             course_id
         )
@@ -155,9 +155,9 @@ impl CourseRepository for RepositoryPostgres {
         let courses = sqlx::query_as!(
             CourseModel,
             r#"
-            SELECT id, title, description, created_at
-            FROM courses
-            ORDER BY created_at DESC
+                SELECT id, title, description, created_at
+                FROM courses
+                ORDER BY created_at DESC
             "#
         )
         .fetch_all(&self.pool)
@@ -170,9 +170,9 @@ impl CourseRepository for RepositoryPostgres {
         let course = sqlx::query_as!(
             CourseModel,
             r#"
-            SELECT id, title, description, created_at
-            FROM courses
-            WHERE id = $1
+                SELECT id, title, description, created_at
+                FROM courses
+                WHERE id = $1
             "#,
             course_id
         )

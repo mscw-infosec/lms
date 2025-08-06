@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO auth_credentials(user_id, provider, provider_user_id)\n                VALUES ($1, $2, $3)\n                ON CONFLICT\n                DO NOTHING\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b12ecbbea3477330c013905b5e62338500d34672b25760b070d971dc5ee06986"
+}

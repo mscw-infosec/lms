@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, title, description, created_at\n            FROM courses\n            WHERE id = $1\n            ",
+  "query": "\n                SELECT id, title, description, created_at\n                FROM courses\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "c2580edc333ef3e8955873be82a5658c59c08ae2d7f9bc98fb9e299b71956634"
+  "hash": "7eb79ec9caa053caab53a65b68fe9807231c6b02c560a90136e6ca6001042138"
 }

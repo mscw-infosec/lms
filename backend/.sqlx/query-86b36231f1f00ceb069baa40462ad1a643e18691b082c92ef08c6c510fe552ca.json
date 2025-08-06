@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, title, course_id, order_index\n            FROM topics\n            WHERE course_id = $1\n            ORDER BY order_index\n            ",
+  "query": "\n                SELECT id, title, course_id, order_index\n                FROM topics\n                WHERE course_id = $1\n                ORDER BY order_index\n            ",
   "describe": {
     "columns": [
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "68402247552c39f941428463fb3021b5c5e091d5eae7d7fc05fed6d7433c7acb"
+  "hash": "86b36231f1f00ceb069baa40462ad1a643e18691b082c92ef08c6c510fe552ca"
 }
