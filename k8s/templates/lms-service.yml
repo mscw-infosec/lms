@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: lms
+  ports:
+    - port: 80
+      targetPort: 8080

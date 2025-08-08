@@ -1,0 +1,10 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: lms-pg-secrets
+  namespace: {{ .Release.Namespace }}
+spec:
+  encryptedData:
+    POSTGRES_DB: {{ .Values.secrets.POSTGRES_DB }}
+    POSTGRES_PASSWORD: {{ .Values.secrets.POSTGRES_PASSWORD }}
+    POSTGRES_USER: {{ .Values.secrets.POSTGRES_USER }}

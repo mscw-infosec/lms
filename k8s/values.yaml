@@ -1,0 +1,6 @@
+image:
+  repository: justmarfix/lms
+  tag: pre-alpha-0.1
+  pullPolicy: IfNotPresent
+
+secrets: {}
