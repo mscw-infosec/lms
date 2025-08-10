@@ -49,7 +49,7 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
-      IMAGE_NAME: ghcr.io/${{ github.repository }}:latest
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
 
     steps:
       - name: Checkout repository
