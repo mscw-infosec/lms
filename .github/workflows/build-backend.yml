@@ -3,8 +3,14 @@ name: Build, Lint, and Push Docker Image
 on:
   push:
     branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/**"
   pull_request:
     branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/**"
 
 jobs:
   clippy:
@@ -31,7 +37,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
           key: rust-${{ hashFiles('backend/Cargo.lock') }}
-          restore-keys: pr-rust-
+          restore-keys: rust-
 
       - name: Run cargo clippy
         working-directory: backend
@@ -54,19 +60,8 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
 
-      - name: Restore Cargo cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            backend/target
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: rust-${{ hashFiles('backend/Cargo.lock') }}
-          restore-keys: rust-
-
-      - name: Build project
-        working-directory: backend
-        run: cargo build --release
+      - name: Set image version
+        run: echo "IMAGE_VERSION=0.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -78,8 +73,10 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
+          context: backend
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
+            ${{ env.IMAGE_NAME }}:latest
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}-cache
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}-cache,mode=max
