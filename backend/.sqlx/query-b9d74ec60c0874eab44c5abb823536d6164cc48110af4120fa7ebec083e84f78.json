@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       ac.password_hash as password, u.role as \"role: UserRole\"\n                FROM users u\n                LEFT JOIN auth_credentials ac ON u.id = ac.user_id\n                WHERE u.username = $1 AND ac.provider = 'basic'\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "password",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "role: UserRole",
+        "type_info": {
+          "Custom": {
+            "name": "userrole",
+            "kind": {
+              "Enum": [
+                "Student",
+                "Teacher",
+                "Admin"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "b9d74ec60c0874eab44c5abb823536d6164cc48110af4120fa7ebec083e84f78"
+}
