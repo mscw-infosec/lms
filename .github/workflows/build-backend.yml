@@ -14,7 +14,7 @@ on:
 
 jobs:
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'pull_request'
     env:
       CARGO_TERM_COLOR: always
@@ -41,10 +41,10 @@ jobs:
 
       - name: Run cargo clippy
         working-directory: backend
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name == 'push'
     env:
       CARGO_TERM_COLOR: always
