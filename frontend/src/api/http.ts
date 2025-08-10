@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import type { components } from "@/api/schema/schema";
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { getAccessToken, setAccessToken } from "./token";
+=======
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+import { getAccessToken, setAccessToken } from "./token";
+import type { components } from "@/api/schema/schema";
+>>>>>>> a548896 (DEV-10: frontend api connect)
 
 const DEFAULT_HEADERS: HeadersInit = {
 	"Content-Type": "application/json",
@@ -34,14 +40,22 @@ export interface HttpOptions extends RequestInit {
 	withAuth?: boolean;
 }
 
+<<<<<<< HEAD
 export async function http<T>(
 	path: string,
 	options: HttpOptions = {},
 ): Promise<T> {
+=======
+export async function http<T>(path: string, options: HttpOptions = {}): Promise<T> {
+>>>>>>> a548896 (DEV-10: frontend api connect)
 	const baseUrl = getApiBaseUrl();
 	const url = path.startsWith("http") ? path : `${baseUrl}${path}`;
 	const headers = new Headers(DEFAULT_HEADERS);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a548896 (DEV-10: frontend api connect)
 	if (options.headers) {
 		const provided = new Headers(options.headers as HeadersInit);
 		provided.forEach((value, key) => headers.set(key, value));
@@ -58,6 +72,7 @@ export async function http<T>(
 		headers: Object.fromEntries(headers.entries()),
 		data: (options as RequestInit).body,
 		signal: (options.signal ?? undefined) as AbortSignal | undefined,
+<<<<<<< HEAD
 		withCredentials: options.credentials
 			? options.credentials === "include"
 			: true,
@@ -66,6 +81,13 @@ export async function http<T>(
 
 	const doRequest = async (): Promise<AxiosResponse> =>
 		axios.request(createConfig());
+=======
+		withCredentials: options.credentials ? options.credentials === "include" : true,
+		validateStatus: () => true,
+	});
+
+	const doRequest = async (): Promise<AxiosResponse> => axios.request(createConfig());
+>>>>>>> a548896 (DEV-10: frontend api connect)
 
 	let res = await doRequest();
 	if (res.status === 401 && options.withAuth) {
@@ -90,4 +112,8 @@ export async function http<T>(
 	if (res.status === 204) return undefined as unknown as T;
 
 	return res.data as T;
+<<<<<<< HEAD
 }
+=======
+} 
+>>>>>>> a548896 (DEV-10: frontend api connect)

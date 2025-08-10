@@ -69,8 +69,11 @@ type Quiz = {
 	questions: QuizQuestion[];
 };
 
+<<<<<<< HEAD
 type AnswerValue = number | number[] | string | Record<number, number>;
 
+=======
+>>>>>>> a548896 (DEV-10: frontend api connect)
 const quizData: Record<number, Quiz> = {
 	3: {
 		title: "Security Principles Quiz",
@@ -266,10 +269,14 @@ export function TaskPlayer({
 		);
 	}
 
+<<<<<<< HEAD
 	const currentQuestion = quiz.questions[currentQuestionIndex];
 	if (!currentQuestion) {
 		return null;
 	}
+=======
+	const currentQuestion = quiz.questions[currentQuestionIndex]!;
+>>>>>>> a548896 (DEV-10: frontend api connect)
 	const totalQuestions = quiz.questions.length;
 
 	const handleSingleAnswer = (questionId: number, value: string) => {
@@ -309,13 +316,18 @@ export function TaskPlayer({
 				isCorrect = userAnswer === (question as SingleQuestion).correct;
 			} else if (question.type === "multiple") {
 				const correctArray = (question as MultipleQuestion).correct;
+<<<<<<< HEAD
 				const userArray = (
 					Array.isArray(userAnswer) ? userAnswer : []
 				) as number[];
+=======
+				const userArray = userAnswer || [];
+>>>>>>> a548896 (DEV-10: frontend api connect)
 				isCorrect =
 					correctArray.length === userArray.length &&
 					correctArray.every((val: number) => userArray.includes(val));
 			} else if (question.type === "text") {
+<<<<<<< HEAD
 				const userText = String((userAnswer as string | undefined) ?? "")
 					.toLowerCase()
 					.trim();
@@ -338,6 +350,20 @@ export function TaskPlayer({
 				const userMatches = (
 					userAnswer && typeof userAnswer === "object" ? userAnswer : {}
 				) as Record<number, number>;
+=======
+				const userText = String(userAnswer ?? "").toLowerCase().trim();
+				const correctText = String((question as TextQuestion).correct ?? "").toLowerCase();
+				const alternatives = (question as TextQuestion).alternatives || [];
+				isCorrect =
+					userText === correctText ||
+					alternatives.some((alt: string) => String(alt).toLowerCase() === userText);
+			} else if (question.type === "ordering") {
+				const userOrder = userAnswer || [];
+				const correctOrder = (question as OrderingQuestion).correct;
+				isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
+			} else if (question.type === "matching") {
+				const userMatches = userAnswer || {};
+>>>>>>> a548896 (DEV-10: frontend api connect)
 				const correctMatches = (question as MatchingQuestion).correct;
 				isCorrect =
 					JSON.stringify(userMatches) === JSON.stringify(correctMatches);
@@ -368,15 +394,20 @@ export function TaskPlayer({
 		}
 		if (question.type === "multiple") {
 			const correctArray = (question as MultipleQuestion).correct;
+<<<<<<< HEAD
 			const userArray = (
 				Array.isArray(userAnswer) ? userAnswer : []
 			) as number[];
+=======
+			const userArray = userAnswer || [];
+>>>>>>> a548896 (DEV-10: frontend api connect)
 			return (
 				correctArray.length === userArray.length &&
 				correctArray.every((val: number) => userArray.includes(val))
 			);
 		}
 		if (question.type === "text") {
+<<<<<<< HEAD
 			const userText = String((userAnswer as string | undefined) ?? "")
 				.toLowerCase()
 				.trim();
@@ -395,13 +426,29 @@ export function TaskPlayer({
 			const userOrder = (
 				Array.isArray(userAnswer) ? userAnswer : []
 			) as number[];
+=======
+			const userText = String(userAnswer ?? "").toLowerCase().trim();
+			const correctText = String((question as TextQuestion).correct ?? "").toLowerCase();
+			const alternatives = (question as TextQuestion).alternatives || [];
+			return (
+				userText === correctText ||
+				alternatives.some((alt: string) => String(alt).toLowerCase() === userText)
+			);
+		}
+		if (question.type === "ordering") {
+			const userOrder = userAnswer || [];
+>>>>>>> a548896 (DEV-10: frontend api connect)
 			const correctOrder = (question as OrderingQuestion).correct;
 			return JSON.stringify(userOrder) === JSON.stringify(correctOrder);
 		}
 		if (question.type === "matching") {
+<<<<<<< HEAD
 			const userMatches = (
 				userAnswer && typeof userAnswer === "object" ? userAnswer : {}
 			) as Record<number, number>;
+=======
+			const userMatches = userAnswer || {};
+>>>>>>> a548896 (DEV-10: frontend api connect)
 			const correctMatches = (question as MatchingQuestion).correct;
 			return JSON.stringify(userMatches) === JSON.stringify(correctMatches);
 		}
@@ -439,7 +486,11 @@ export function TaskPlayer({
 									className={`h-2 w-2 rounded-full ${
 										index === currentQuestionIndex
 											? "bg-red-600"
+<<<<<<< HEAD
 											: answers[q.id ?? -1] !== undefined
+=======
+											: answers[quiz.questions[index]?.id ?? -1] !== undefined
+>>>>>>> a548896 (DEV-10: frontend api connect)
 												? "bg-slate-600"
 												: "bg-slate-700"
 									}`}
@@ -492,16 +543,24 @@ export function TaskPlayer({
 									<Label
 										htmlFor={`q${currentQuestion.id}-${optionIndex}`}
 										className={`cursor-pointer text-slate-300 ${
+<<<<<<< HEAD
 											submitted &&
 											optionIndex ===
 												(currentQuestion as SingleQuestion).correct
+=======
+											submitted && optionIndex === (currentQuestion as SingleQuestion).correct
+>>>>>>> a548896 (DEV-10: frontend api connect)
 												? "font-medium text-green-400"
 												: ""
-										} ${
+											} ${
 											submitted &&
 											answers[currentQuestion.id] === optionIndex &&
+<<<<<<< HEAD
 											optionIndex !==
 												(currentQuestion as SingleQuestion).correct
+=======
+											optionIndex !== (currentQuestion as SingleQuestion).correct
+>>>>>>> a548896 (DEV-10: frontend api connect)
 												? "text-red-400"
 												: ""
 										}`}
@@ -583,13 +642,20 @@ export function TaskPlayer({
 								Drag and drop to reorder:
 							</p>
 							<div className="space-y-2">
+<<<<<<< HEAD
 								{(Array.isArray(answers[currentQuestion.id])
 									? (answers[currentQuestion.id] as number[])
 									: currentQuestion.options.map((_, i) => i)
+=======
+								{(
+									answers[currentQuestion.id] ||
+									currentQuestion.options.map((_, i) => i)
+>>>>>>> a548896 (DEV-10: frontend api connect)
 								).map((itemIndex: number, position: number) => (
 									<div
 										key={itemIndex}
 										className={`cursor-move rounded-lg border border-slate-700 bg-slate-800 p-3 ${
+<<<<<<< HEAD
 											submitted &&
 											(currentQuestion as OrderingQuestion).correct[
 												position
@@ -603,6 +669,13 @@ export function TaskPlayer({
 											] !== itemIndex
 												? "border-red-500"
 												: ""
+=======
+											submitted && (currentQuestion as OrderingQuestion).correct[position] === itemIndex
+												? "border-green-500"
+												: ""
+											} ${
+											submitted && (currentQuestion as OrderingQuestion).correct[position] !== itemIndex ? "border-red-500" : ""
+>>>>>>> a548896 (DEV-10: frontend api connect)
 										}`}
 									>
 										<span className="text-slate-300">
@@ -622,6 +695,7 @@ export function TaskPlayer({
 									<h4 className="font-medium text-slate-300">
 										Items to match:
 									</h4>
+<<<<<<< HEAD
 									{(currentQuestion as MatchingQuestion).leftItems.map(
 										(item) => (
 											<div
@@ -679,6 +753,49 @@ export function TaskPlayer({
 											</button>
 										),
 									)}
+=======
+									{(currentQuestion as MatchingQuestion).leftItems.map((item, leftIndex) => (
+										<div
+											key={leftIndex}
+											className="rounded-lg border border-slate-700 bg-slate-800 p-3"
+										>
+											<span className="text-slate-300">{item}</span>
+										</div>
+									))}
+								</div>
+								<div className="space-y-2">
+									<h4 className="font-medium text-slate-300">Match with:</h4>
+									{(currentQuestion as MatchingQuestion).rightItems.map((item, rightIndex) => (
+										<button
+											key={rightIndex}
+											onClick={() => {
+												// Simple matching logic - in a real app, you'd implement proper drag & drop
+												const currentMatches =
+													answers[currentQuestion.id] || {};
+												const newMatches = {
+													...currentMatches,
+													[0]: rightIndex,
+												}; // Simplified for demo
+												setAnswers((prev) => ({
+													...prev,
+													[currentQuestion.id]: newMatches,
+												}));
+												onProgress?.(
+													currentQuestion.id,
+													Object.keys(newMatches).length > 0,
+												);
+											}}
+											disabled={submitted}
+											className={`w-full rounded-lg border border-slate-700 p-3 text-left transition-colors ${
+												answers[currentQuestion.id]?.[0] === rightIndex
+													? "bg-red-600 text-white"
+													: "bg-slate-800 text-slate-300 hover:bg-slate-700"
+											}`}
+										>
+											{item}
+										</button>
+									))}
+>>>>>>> a548896 (DEV-10: frontend api connect)
 								</div>
 							</div>
 						</div>
@@ -726,8 +843,7 @@ export function TaskPlayer({
 							</span>
 						</p>
 						<p className="mb-4 text-slate-400">
-							You got {Math.round((score / 100) * totalQuestions)} out of{" "}
-							{totalQuestions} questions correct.
+							You got {Math.round((score / 100) * totalQuestions)} out of {totalQuestions} questions correct.
 						</p>
 						<p className="mb-4 text-slate-400">
 							{score >= 70

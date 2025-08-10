@@ -120,23 +120,7 @@ async fn main() -> anyhow::Result<()> {
                 .on_response(DefaultOnResponse::new().include_headers(true)),
         )
         .layer(CompressionLayer::new())
-        .layer(
-            CorsLayer::new()
-                .allow_origin([
-                    "http://localhost:3000".parse().expect("valid CORS origin URL"),
-                    "http://127.0.0.1:3000".parse().expect("valid CORS origin URL"),
-                ])
-                .allow_methods([
-                    Method::GET,
-                    Method::POST,
-                    Method::PUT,
-                    Method::PATCH,
-                    Method::DELETE,
-                    Method::OPTIONS,
-                ])
-                .allow_headers([ACCEPT, AUTHORIZATION, CONTENT_TYPE])
-                .allow_credentials(true),
-        )
+        .layer(CorsLayer::permissive())
         .split_for_parts();
 
     #[cfg(feature = "swagger")]

@@ -86,10 +86,14 @@ export default function HomePage() {
 				{loading && (
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{skeletonKeys.map((key) => (
+<<<<<<< HEAD
 							<div
 								key={key}
 								className="h-64 animate-pulse rounded-lg bg-slate-800"
 							/>
+=======
+							<div key={key} className="h-64 animate-pulse rounded-lg bg-slate-800" />
+>>>>>>> a548896 (DEV-10: frontend api connect)
 						))}
 					</div>
 				)}
