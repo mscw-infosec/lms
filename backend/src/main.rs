@@ -56,6 +56,7 @@ pub mod macros;
 pub mod openapi;
 pub mod utils;
 
+#[allow(clippy::too_many_lines)]
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     init_tracing();
@@ -74,7 +75,12 @@ async fn main() -> anyhow::Result<()> {
     let iam = IAMTokenManager::new(&config.iam_key_file)?;
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
 
-    let account_service = AccountService::new(db_repo.clone(), rdb_repo.clone(), s3.clone());
+    let account_service = AccountService::new(
+        db_repo.clone(),
+        rdb_repo.clone(),
+        s3.clone(),
+        &config.frontend_redirect_url,
+    );
     let basic_auth_service = BasicAuthService::new(db_repo.clone());
     let course_service = CourseService::new(db_repo.clone());
     let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
@@ -96,7 +102,11 @@ async fn main() -> anyhow::Result<()> {
                 )
                 .nest(
                     "/auth",
-                    api::auth::configure(refresh_token_service.clone(), jwt.clone()),
+                    api::auth::configure(
+                        refresh_token_service.clone(),
+                        account_service.clone(),
+                        jwt.clone(),
+                    ),
                 )
                 .nest(
                     "/basic",
@@ -119,6 +129,7 @@ async fn main() -> anyhow::Result<()> {
                     "/oauth",
                     api::oauth::configure(
                         jwt.clone(),
+                        account_service.clone(),
                         client,
                         oauth_service,
                         refresh_token_service,

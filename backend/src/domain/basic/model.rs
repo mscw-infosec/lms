@@ -1,3 +1,4 @@
+use crate::domain::account::model::UserRole;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -10,6 +11,7 @@ pub struct BasicUser {
     pub id: Uuid,
     pub username: String,
     pub email: String,
+    pub role: UserRole,
 
     #[serde(skip)]
     pub password: String,
@@ -21,7 +23,7 @@ pub struct BasicUser {
 impl BasicUser {
     pub fn new(username: String, email: String, password: String) -> Self {
         Self {
-            id: uuid::Uuid::new_v4(),
+            id: Uuid::new_v4(),
             username,
             email,
             password,

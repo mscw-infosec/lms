@@ -41,7 +41,7 @@ pub async fn register(
         .await?;
 
     let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
-    let access_token = state.jwt.generate_access_token(user.id)?;
+    let access_token = state.jwt.generate_access_token(user.id, user.role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
@@ -71,7 +71,7 @@ pub async fn login(
     let user = state.basic_auth_service.login(username, password).await?;
 
     let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
-    let access_token = state.jwt.generate_access_token(user.id)?;
+    let access_token = state.jwt.generate_access_token(user.id, user.role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 

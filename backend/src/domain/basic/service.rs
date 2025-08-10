@@ -4,6 +4,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use super::{model::BasicUser, repository::BasicAuthRepository};
+use crate::domain::account::model::UserRole;
 use crate::{
     errors::{LMSError, Result},
     infrastructure::crypto::Argon,
@@ -38,6 +39,7 @@ impl BasicAuthService {
             id: Uuid::new_v4(),
             username,
             email,
+            role: UserRole::default(),
             password: password_hash,
             created_at: Utc::now(),
         };

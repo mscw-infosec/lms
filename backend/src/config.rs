@@ -25,6 +25,9 @@ pub struct Config {
     pub s3_endpoint: String,
     pub s3_region: String,
     pub s3_bucket_name: String,
+
+    #[validate(url)]
+    pub frontend_redirect_url: String,
 }
 
 pub fn env(key: &str) -> String {
@@ -55,6 +58,8 @@ impl Config {
             s3_endpoint: env("S3_ENDPOINT"),
             s3_region: env("S3_REGION"),
             s3_bucket_name: env("S3_BUCKET_NAME"),
+
+            frontend_redirect_url: env("FRONTEND_REDIRECT_URL"),
         };
 
         if let Err(validation_errors) = config.validate() {

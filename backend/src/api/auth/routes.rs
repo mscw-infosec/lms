@@ -34,7 +34,8 @@ pub async fn refresh(
     State(state): State<AuthState>,
 ) -> Result<Json<RefreshResponse>, LMSError> {
     let (new_refresh_token, _) = state.refresh_service.validate_and_rotate(&token).await?;
-    let access_token = state.jwt.generate_access_token(token.sub)?;
+    let role = state.account_service.get_user(token.sub).await?.role;
+    let access_token = state.jwt.generate_access_token(token.sub, role)?;
 
     add_cookie(&cookies, ("refresh_token", new_refresh_token));
 

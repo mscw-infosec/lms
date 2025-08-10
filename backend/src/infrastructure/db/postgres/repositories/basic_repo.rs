@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 
 use crate::{
+    domain::account::model::UserRole,
     domain::basic::{model::BasicUser, repository::BasicAuthRepository},
     errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
@@ -66,7 +67,7 @@ impl BasicAuthRepository for RepositoryPostgres {
         let user = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
-                       ac.password_hash as password
+                       ac.password_hash as password, u.role as "role: UserRole"
                 FROM users u
                 LEFT JOIN auth_credentials ac ON u.id = ac.user_id
                 WHERE u.username = $1 AND ac.provider = 'basic'
@@ -80,6 +81,7 @@ impl BasicAuthRepository for RepositoryPostgres {
             username: user.username,
             email: user.email,
             password: user.password.expect("With Basic auth password exists"),
+            role: user.role,
             created_at: user.created_at,
         });
 

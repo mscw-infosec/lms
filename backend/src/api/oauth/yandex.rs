@@ -50,7 +50,8 @@ pub async fn callback(
         .create_refresh_token(user_id)
         .await?;
 
-    let access_token = state.jwt.generate_access_token(user_id)?;
+    let role = state.account_service.get_user(user_id).await?.role;
+    let access_token = state.jwt.generate_access_token(user_id, role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
