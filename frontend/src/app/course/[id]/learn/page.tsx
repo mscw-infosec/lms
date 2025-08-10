@@ -90,7 +90,7 @@ const courseStructure = [
 	},
 ];
 
-export default function LearnPage({ params }: { params: { id: string } }) {
+export default function LearnPage() {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [currentLecture, setCurrentLecture] = useState(1);
 	const [progress, setProgress] = useState<Record<number, boolean>>({
@@ -135,20 +135,22 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 
 	const goToNext = () => {
 		if (currentIndex < allLectures.length - 1) {
-			setCurrentLecture(allLectures[currentIndex + 1].id);
+			const next = allLectures[currentIndex + 1];
+			if (next) setCurrentLecture(next.id);
 		}
 	};
 
 	const goToPrevious = () => {
 		if (currentIndex > 0) {
-			setCurrentLecture(allLectures[currentIndex - 1].id);
+			const prev = allLectures[currentIndex - 1];
+			if (prev) setCurrentLecture(prev.id);
 		}
 	};
 
 	const handleLectureSelect = (lectureId: number) => {
 		setCurrentLecture(lectureId);
 		// Auto-close sidebar on mobile when selecting a lecture
-		if (window.innerWidth < 640) {
+		if (typeof window !== "undefined" && window.innerWidth < 640) {
 			setSidebarOpen(false);
 		}
 	};

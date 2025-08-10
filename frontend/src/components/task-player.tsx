@@ -15,7 +15,61 @@ interface TaskPlayerProps {
 	onProgress?: (questionId: number, hasAnswer: boolean) => void;
 }
 
-const quizData = {
+type SingleQuestion = {
+	id: number;
+	type: "single";
+	question: string;
+	options: string[];
+	correct: number;
+};
+
+type MultipleQuestion = {
+	id: number;
+	type: "multiple";
+	question: string;
+	options: string[];
+	correct: number[];
+};
+
+type TextQuestion = {
+	id: number;
+	type: "text";
+	question: string;
+	correct: string;
+	alternatives?: string[];
+};
+
+type OrderingQuestion = {
+	id: number;
+	type: "ordering";
+	question: string;
+	options: string[];
+	correct: number[];
+};
+
+type MatchingQuestion = {
+	id: number;
+	type: "matching";
+	question: string;
+	leftItems: string[];
+	rightItems: string[];
+	correct: Record<number, number>;
+};
+
+type QuizQuestion =
+	| SingleQuestion
+	| MultipleQuestion
+	| TextQuestion
+	| OrderingQuestion
+	| MatchingQuestion;
+
+type Quiz = {
+	title: string;
+	description: string;
+	questions: QuizQuestion[];
+};
+
+const quizData: Record<number, Quiz> = {
 	3: {
 		title: "Security Principles Quiz",
 		description: "Test your understanding of fundamental security principles.",
@@ -210,7 +264,7 @@ export function TaskPlayer({
 		);
 	}
 
-	const currentQuestion = quiz.questions[currentQuestionIndex];
+	const currentQuestion = quiz.questions[currentQuestionIndex]!;
 	const totalQuestions = quiz.questions.length;
 
 	const handleSingleAnswer = (questionId: number, value: string) => {
@@ -247,27 +301,27 @@ export function TaskPlayer({
 			let isCorrect = false;
 
 			if (question.type === "single") {
-				isCorrect = userAnswer === question.correct;
+				isCorrect = userAnswer === (question as SingleQuestion).correct;
 			} else if (question.type === "multiple") {
-				const correctArray = question.correct as number[];
+				const correctArray = (question as MultipleQuestion).correct;
 				const userArray = userAnswer || [];
 				isCorrect =
 					correctArray.length === userArray.length &&
 					correctArray.every((val: number) => userArray.includes(val));
 			} else if (question.type === "text") {
-				const userText = (userAnswer || "").toLowerCase().trim();
-				const correctText = question.correct.toLowerCase();
-				const alternatives = question.alternatives || [];
+				const userText = String(userAnswer ?? "").toLowerCase().trim();
+				const correctText = String((question as TextQuestion).correct ?? "").toLowerCase();
+				const alternatives = (question as TextQuestion).alternatives || [];
 				isCorrect =
 					userText === correctText ||
-					alternatives.some((alt) => alt.toLowerCase() === userText);
+					alternatives.some((alt: string) => String(alt).toLowerCase() === userText);
 			} else if (question.type === "ordering") {
 				const userOrder = userAnswer || [];
-				const correctOrder = question.correct;
+				const correctOrder = (question as OrderingQuestion).correct;
 				isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
 			} else if (question.type === "matching") {
 				const userMatches = userAnswer || {};
-				const correctMatches = question.correct;
+				const correctMatches = (question as MatchingQuestion).correct;
 				isCorrect =
 					JSON.stringify(userMatches) === JSON.stringify(correctMatches);
 			}
@@ -293,10 +347,10 @@ export function TaskPlayer({
 		const userAnswer = answers[question.id];
 
 		if (question.type === "single") {
-			return userAnswer === question.correct;
+			return userAnswer === (question as SingleQuestion).correct;
 		}
 		if (question.type === "multiple") {
-			const correctArray = question.correct as number[];
+			const correctArray = (question as MultipleQuestion).correct;
 			const userArray = userAnswer || [];
 			return (
 				correctArray.length === userArray.length &&
@@ -304,22 +358,22 @@ export function TaskPlayer({
 			);
 		}
 		if (question.type === "text") {
-			const userText = (userAnswer || "").toLowerCase().trim();
-			const correctText = question.correct.toLowerCase();
-			const alternatives = question.alternatives || [];
+			const userText = String(userAnswer ?? "").toLowerCase().trim();
+			const correctText = String((question as TextQuestion).correct ?? "").toLowerCase();
+			const alternatives = (question as TextQuestion).alternatives || [];
 			return (
 				userText === correctText ||
-				alternatives.some((alt) => alt.toLowerCase() === userText)
+				alternatives.some((alt: string) => String(alt).toLowerCase() === userText)
 			);
 		}
 		if (question.type === "ordering") {
 			const userOrder = userAnswer || [];
-			const correctOrder = question.correct;
+			const correctOrder = (question as OrderingQuestion).correct;
 			return JSON.stringify(userOrder) === JSON.stringify(correctOrder);
 		}
 		if (question.type === "matching") {
 			const userMatches = userAnswer || {};
-			const correctMatches = question.correct;
+			const correctMatches = (question as MatchingQuestion).correct;
 			return JSON.stringify(userMatches) === JSON.stringify(correctMatches);
 		}
 
@@ -356,7 +410,7 @@ export function TaskPlayer({
 									className={`h-2 w-2 rounded-full ${
 										index === currentQuestionIndex
 											? "bg-red-600"
-											: answers[quiz.questions[index].id] !== undefined
+											: answers[quiz.questions[index]?.id ?? -1] !== undefined
 												? "bg-slate-600"
 												: "bg-slate-700"
 									}`}
@@ -406,13 +460,13 @@ export function TaskPlayer({
 									<Label
 										htmlFor={`q${currentQuestion.id}-${optionIndex}`}
 										className={`cursor-pointer text-slate-300 ${
-											submitted && optionIndex === currentQuestion.correct
+											submitted && optionIndex === (currentQuestion as SingleQuestion).correct
 												? "font-medium text-green-400"
 												: ""
-										} ${
+											} ${
 											submitted &&
 											answers[currentQuestion.id] === optionIndex &&
-											optionIndex !== currentQuestion.correct
+											optionIndex !== (currentQuestion as SingleQuestion).correct
 												? "text-red-400"
 												: ""
 										}`}
@@ -445,7 +499,7 @@ export function TaskPlayer({
 										htmlFor={`q${currentQuestion.id}-${optionIndex}`}
 										className={`cursor-pointer text-slate-300 ${
 											submitted &&
-											(currentQuestion.correct as number[]).includes(
+											(currentQuestion as MultipleQuestion).correct.includes(
 												optionIndex,
 											)
 												? "font-medium text-green-400"
@@ -480,7 +534,7 @@ export function TaskPlayer({
 								<p
 									className={`text-sm ${getQuestionResult(currentQuestion.id) ? "text-green-400" : "text-red-400"}`}
 								>
-									Correct answer: {currentQuestion.correct}
+									Correct answer: {(currentQuestion as TextQuestion).correct}
 								</p>
 							)}
 						</div>
@@ -493,15 +547,16 @@ export function TaskPlayer({
 								{(
 									answers[currentQuestion.id] ||
 									currentQuestion.options.map((_, i) => i)
-								).map((itemIndex, position) => (
+								).map((itemIndex: number, position: number) => (
 									<div
 										key={itemIndex}
 										className={`cursor-move rounded-lg border border-slate-700 bg-slate-800 p-3 ${
-											submitted &&
-											currentQuestion.correct[position] === itemIndex
+											submitted && (currentQuestion as OrderingQuestion).correct[position] === itemIndex
 												? "border-green-500"
 												: ""
-										} ${submitted && currentQuestion.correct[position] !== itemIndex ? "border-red-500" : ""}`}
+											} ${
+											submitted && (currentQuestion as OrderingQuestion).correct[position] !== itemIndex ? "border-red-500" : ""
+										}`}
 									>
 										<span className="text-slate-300">
 											{position + 1}. {currentQuestion.options[itemIndex]}
@@ -520,7 +575,7 @@ export function TaskPlayer({
 									<h4 className="font-medium text-slate-300">
 										Items to match:
 									</h4>
-									{currentQuestion.leftItems.map((item, leftIndex) => (
+									{(currentQuestion as MatchingQuestion).leftItems.map((item, leftIndex) => (
 										<div
 											key={leftIndex}
 											className="rounded-lg border border-slate-700 bg-slate-800 p-3"
@@ -531,7 +586,7 @@ export function TaskPlayer({
 								</div>
 								<div className="space-y-2">
 									<h4 className="font-medium text-slate-300">Match with:</h4>
-									{currentQuestion.rightItems.map((item, rightIndex) => (
+									{(currentQuestion as MatchingQuestion).rightItems.map((item, rightIndex) => (
 										<button
 											key={rightIndex}
 											onClick={() => {
@@ -608,8 +663,7 @@ export function TaskPlayer({
 							</span>
 						</p>
 						<p className="mb-4 text-slate-400">
-							You got {Math.round((score / 100) * totalQuestions)} out of{" "}
-							{totalQuestions} questions correct.
+							You got {Math.round((score / 100) * totalQuestions)} out of {totalQuestions} questions correct.
 						</p>
 						<p className="mb-4 text-slate-400">
 							{score >= 70

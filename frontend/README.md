@@ -27,3 +27,17 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 ## How do I deploy this?
 
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+
+# Frontend API setup
+
+- Set `NEXT_PUBLIC_API_BASE_URL` in your environment (e.g., `.env.local`) to point to the backend, for example:
+
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+- The app stores the `access_token` in memory and localStorage. Refresh happens via `POST /api/auth/refresh` using cookies.
+
+- Auth endpoints used:
+  - `POST /api/basic/login` and `POST /api/basic/register` return `{ access_token }` and set `refresh_token` cookie.
+  - `GET /api/account` fetches the current user and requires the bearer token.
