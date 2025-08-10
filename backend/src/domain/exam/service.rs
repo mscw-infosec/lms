@@ -111,7 +111,7 @@ impl ExamService {
         exam_id: Uuid,
         user_id: Uuid,
         task_id: usize,
-        answer: TaskAnswer,
+        user_answer: TaskAnswer,
     ) -> Result<ExamAttempt> {
         let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
         if !attempt.active {
@@ -121,15 +121,22 @@ impl ExamService {
         }
         let tasks = self.get_tasks(exam_id).await?;
         if let Some(task) = tasks.iter().find(|t| t.id == task_id as i64) {
-            match (&task.configuration, answer.clone()) {
+            match (&task.configuration, user_answer.clone()) {
+                (TaskConfig::ShortText { max_chars_count, .. }, TaskAnswer::ShortText { answer })
+                | (TaskConfig::LongText { max_chars_count, .. }, TaskAnswer::LongText { answer }) => {
+                    if answer.len() > *max_chars_count {
+                        return Err(LMSError::ShitHappened(format!("Your answer length is more than allowed ({max_chars_count})")))
+                    }
+                    self.repo
+                        .modify_attempt(exam_id, user_id, task_id, user_answer)
+                        .await
+                },
                 (TaskConfig::SingleChoice { .. }, TaskAnswer::SingleChoice { .. })
                 | (TaskConfig::MultipleChoice { .. }, TaskAnswer::MultipleChoice { .. })
-                | (TaskConfig::ShortText { .. }, TaskAnswer::ShortText { .. })
-                | (TaskConfig::LongText { .. }, TaskAnswer::LongText { .. })
                 | (TaskConfig::Ordering { .. }, TaskAnswer::Ordering { .. })
                 | (TaskConfig::FileUpload { .. }, TaskAnswer::FileUpload { .. }) => {
                     self.repo
-                        .modify_attempt(exam_id, user_id, task_id, answer)
+                        .modify_attempt(exam_id, user_id, task_id, user_answer)
                         .await
                 }
                 _ => Err(LMSError::ShitHappened(
@@ -222,7 +229,13 @@ impl ExamService {
                     );
                 }
 
-                (TaskAnswer::ShortText { answer }, TaskConfig::ShortText { answers, .. }) => {
+                (TaskAnswer::ShortText { answer }, TaskConfig::ShortText { answers, auto_grade, .. }) => {
+                    if !auto_grade {
+                        scoring_data
+                            .results
+                            .insert(task_id, TaskVerdict::OnReview);
+                        continue;
+                    }
                     if answers.contains(&answer) {
                         scoring_data
                             .results
