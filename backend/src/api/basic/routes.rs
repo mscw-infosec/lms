@@ -19,7 +19,7 @@ use super::BasicAuthState;
     path = "/register",
     request_body = BasicRegisterRequest,
     responses(
-        (status = 200, body = BasicRegisterResponse, description = "Create new user", headers(
+        (status = 303, description = "Create new user", headers(
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 401, description = "User with the same email or name already exists")
@@ -63,7 +63,7 @@ pub async fn register(
     path = "/login",
     request_body = BasicLoginRequest,
     responses(
-        (status = 200, body = BasicLoginResponse, description = "Returns access and refresh tokens", headers(
+        (status = 303, description = "Returns access and refresh tokens", headers(
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 403, description = "Wrong email or password")
