@@ -1,4 +1,3 @@
-use axum::response::Redirect;
 use axum::{Json, extract::State};
 use tower_cookies::Cookies;
 
@@ -29,7 +28,7 @@ pub async fn register(
     cookies: Cookies,
     State(state): State<BasicAuthState>,
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
-) -> Result<Redirect, LMSError> {
+) -> Result<Json<BasicRegisterResponse>, LMSError> {
     let BasicRegisterRequest {
         username,
         email,
@@ -47,13 +46,7 @@ pub async fn register(
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
-    Ok(Redirect::to(
-        format!(
-            "{}?access_token={access_token}",
-            state.account_service.redirect_url
-        )
-        .as_str(),
-    ))
+    Ok(Json(BasicRegisterResponse { access_token }))
 }
 
 /// Login user with email and password
@@ -73,7 +66,7 @@ pub async fn login(
     cookies: Cookies,
     State(state): State<BasicAuthState>,
     Json(payload): Json<BasicLoginRequest>,
-) -> Result<Redirect, LMSError> {
+) -> Result<Json<BasicLoginResponse>, LMSError> {
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.basic_auth_service.login(username, password).await?;
@@ -84,11 +77,5 @@ pub async fn login(
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
-    Ok(Redirect::to(
-        format!(
-            "{}?access_token={access_token}",
-            state.account_service.redirect_url
-        )
-        .as_str(),
-    ))
+    Ok(Json(BasicLoginResponse { access_token }))
 }

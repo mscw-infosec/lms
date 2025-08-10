@@ -26,6 +26,7 @@ pub struct Config {
     pub s3_region: String,
     pub s3_bucket_name: String,
 
+    #[validate(url)]
     pub frontend_redirect_url: String,
 }
 
