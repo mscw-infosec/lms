@@ -1,5 +1,5 @@
-use axum::{Json, extract::State};
 use axum::response::Redirect;
+use axum::{Json, extract::State};
 use tower_cookies::Cookies;
 
 use crate::{
@@ -52,7 +52,7 @@ pub async fn register(
             "{}?access_token={access_token}",
             state.account_service.redirect_url
         )
-            .as_str(),
+        .as_str(),
     ))
 }
 
@@ -89,6 +89,6 @@ pub async fn login(
             "{}?access_token={access_token}",
             state.account_service.redirect_url
         )
-            .as_str(),
+        .as_str(),
     ))
 }

@@ -75,11 +75,15 @@ async fn main() -> anyhow::Result<()> {
     let iam = IAMTokenManager::new(&config.iam_key_file)?;
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
 
-    let account_service = AccountService::new(db_repo.clone(), rdb_repo.clone(), s3.clone(), &config.frontend_redirect_url);
+    let account_service = AccountService::new(
+        db_repo.clone(),
+        rdb_repo.clone(),
+        s3.clone(),
+        &config.frontend_redirect_url,
+    );
     let basic_auth_service = BasicAuthService::new(db_repo.clone());
     let course_service = CourseService::new(db_repo.clone());
-    let oauth_service =
-        OAuthService::new(db_repo.clone(), s3.clone());
+    let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
     let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
     let task_service = TaskService::new(db_repo.clone());

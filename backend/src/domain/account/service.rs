@@ -17,7 +17,7 @@ pub struct AccountService {
     db_repo: repo!(AccountRepository),
     cache_repo: repo!(AccountCacheRepository),
     s3: S3Manager,
-    pub redirect_url: String
+    pub redirect_url: String,
 }
 
 impl AccountService {
@@ -25,7 +25,7 @@ impl AccountService {
         db_repo: repo!(AccountRepository),
         cache_repo: repo!(AccountCacheRepository),
         s3: S3Manager,
-        redirect_url: &str
+        redirect_url: &str,
     ) -> Self {
         Self {
             db_repo,
