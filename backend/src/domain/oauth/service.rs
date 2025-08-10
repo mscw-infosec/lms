@@ -36,7 +36,10 @@ pub struct OAuthService {
 
 impl OAuthService {
     pub const fn new(repo: repo!(OAuthRepository), s3: S3Manager) -> Self {
-        Self { repo, s3 }
+        Self {
+            repo,
+            s3,
+        }
     }
 
     pub async fn save_user(&self, oauth_user: OAuth) -> Result<Uuid, LMSError> {

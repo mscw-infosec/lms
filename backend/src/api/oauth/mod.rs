@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use utoipa_axum::{router::OpenApiRouter, routes};
 
+use crate::domain::account::service::AccountService;
 use crate::{
     config::Config,
     domain::{
@@ -20,6 +21,7 @@ use crate::{
 #[derive(Clone)]
 pub struct GithubState {
     pub jwt: Arc<JWT>,
+    pub account_service: AccountService,
     pub oauth_service: OAuthService,
     pub github_provider: GithubProvider,
     pub refresh_token_service: RefreshTokenService,
@@ -28,6 +30,7 @@ pub struct GithubState {
 #[derive(Clone)]
 pub struct YandexState {
     pub jwt: Arc<JWT>,
+    pub account_service: AccountService,
     pub oauth_service: OAuthService,
     pub yandex_provider: YandexProvider,
     pub refresh_token_service: RefreshTokenService,
@@ -35,6 +38,7 @@ pub struct YandexState {
 
 pub fn configure(
     jwt: Arc<JWT>,
+    account_service: AccountService,
     client: reqwest::Client,
     oauth_service: OAuthService,
     refresh_token_service: RefreshTokenService,
@@ -49,6 +53,7 @@ pub fn configure(
 
     let github_state = GithubState {
         jwt: jwt.clone(),
+        account_service: account_service.clone(),
         oauth_service: oauth_service.clone(),
         github_provider,
         refresh_token_service: refresh_token_service.clone(),
@@ -68,6 +73,7 @@ pub fn configure(
 
     let yandex_state = YandexState {
         jwt,
+        account_service,
         oauth_service,
         yandex_provider,
         refresh_token_service,

@@ -1,3 +1,5 @@
+use crate::domain::account::model::UserRole;
+use crate::errors::{LMSError, Result};
 use axum::http::HeaderMap;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
@@ -5,12 +7,11 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use tower_cookies::Cookies;
 use uuid::Uuid;
 
-use crate::errors::{LMSError, Result};
-
 #[derive(Serialize, Deserialize)]
 pub struct AccessTokenClaim {
     pub iss: String,
     pub sub: Uuid,
+    pub role: UserRole,
     pub iat: i64,
     pub exp: i64,
 }
@@ -66,13 +67,6 @@ impl JWT {
         Ok(token)
     }
 
-    pub fn tokens(&self, sub: Uuid) -> Result<(String, String)> {
-        let access = self.generate_access_token(sub)?;
-        let refresh = self.generate_refresh_token(sub, Uuid::new_v4())?;
-
-        Ok((access, refresh))
-    }
-
     pub fn generate_refresh_token(&self, sub: Uuid, jti: Uuid) -> Result<String> {
         let iat = Utc::now();
         let exp = iat + Duration::days(30);
@@ -101,13 +95,14 @@ impl JWT {
         Ok(claim.claims)
     }
 
-    pub fn generate_access_token(&self, sub: Uuid) -> Result<String> {
+    pub fn generate_access_token(&self, sub: Uuid, role: UserRole) -> Result<String> {
         let iat = Utc::now();
         let exp = iat + Duration::minutes(15);
 
         let claim = AccessTokenClaim {
             iss: String::from("LMS Passport"),
             sub,
+            role,
             iat: iat.timestamp(),
             exp: exp.timestamp(),
         };

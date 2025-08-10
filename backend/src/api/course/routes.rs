@@ -126,6 +126,7 @@ pub async fn delete_course(
     ),
 )]
 pub async fn get_all_courses(
+    _: UserModel,
     State(state): State<CourseState>,
 ) -> Result<Json<Vec<UpsertCourseResponseDTO>>, LMSError> {
     let courses = state.course_service.get_all_courses().await?;
@@ -150,6 +151,7 @@ pub async fn get_all_courses(
     ),
 )]
 pub async fn get_course_by_id(
+    _: UserModel,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
 ) -> Result<Json<UpsertCourseResponseDTO>, LMSError> {

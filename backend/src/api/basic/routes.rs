@@ -1,4 +1,5 @@
 use axum::{Json, extract::State};
+use axum::response::Redirect;
 use tower_cookies::Cookies;
 
 use crate::{
@@ -28,7 +29,7 @@ pub async fn register(
     cookies: Cookies,
     State(state): State<BasicAuthState>,
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
-) -> Result<Json<BasicRegisterResponse>, LMSError> {
+) -> Result<Redirect, LMSError> {
     let BasicRegisterRequest {
         username,
         email,
@@ -41,11 +42,18 @@ pub async fn register(
         .await?;
 
     let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
-    let access_token = state.jwt.generate_access_token(user.id)?;
+    let role = state.account_service.get_user(user.id).await?.role;
+    let access_token = state.jwt.generate_access_token(user.id, role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
-    Ok(Json(BasicRegisterResponse { access_token }))
+    Ok(Redirect::to(
+        format!(
+            "{}?access_token={access_token}",
+            state.account_service.redirect_url
+        )
+            .as_str(),
+    ))
 }
 
 /// Login user with email and password
@@ -65,15 +73,22 @@ pub async fn login(
     cookies: Cookies,
     State(state): State<BasicAuthState>,
     Json(payload): Json<BasicLoginRequest>,
-) -> Result<Json<BasicLoginResponse>, LMSError> {
+) -> Result<Redirect, LMSError> {
     let BasicLoginRequest { username, password } = payload;
 
     let user = state.basic_auth_service.login(username, password).await?;
 
     let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
-    let access_token = state.jwt.generate_access_token(user.id)?;
+    let role = state.account_service.get_user(user.id).await?.role;
+    let access_token = state.jwt.generate_access_token(user.id, role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
 
-    Ok(Json(BasicLoginResponse { access_token }))
+    Ok(Redirect::to(
+        format!(
+            "{}?access_token={access_token}",
+            state.account_service.redirect_url
+        )
+            .as_str(),
+    ))
 }

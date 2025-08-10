@@ -17,18 +17,21 @@ pub struct AccountService {
     db_repo: repo!(AccountRepository),
     cache_repo: repo!(AccountCacheRepository),
     s3: S3Manager,
+    pub redirect_url: String
 }
 
 impl AccountService {
-    pub const fn new(
+    pub fn new(
         db_repo: repo!(AccountRepository),
         cache_repo: repo!(AccountCacheRepository),
         s3: S3Manager,
+        redirect_url: &str
     ) -> Self {
         Self {
             db_repo,
             cache_repo,
             s3,
+            redirect_url: redirect_url.to_string(),
         }
     }
 
