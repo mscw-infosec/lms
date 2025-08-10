@@ -111,7 +111,6 @@ async fn main() -> anyhow::Result<()> {
                 .nest(
                     "/basic",
                     api::basic::configure(
-                        account_service.clone(),
                         basic_auth_service,
                         refresh_token_service.clone(),
                         jwt.clone(),
