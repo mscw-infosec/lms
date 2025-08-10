@@ -4,9 +4,10 @@ use axum::{
     http::StatusCode,
 };
 
+use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::{
     api::course::CourseState,
-    domain::account::model::{UserModel, UserRole},
+    domain::account::model::UserRole,
     dto::course::{UpsertCourseRequestDTO, UpsertCourseResponseDTO},
     errors::LMSError,
     utils::ValidatedJson,
@@ -29,17 +30,20 @@ use crate::{
     ),
 )]
 pub async fn create_course(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<CourseState>,
     ValidatedJson(payload): ValidatedJson<UpsertCourseRequestDTO>,
 ) -> Result<(StatusCode, Json<UpsertCourseResponseDTO>), LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
             "User cannot create courses.".to_string(),
         ));
     }
 
-    let course = state.course_service.create_course(user.id, payload).await?;
+    let course = state
+        .course_service
+        .create_course(claims.sub, payload)
+        .await?;
 
     Ok((StatusCode::CREATED, Json(course.into())))
 }
@@ -61,18 +65,18 @@ pub async fn create_course(
     ),
 )]
 pub async fn edit_course(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
     ValidatedJson(payload): ValidatedJson<UpsertCourseRequestDTO>,
 ) -> Result<Json<UpsertCourseResponseDTO>, LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("User cannot edit courses.".to_string()));
     }
 
     let course = state
         .course_service
-        .edit_course(course_id, user.id, payload)
+        .edit_course(course_id, claims.sub, payload)
         .await?;
 
     Ok(Json(course.into()))
@@ -94,11 +98,11 @@ pub async fn edit_course(
     ),
 )]
 pub async fn delete_course(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
 ) -> Result<StatusCode, LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
             "User cannot delete courses.".to_string(),
         ));
@@ -106,7 +110,7 @@ pub async fn delete_course(
 
     state
         .course_service
-        .delete_course(course_id, user.id)
+        .delete_course(course_id, claims.sub)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
@@ -126,7 +130,7 @@ pub async fn delete_course(
     ),
 )]
 pub async fn get_all_courses(
-    _: UserModel,
+    _: AccessTokenClaim,
     State(state): State<CourseState>,
 ) -> Result<Json<Vec<UpsertCourseResponseDTO>>, LMSError> {
     let courses = state.course_service.get_all_courses().await?;
@@ -151,7 +155,7 @@ pub async fn get_all_courses(
     ),
 )]
 pub async fn get_course_by_id(
-    _: UserModel,
+    _: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
 ) -> Result<Json<UpsertCourseResponseDTO>, LMSError> {

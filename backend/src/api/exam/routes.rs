@@ -1,11 +1,12 @@
 use crate::api::exam::ExamState;
-use crate::domain::account::model::{UserModel, UserRole};
+use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::Exam;
 use crate::dto::exam::{
     CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, TaskAnswerDTO, UpsertExamRequestDTO,
 };
 use crate::dto::task::PublicTaskDTO;
 use crate::errors::LMSError;
+use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
@@ -29,11 +30,11 @@ use uuid::Uuid;
     )
 )]
 pub async fn create(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<ExamState>,
     ValidatedJson(payload): ValidatedJson<UpsertExamRequestDTO>,
 ) -> Result<(StatusCode, Json<CreateExamResponseDTO>), LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't create exams".to_string()));
     }
 
@@ -87,12 +88,12 @@ pub async fn get_by_id(
     )
 )]
 pub async fn delete_exam(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<ExamState>,
     Path(exam_id): Path<Uuid>,
 ) -> Result<StatusCode, LMSError> {
     // TODO: ACL for exams (has access to exam)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't delete exams".to_string()));
     }
 
@@ -121,13 +122,13 @@ pub async fn delete_exam(
     )
 )]
 pub async fn update_exam(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
     ValidatedJson(payload): ValidatedJson<UpsertExamRequestDTO>,
 ) -> Result<Json<Exam>, LMSError> {
     // TODO: ACL for tasks (owners)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't update exams".to_string()));
     }
 
@@ -156,13 +157,13 @@ pub async fn update_exam(
     )
 )]
 pub async fn update_exam_tasks(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
     Json(payload): Json<Vec<i32>>,
 ) -> Result<(), LMSError> {
     // TODO: ACL for tasks (owners)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
             "You can't update exam tasks".to_string(),
         ));
@@ -193,11 +194,11 @@ pub async fn update_exam_tasks(
     )
 )]
 pub async fn start_new_attempt(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<Json<ExamAttempt>, LMSError> {
-    let attempt = state.exam_service.start_exam(exam_id, user.id).await?;
+    let attempt = state.exam_service.start_exam(exam_id, claims.sub).await?;
     Ok(Json(attempt))
 }
 
@@ -220,11 +221,11 @@ pub async fn start_new_attempt(
     )
 )]
 pub async fn stop_attempt(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<StatusCode, LMSError> {
-    let () = state.exam_service.stop_exam(exam_id, user.id).await?;
+    let () = state.exam_service.stop_exam(exam_id, claims.sub).await?;
     Ok(StatusCode::OK)
 }
 
@@ -248,14 +249,14 @@ pub async fn stop_attempt(
     )
 )]
 pub async fn patch_attempt(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
     Json(answer): Json<TaskAnswerDTO>,
 ) -> Result<StatusCode, LMSError> {
     let _ = state
         .exam_service
-        .modify_attempt(exam_id, user.id, answer.task_id, answer.answer)
+        .modify_attempt(exam_id, claims.sub, answer.task_id, answer.answer)
         .await?;
     Ok(StatusCode::OK)
 }
@@ -279,13 +280,13 @@ pub async fn patch_attempt(
     )
 )]
 pub async fn get_last_attempt(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<Json<ExamAttemptSchema>, LMSError> {
     let mut attempt: ExamAttemptSchema = state
         .exam_service
-        .get_user_last_attempt(exam_id, user.id)
+        .get_user_last_attempt(exam_id, claims.sub)
         .await?
         .into();
     if let Some(scoring_data) = attempt.scoring_data.as_mut()
@@ -317,13 +318,13 @@ pub async fn get_last_attempt(
     )
 )]
 pub async fn get_tasks(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<Json<Vec<PublicTaskDTO>>, LMSError> {
     let attempts = state
         .exam_service
-        .get_user_attempts(exam_id, user.id)
+        .get_user_attempts(exam_id, claims.sub)
         .await?;
     if attempts.iter().any(|att| att.active)
         || attempts.iter().any(|att| att.scoring_data.show_results)

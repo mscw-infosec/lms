@@ -1,8 +1,9 @@
 use crate::api::task::TaskState;
-use crate::domain::account::model::{UserModel, UserRole};
+use crate::domain::account::model::UserRole;
 use crate::domain::task::model::{Task, TaskConfig};
 use crate::dto::task::{CreateTaskResponseDTO, PublicTaskDTO, UpsertTaskRequestDTO};
 use crate::errors::LMSError;
+use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
@@ -27,11 +28,11 @@ use rand::rng;
     )
 )]
 pub async fn create(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<TaskState>,
     ValidatedJson(payload): ValidatedJson<UpsertTaskRequestDTO>,
 ) -> Result<(StatusCode, Json<CreateTaskResponseDTO>), LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't create tasks".to_string()));
     }
 
@@ -95,12 +96,12 @@ pub async fn get_by_id(
     )
 )]
 pub async fn get_full_by_id(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<TaskState>,
     Path(task_id): Path<i32>,
 ) -> Result<Json<Task>, LMSError> {
     // TODO: ACL for tasks (owners + hidden tasks)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't admin tasks".to_string()));
     }
     let task = state.task_service.get_task(task_id).await?;
@@ -126,13 +127,13 @@ pub async fn get_full_by_id(
     )
 )]
 pub async fn delete_task(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<TaskState>,
     Path(task_id): Path<i32>,
 ) -> Result<StatusCode, LMSError> {
     // TODO: ACL for tasks (owners)
     // TODO: mark for deletion and ask confirmation (now only on frontend)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't delete tasks".to_string()));
     }
 
@@ -161,13 +162,13 @@ pub async fn delete_task(
     )
 )]
 pub async fn update_task(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(task_id): Path<i32>,
     State(state): State<TaskState>,
     ValidatedJson(payload): ValidatedJson<UpsertTaskRequestDTO>,
 ) -> Result<Json<Task>, LMSError> {
     // TODO: ACL for tasks (owners)
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't update tasks".to_string()));
     }
 

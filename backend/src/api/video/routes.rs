@@ -3,9 +3,10 @@ use axum::{
     extract::{Path, State},
 };
 
+use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::{
     api::video::VideoState,
-    domain::account::model::{UserModel, UserRole},
+    domain::account::model::UserRole,
     dto::video::{CreateVideoRequestDTO, CreateVideoResponseDTO, GetVideoUrlResponseDTO},
     errors::{LMSError, Result},
     utils::ValidatedJson,
@@ -27,11 +28,11 @@ use crate::{
     )
 )]
 pub async fn create(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<VideoState>,
     ValidatedJson(payload): ValidatedJson<CreateVideoRequestDTO>,
 ) -> Result<Json<CreateVideoResponseDTO>> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
             "You can't upload or create videos".to_string(),
         ));

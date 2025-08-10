@@ -6,7 +6,7 @@ use axum::{
 
 use crate::{
     api::topics::TopicsState,
-    domain::account::model::{UserModel, UserRole},
+    domain::account::model::UserRole,
     dto::topics::{TopicResponseDTO, UpsertTopicRequestDTO},
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
@@ -44,11 +44,11 @@ pub async fn get_topic_by_id(
     ),
 )]
 pub async fn delete_topic(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(id): Path<i32>,
     State(state): State<TopicsState>,
 ) -> Result<StatusCode, LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("User cannot delete topics".into()));
     }
 
@@ -73,12 +73,12 @@ pub async fn delete_topic(
     ),
 )]
 pub async fn update_topic(
-    user: UserModel,
+    claims: AccessTokenClaim,
     Path(id): Path<i32>,
     State(state): State<TopicsState>,
     ValidatedJson(topic): ValidatedJson<UpsertTopicRequestDTO>,
 ) -> Result<StatusCode, LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("User cannot update topics".into()));
     }
 
@@ -103,11 +103,11 @@ pub async fn update_topic(
     ),
 )]
 pub async fn add_topic_to_course(
-    user: UserModel,
+    claims: AccessTokenClaim,
     State(state): State<TopicsState>,
     ValidatedJson(topic): ValidatedJson<UpsertTopicRequestDTO>,
 ) -> Result<StatusCode, LMSError> {
-    if matches!(user.role, UserRole::Student) {
+    if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("User cannot add topics".into()));
     }
 
