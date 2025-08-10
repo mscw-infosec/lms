@@ -13,7 +13,6 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
-      CACHE_KEY: pr-rust-${{ hashFiles('backend/Cargo.lock') }}
 
     steps:
       - name: Checkout repository
@@ -31,7 +30,7 @@ jobs:
             backend/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: ${{ env.CACHE_KEY }}
+          key: rust-${{ hashFiles('backend/Cargo.lock') }}
           restore-keys: pr-rust-
 
       - name: Run cargo clippy
@@ -44,7 +43,6 @@ jobs:
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
-      CACHE_KEY: rust-${{ hashFiles('backend/Cargo.lock') }}
       IMAGE_NAME: ghcr.io/${{ github.repository }}:latest
 
     steps:
@@ -63,7 +61,7 @@ jobs:
             backend/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: ${{ env.CACHE_KEY }}
+          key: rust-${{ hashFiles('backend/Cargo.lock') }}
           restore-keys: rust-
 
       - name: Build project
@@ -80,6 +78,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
+          context: ./backend
           push: true
           tags: ${{ env.IMAGE_NAME }}
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}-cache
