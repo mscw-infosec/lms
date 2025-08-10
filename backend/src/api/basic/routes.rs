@@ -3,9 +3,7 @@ use axum::{Json, extract::State};
 use tower_cookies::Cookies;
 
 use crate::{
-    dto::basic::{
-        BasicLoginRequest, BasicLoginResponse, BasicRegisterRequest, BasicRegisterResponse,
-    },
+    dto::basic::{BasicLoginRequest, BasicRegisterRequest},
     errors::LMSError,
     utils::{ValidatedJson, add_cookie},
 };
