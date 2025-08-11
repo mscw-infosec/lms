@@ -124,7 +124,7 @@ export default function AccountPage() {
     [],
   );
 
-  const avatarColor = user ? gradients[user.username.length % gradients.length] : gradients[0];
+  const avatarColor = user ? gradients[(user.username ?? "").length % gradients.length] : gradients[0];
 
   const handleLogoutAll = async () => {
     try {
