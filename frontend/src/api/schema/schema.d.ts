@@ -4,2168 +4,2199 @@
  */
 
 export interface paths {
-    "/api/account": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Return user object */
-        get: operations["get_user"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/account/avatar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["upload_avatar"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/logout-all": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Invalidate all refresh tokens */
-        post: operations["logout_all"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/logout-session/{jti}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Revoke refresh token with jti passed to path parameters */
-        post: operations["logout_session"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Return new access and refresh tokens */
-        post: operations["refresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/auth/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Return information for all active sessions (refresh tokens) */
-        get: operations["get_sessions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/basic/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login user with email and password */
-        post: operations["login"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/basic/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register a new user using email, username and password */
-        post: operations["register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/courses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get all courses */
-        get: operations["get_all_courses"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/courses/new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create a new course */
-        post: operations["create_course"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/courses/{course_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get course by id */
-        get: operations["get_course_by_id"];
-        /** Edit an existing course */
-        put: operations["edit_course"];
-        post?: never;
-        /** Delete an existing course */
-        delete: operations["delete_course"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/courses/{course_id}/topics": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Retrieves all topics associated with a specific course. */
-        get: operations["get_all_topics_in_course"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create new exam */
-        post: operations["create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/{exam_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get exam by id */
-        get: operations["get_by_id"];
-        /** Update exam by id */
-        put: operations["update_exam"];
-        post?: never;
-        /** Delete exam by id */
-        delete: operations["delete_exam"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/{exam_id}/attempt/last": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get last attempt */
-        get: operations["get_last_attempt"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/{exam_id}/attempt/patch": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Change answer for an active attempt */
-        patch: operations["patch_attempt"];
-        trace?: never;
-    };
-    "/api/exam/{exam_id}/attempt/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start new attempt */
-        post: operations["start_new_attempt"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/{exam_id}/attempt/stop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Stop active attempt */
-        post: operations["stop_attempt"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/exam/{exam_id}/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get exam tasks (only with active attempt or if exam scores are available) */
-        get: operations["get_tasks"];
-        /** Update exam's tasks by id */
-        put: operations["update_exam_tasks"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/oauth/github/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Callback for github oauth provider */
-        get: operations["callback"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/oauth/github/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Redirect user to github oauth login page */
-        get: operations["login"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/oauth/yandex/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Callback for yandex oauth provider */
-        get: operations["callback"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/oauth/yandex/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Redirect user to yandex oauth login page */
-        get: operations["login"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/task/new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create new task */
-        post: operations["create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/task/{task_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get task by id */
-        get: operations["get_by_id"];
-        /** Update task by id */
-        put: operations["update_task"];
-        post?: never;
-        /** Delete task by id */
-        delete: operations["delete_task"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/task/{task_id}/admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get administrative view of the task by id */
-        get: operations["get_full_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/topics/new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Adds a new topic to a course. */
-        post: operations["add_topic_to_course"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/topics/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Retrieves a specific topic by its ID. */
-        get: operations["get_topic_by_id"];
-        /** Updates a topic by its ID. */
-        put: operations["update_topic"];
-        post?: never;
-        /** Deletes a topic by its ID. */
-        delete: operations["delete_topic"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/video/new": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Creates new video entity and return TUS url for uploading */
-        post: operations["create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/video/{video_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Return video player url by video id */
-        get: operations["get_video_url"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
+	"/api/account": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Return user object */
+		get: operations["get_user"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/account/avatar": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: operations["upload_avatar"];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/auth/logout-all": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Invalidate all refresh tokens */
+		post: operations["logout_all"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/auth/logout-session/{jti}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Revoke refresh token with jti passed to path parameters */
+		post: operations["logout_session"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/auth/refresh": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Return new access and refresh tokens */
+		post: operations["refresh"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/auth/sessions": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Return information for all active sessions (refresh tokens) */
+		get: operations["get_sessions"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/basic/login": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Login user with email and password */
+		post: operations["login"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/basic/register": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Register a new user using email, username and password */
+		post: operations["register"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/courses": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get all courses */
+		get: operations["get_all_courses"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/courses/new": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Create a new course */
+		post: operations["create_course"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/courses/{course_id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get course by id */
+		get: operations["get_course_by_id"];
+		/** Edit an existing course */
+		put: operations["edit_course"];
+		post?: never;
+		/** Delete an existing course */
+		delete: operations["delete_course"];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/courses/{course_id}/topics": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Retrieves all topics associated with a specific course. */
+		get: operations["get_all_topics_in_course"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/new": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Create new exam */
+		post: operations["create"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/{exam_id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get exam by id */
+		get: operations["get_by_id"];
+		/** Update exam by id */
+		put: operations["update_exam"];
+		post?: never;
+		/** Delete exam by id */
+		delete: operations["delete_exam"];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/{exam_id}/attempt/last": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get last attempt */
+		get: operations["get_last_attempt"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/{exam_id}/attempt/patch": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		/** Change answer for an active attempt */
+		patch: operations["patch_attempt"];
+		trace?: never;
+	};
+	"/api/exam/{exam_id}/attempt/start": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Start new attempt */
+		post: operations["start_new_attempt"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/{exam_id}/attempt/stop": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Stop active attempt */
+		post: operations["stop_attempt"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/exam/{exam_id}/tasks": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get exam tasks (only with active attempt or if exam scores are available) */
+		get: operations["get_tasks"];
+		/** Update exam's tasks by id */
+		put: operations["update_exam_tasks"];
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/oauth/github/callback": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Callback for github oauth provider */
+		get: operations["callback"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/oauth/github/login": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Redirect user to github oauth login page */
+		get: operations["login"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/oauth/yandex/callback": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Callback for yandex oauth provider */
+		get: operations["callback"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/oauth/yandex/login": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Redirect user to yandex oauth login page */
+		get: operations["login"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/task/new": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Create new task */
+		post: operations["create"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/task/{task_id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get task by id */
+		get: operations["get_by_id"];
+		/** Update task by id */
+		put: operations["update_task"];
+		post?: never;
+		/** Delete task by id */
+		delete: operations["delete_task"];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/task/{task_id}/admin": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Get administrative view of the task by id */
+		get: operations["get_full_by_id"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/topics/new": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Adds a new topic to a course. */
+		post: operations["add_topic_to_course"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/topics/{id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Retrieves a specific topic by its ID. */
+		get: operations["get_topic_by_id"];
+		/** Updates a topic by its ID. */
+		put: operations["update_topic"];
+		post?: never;
+		/** Deletes a topic by its ID. */
+		delete: operations["delete_topic"];
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/video/new": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Creates new video entity and return TUS url for uploading */
+		post: operations["create"];
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/api/video/{video_id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Return video player url by video id */
+		get: operations["get_video_url"];
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        AvatarUploadResponse: {
-            fields: {
-                [key: string]: string;
-            };
-            url: string;
-        };
-        BasicLoginRequest: {
-            /** @example Password123 */
-            password: string;
-            /** @example John Doe */
-            username: string;
-        };
-        BasicLoginResponse: {
-            access_token: string;
-        };
-        BasicRegisterRequest: {
-            /** @example john@example.com */
-            email: string;
-            /** @example Password123 */
-            password: string;
-            /** @example John Doe */
-            username: string;
-        };
-        BasicRegisterResponse: {
-            access_token: string;
-        };
-        CreateExamResponseDTO: {
-            /** Format: uuid */
-            id: string;
-        };
-        CreateTaskResponseDTO: {
-            /** Format: int64 */
-            id: number;
-        };
-        CreateVideoRequestDTO: {
-            name: string;
-            /** Format: int64 */
-            size: number;
-        };
-        CreateVideoResponseDTO: {
-            url: string;
-        };
-        Exam: {
-            /** Format: int32 */
-            duration: number;
-            /** Format: uuid */
-            id: string;
-            /** Format: int32 */
-            topic_id: number;
-            /** Format: int32 */
-            tries_count: number;
-            type: components["schemas"]["ExamType"];
-        };
-        ExamAnswer: {
-            answers: {
-                [key: string]: components["schemas"]["TaskAnswer"];
-            };
-        };
-        ExamAttemptSchema: {
-            active: boolean;
-            answer_data: components["schemas"]["ExamAnswer"];
-            /** Format: uuid */
-            exam_id: string;
-            /** Format: uuid */
-            id: string;
-            scoring_data?: null | components["schemas"]["ScoringData"];
-            /** Format: date-time */
-            started_at: string;
-            /** Format: uuid */
-            user_id: string;
-        };
-        /** @enum {string} */
-        ExamType: "Instant" | "Delayed";
-        GetUserResponseDTO: {
-            email: string;
-            /** Format: uuid */
-            id: string;
-            role: components["schemas"]["UserRole"];
-            username: string;
-        };
-        GetVideoUrlResponseDTO: {
-            url: string;
-        };
-        PublicTaskConfig: {
-            /** @enum {string} */
-            name: "single_choice";
-            options: string[];
-        } | {
-            /** @enum {string} */
-            name: "multiple_choice";
-            options: string[];
-            partial_score: boolean;
-        } | {
-            max_chars_count: number;
-            /** @enum {string} */
-            name: "short_text";
-        } | {
-            max_chars_count: number;
-            /** @enum {string} */
-            name: "long_text";
-        } | {
-            items: string[];
-            /** @enum {string} */
-            name: "ordering";
-        } | {
-            max_size: number;
-            /** @enum {string} */
-            name: "file_upload";
-        } | {
-            /** @enum {string} */
-            name: "c_t_fd";
-            task_id: number;
-        };
-        PublicTaskDTO: {
-            configuration: components["schemas"]["PublicTaskConfig"];
-            description?: string | null;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            points: number;
-            task_type: components["schemas"]["TaskType"];
-            title: string;
-        };
-        RefreshResponse: {
-            access_token: string;
-        };
-        ScoringData: {
-            results: {
-                [key: string]: components["schemas"]["TaskVerdict"];
-            };
-            show_results: boolean;
-        };
-        SessionInfo: {
-            device_id: string;
-            /** Format: date-time */
-            issued_at: string;
-            /** Format: uuid */
-            jti: string;
-            /** Format: date-time */
-            last_used: string;
-        };
-        Task: {
-            configuration: components["schemas"]["TaskConfig"];
-            description?: string | null;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            points: number;
-            task_type: components["schemas"]["TaskType"];
-            title: string;
-        };
-        TaskAnswer: {
-            answer: string;
-            /** @enum {string} */
-            name: "single_choice";
-        } | {
-            answers: string[];
-            /** @enum {string} */
-            name: "multiple_choice";
-        } | {
-            answer: string;
-            /** @enum {string} */
-            name: "short_text";
-        } | {
-            answer: string;
-            /** @enum {string} */
-            name: "long_text";
-        } | {
-            answer: string[];
-            /** @enum {string} */
-            name: "ordering";
-        } | {
-            /** Format: uuid */
-            file_id: string;
-            /** @enum {string} */
-            name: "file_upload";
-        };
-        TaskAnswerDTO: {
-            answer: components["schemas"]["TaskAnswer"];
-            task_id: number;
-        };
-        TaskConfig: {
-            correct: number;
-            /** @enum {string} */
-            name: "single_choice";
-            options: string[];
-            shuffle: boolean;
-        } | {
-            correct: number[];
-            /** @enum {string} */
-            name: "multiple_choice";
-            options: string[];
-            partial_score: boolean;
-            shuffle: boolean;
-        } | {
-            answers: string[];
-            auto_grade: boolean;
-            max_chars_count: number;
-            /** @enum {string} */
-            name: "short_text";
-        } | {
-            max_chars_count: number;
-            /** @enum {string} */
-            name: "long_text";
-        } | {
-            answers: number[][];
-            items: string[];
-            /** @enum {string} */
-            name: "ordering";
-        } | {
-            max_size: number;
-            /** @enum {string} */
-            name: "file_upload";
-        } | {
-            /** @enum {string} */
-            name: "c_t_fd";
-            task_id: number;
-        };
-        /** @enum {string} */
-        TaskType: "SingleChoice" | "MultipleChoice" | "ShortText" | "LongText" | "Ordering" | "FileUpload" | "CTFd";
-        TaskVerdict: {
-            comment?: string | null;
-            /** @enum {string} */
-            verdict: "full_score";
-        } | {
-            comment?: string | null;
-            /** Format: double */
-            score_multiplier: number;
-            /** @enum {string} */
-            verdict: "partial_score";
-        } | {
-            comment?: string | null;
-            /** @enum {string} */
-            verdict: "incorrect";
-        } | {
-            /** @enum {string} */
-            verdict: "on_review";
-        };
-        TopicResponseDTO: {
-            /** Format: int32 */
-            course_id: number;
-            /** Format: int32 */
-            id: number;
-            /** Format: int32 */
-            order_index: number;
-            title: string;
-        };
-        UpsertCourseRequestDTO: {
-            description?: string | null;
-            name: string;
-        };
-        UpsertCourseResponseDTO: {
-            /** Format: date-time */
-            created_at: string;
-            description?: string | null;
-            /** Format: int32 */
-            id: number;
-            name: string;
-        };
-        UpsertExamRequestDTO: {
-            /** Format: int32 */
-            duration: number;
-            /** Format: int32 */
-            topic_id: number;
-            /** Format: int32 */
-            tries_count: number;
-            type: components["schemas"]["ExamType"];
-        };
-        UpsertTaskRequestDTO: {
-            configuration: components["schemas"]["TaskConfig"];
-            description?: string | null;
-            /** Format: int32 */
-            points: number;
-            task_type: components["schemas"]["TaskType"];
-            title: string;
-        };
-        UpsertTopicRequestDTO: {
-            /** Format: int32 */
-            course_id: number;
-            /** Format: int32 */
-            order_index: number;
-            title: string;
-        };
-        /** @enum {string} */
-        UserRole: "Student" | "Teacher" | "Admin";
-    };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+	schemas: {
+		AvatarUploadResponse: {
+			fields: {
+				[key: string]: string;
+			};
+			url: string;
+		};
+		BasicLoginRequest: {
+			/** @example Password123 */
+			password: string;
+			/** @example John Doe */
+			username: string;
+		};
+		BasicLoginResponse: {
+			access_token: string;
+		};
+		BasicRegisterRequest: {
+			/** @example john@example.com */
+			email: string;
+			/** @example Password123 */
+			password: string;
+			/** @example John Doe */
+			username: string;
+		};
+		BasicRegisterResponse: {
+			access_token: string;
+		};
+		CreateExamResponseDTO: {
+			/** Format: uuid */
+			id: string;
+		};
+		CreateTaskResponseDTO: {
+			/** Format: int64 */
+			id: number;
+		};
+		CreateVideoRequestDTO: {
+			name: string;
+			/** Format: int64 */
+			size: number;
+		};
+		CreateVideoResponseDTO: {
+			url: string;
+		};
+		Exam: {
+			/** Format: int32 */
+			duration: number;
+			/** Format: uuid */
+			id: string;
+			/** Format: int32 */
+			topic_id: number;
+			/** Format: int32 */
+			tries_count: number;
+			type: components["schemas"]["ExamType"];
+		};
+		ExamAnswer: {
+			answers: {
+				[key: string]: components["schemas"]["TaskAnswer"];
+			};
+		};
+		ExamAttemptSchema: {
+			active: boolean;
+			answer_data: components["schemas"]["ExamAnswer"];
+			/** Format: uuid */
+			exam_id: string;
+			/** Format: uuid */
+			id: string;
+			scoring_data?: null | components["schemas"]["ScoringData"];
+			/** Format: date-time */
+			started_at: string;
+			/** Format: uuid */
+			user_id: string;
+		};
+		/** @enum {string} */
+		ExamType: "Instant" | "Delayed";
+		GetUserResponseDTO: {
+			email: string;
+			/** Format: uuid */
+			id: string;
+			role: components["schemas"]["UserRole"];
+			username: string;
+		};
+		GetVideoUrlResponseDTO: {
+			url: string;
+		};
+		PublicTaskConfig:
+			| {
+					/** @enum {string} */
+					name: "single_choice";
+					options: string[];
+			  }
+			| {
+					/** @enum {string} */
+					name: "multiple_choice";
+					options: string[];
+					partial_score: boolean;
+			  }
+			| {
+					max_chars_count: number;
+					/** @enum {string} */
+					name: "short_text";
+			  }
+			| {
+					max_chars_count: number;
+					/** @enum {string} */
+					name: "long_text";
+			  }
+			| {
+					items: string[];
+					/** @enum {string} */
+					name: "ordering";
+			  }
+			| {
+					max_size: number;
+					/** @enum {string} */
+					name: "file_upload";
+			  }
+			| {
+					/** @enum {string} */
+					name: "c_t_fd";
+					task_id: number;
+			  };
+		PublicTaskDTO: {
+			configuration: components["schemas"]["PublicTaskConfig"];
+			description?: string | null;
+			/** Format: int64 */
+			id: number;
+			/** Format: int64 */
+			points: number;
+			task_type: components["schemas"]["TaskType"];
+			title: string;
+		};
+		RefreshResponse: {
+			access_token: string;
+		};
+		ScoringData: {
+			results: {
+				[key: string]: components["schemas"]["TaskVerdict"];
+			};
+			show_results: boolean;
+		};
+		SessionInfo: {
+			device_id: string;
+			/** Format: date-time */
+			issued_at: string;
+			/** Format: uuid */
+			jti: string;
+			/** Format: date-time */
+			last_used: string;
+		};
+		Task: {
+			configuration: components["schemas"]["TaskConfig"];
+			description?: string | null;
+			/** Format: int64 */
+			id: number;
+			/** Format: int64 */
+			points: number;
+			task_type: components["schemas"]["TaskType"];
+			title: string;
+		};
+		TaskAnswer:
+			| {
+					answer: string;
+					/** @enum {string} */
+					name: "single_choice";
+			  }
+			| {
+					answers: string[];
+					/** @enum {string} */
+					name: "multiple_choice";
+			  }
+			| {
+					answer: string;
+					/** @enum {string} */
+					name: "short_text";
+			  }
+			| {
+					answer: string;
+					/** @enum {string} */
+					name: "long_text";
+			  }
+			| {
+					answer: string[];
+					/** @enum {string} */
+					name: "ordering";
+			  }
+			| {
+					/** Format: uuid */
+					file_id: string;
+					/** @enum {string} */
+					name: "file_upload";
+			  };
+		TaskAnswerDTO: {
+			answer: components["schemas"]["TaskAnswer"];
+			task_id: number;
+		};
+		TaskConfig:
+			| {
+					correct: number;
+					/** @enum {string} */
+					name: "single_choice";
+					options: string[];
+					shuffle: boolean;
+			  }
+			| {
+					correct: number[];
+					/** @enum {string} */
+					name: "multiple_choice";
+					options: string[];
+					partial_score: boolean;
+					shuffle: boolean;
+			  }
+			| {
+					answers: string[];
+					auto_grade: boolean;
+					max_chars_count: number;
+					/** @enum {string} */
+					name: "short_text";
+			  }
+			| {
+					max_chars_count: number;
+					/** @enum {string} */
+					name: "long_text";
+			  }
+			| {
+					answers: number[][];
+					items: string[];
+					/** @enum {string} */
+					name: "ordering";
+			  }
+			| {
+					max_size: number;
+					/** @enum {string} */
+					name: "file_upload";
+			  }
+			| {
+					/** @enum {string} */
+					name: "c_t_fd";
+					task_id: number;
+			  };
+		/** @enum {string} */
+		TaskType:
+			| "SingleChoice"
+			| "MultipleChoice"
+			| "ShortText"
+			| "LongText"
+			| "Ordering"
+			| "FileUpload"
+			| "CTFd";
+		TaskVerdict:
+			| {
+					comment?: string | null;
+					/** @enum {string} */
+					verdict: "full_score";
+			  }
+			| {
+					comment?: string | null;
+					/** Format: double */
+					score_multiplier: number;
+					/** @enum {string} */
+					verdict: "partial_score";
+			  }
+			| {
+					comment?: string | null;
+					/** @enum {string} */
+					verdict: "incorrect";
+			  }
+			| {
+					/** @enum {string} */
+					verdict: "on_review";
+			  };
+		TopicResponseDTO: {
+			/** Format: int32 */
+			course_id: number;
+			/** Format: int32 */
+			id: number;
+			/** Format: int32 */
+			order_index: number;
+			title: string;
+		};
+		UpsertCourseRequestDTO: {
+			description?: string | null;
+			name: string;
+		};
+		UpsertCourseResponseDTO: {
+			/** Format: date-time */
+			created_at: string;
+			description?: string | null;
+			/** Format: int32 */
+			id: number;
+			name: string;
+		};
+		UpsertExamRequestDTO: {
+			/** Format: int32 */
+			duration: number;
+			/** Format: int32 */
+			topic_id: number;
+			/** Format: int32 */
+			tries_count: number;
+			type: components["schemas"]["ExamType"];
+		};
+		UpsertTaskRequestDTO: {
+			configuration: components["schemas"]["TaskConfig"];
+			description?: string | null;
+			/** Format: int32 */
+			points: number;
+			task_type: components["schemas"]["TaskType"];
+			title: string;
+		};
+		UpsertTopicRequestDTO: {
+			/** Format: int32 */
+			course_id: number;
+			/** Format: int32 */
+			order_index: number;
+			title: string;
+		};
+		/** @enum {string} */
+		UserRole: "Student" | "Teacher" | "Admin";
+	};
+	responses: never;
+	parameters: never;
+	requestBodies: never;
+	headers: never;
+	pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_user: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetUserResponseDTO"];
-                };
-            };
-        };
-    };
-    upload_avatar: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Return presigned url to upload avatar */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AvatarUploadResponse"];
-                };
-            };
-        };
-    };
-    logout_all: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All sessions logged out successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    logout_session: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                jti: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Session logged out successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    refresh: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RefreshResponse"];
-                };
-            };
-            /** @description Invalid or expired refresh token */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_sessions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionInfo"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BasicLoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Returns access and refresh tokens */
-            200: {
-                headers: {
-                    /** @description Contains the `refresh_token` */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BasicLoginResponse"];
-                };
-            };
-            /** @description Wrong email or password */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    register: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BasicRegisterRequest"];
-            };
-        };
-        responses: {
-            /** @description Create new user */
-            200: {
-                headers: {
-                    /** @description Contains the `refresh_token` */
-                    "Set-Cookie"?: string;
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BasicRegisterResponse"];
-                };
-            };
-            /** @description User with the same email or name already exists */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_all_courses: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Get all courses */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"][];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertCourseRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Create new course */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User cannot create courses */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_course_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Get course by id */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    edit_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertCourseRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Edit course */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"];
-                };
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User cannot edit courses */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Delete course */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid request body */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User cannot delete courses */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_all_topics_in_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                course_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description List of topics in the course */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TopicResponseDTO"][];
-                };
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertExamRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Returns created exam's id */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CreateExamResponseDTO"];
-                };
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to create exams */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Found exam */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Exam"];
-                };
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_exam: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertExamRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Successfully updated exam */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to update exam */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_exam: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully deleted exam */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to delete exam */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_last_attempt: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully got last attempt */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExamAttemptSchema"];
-                };
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam or attempt not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    patch_attempt: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TaskAnswerDTO"];
-            };
-        };
-        responses: {
-            /** @description Successfully patched */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam or attempt not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    start_new_attempt: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully started new attempt */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExamAttemptSchema"];
-                };
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to update exam */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User can't start new attempt due to limits or another active attempt */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    stop_attempt: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully stopped an attempt */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam or attempt not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_tasks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully got exam's tasks */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicTaskDTO"][];
-                };
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description You have no permission to view tasks */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_exam_tasks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                exam_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": number[];
-            };
-        };
-        responses: {
-            /** @description Successfully updated exam's tasks */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to update exam */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Exam not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    callback: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    callback: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    login: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: never;
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertTaskRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Returns created task's id */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CreateTaskResponseDTO"];
-                };
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to create tasks */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Found task */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PublicTaskDTO"];
-                };
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_task: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertTaskRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Successfully updated task */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Wrong data format */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to update task */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_task: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successfully deleted task */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to delete task */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_full_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Found task */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Task"];
-                };
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    add_topic_to_course: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertTopicRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Topic added successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid request data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden: User cannot add topics */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Course not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_topic_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Topic found */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TopicResponseDTO"];
-                };
-            };
-            /** @description Topic not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    update_topic: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpsertTopicRequestDTO"];
-            };
-        };
-        responses: {
-            /** @description Topic updated successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Invalid request data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden: User cannot update topics */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Topic not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    delete_topic: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Topic deleted successfully */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Topic not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateVideoRequestDTO"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CreateVideoResponseDTO"];
-                };
-            };
-            /** @description No auth data found */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description User has no permission to upload videos */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_video_url: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                video_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GetVideoUrlResponseDTO"];
-                };
-            };
-        };
-    };
+	get_user: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["GetUserResponseDTO"];
+				};
+			};
+		};
+	};
+	upload_avatar: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Return presigned url to upload avatar */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["AvatarUploadResponse"];
+				};
+			};
+		};
+	};
+	logout_all: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description All sessions logged out successfully */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	logout_session: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				jti: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Session logged out successfully */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	refresh: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["RefreshResponse"];
+				};
+			};
+			/** @description Invalid or expired refresh token */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_sessions: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["SessionInfo"][];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	login: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["BasicLoginRequest"];
+			};
+		};
+		responses: {
+			/** @description Returns access and refresh tokens */
+			200: {
+				headers: {
+					/** @description Contains the `refresh_token` */
+					"Set-Cookie"?: string;
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["BasicLoginResponse"];
+				};
+			};
+			/** @description Wrong email or password */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	register: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["BasicRegisterRequest"];
+			};
+		};
+		responses: {
+			/** @description Create new user */
+			200: {
+				headers: {
+					/** @description Contains the `refresh_token` */
+					"Set-Cookie"?: string;
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["BasicRegisterResponse"];
+				};
+			};
+			/** @description User with the same email or name already exists */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_all_courses: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Get all courses */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["UpsertCourseResponseDTO"][];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertCourseRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Create new course */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["UpsertCourseResponseDTO"];
+				};
+			};
+			/** @description Invalid request body */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User cannot create courses */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_course_by_id: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				course_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Get course by id */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["UpsertCourseResponseDTO"];
+				};
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	edit_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				course_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertCourseRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Edit course */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["UpsertCourseResponseDTO"];
+				};
+			};
+			/** @description Invalid request body */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User cannot edit courses */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				course_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Delete course */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid request body */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Unauthorized */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User cannot delete courses */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_all_topics_in_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				course_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description List of topics in the course */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["TopicResponseDTO"][];
+				};
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertExamRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Returns created exam's id */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["CreateExamResponseDTO"];
+				};
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to create exams */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_by_id: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Found exam */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["Exam"];
+				};
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_exam: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertExamRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Successfully updated exam */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to update exam */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_exam: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully deleted exam */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to delete exam */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_last_attempt: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully got last attempt */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["ExamAttemptSchema"];
+				};
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam or attempt not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	patch_attempt: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["TaskAnswerDTO"];
+			};
+		};
+		responses: {
+			/** @description Successfully patched */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam or attempt not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	start_new_attempt: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully started new attempt */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["ExamAttemptSchema"];
+				};
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to update exam */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User can't start new attempt due to limits or another active attempt */
+			409: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	stop_attempt: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully stopped an attempt */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam or attempt not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_tasks: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully got exam's tasks */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["PublicTaskDTO"][];
+				};
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description You have no permission to view tasks */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_exam_tasks: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				exam_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": number[];
+			};
+		};
+		responses: {
+			/** @description Successfully updated exam's tasks */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to update exam */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Exam not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	callback: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: never;
+	};
+	login: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: never;
+	};
+	callback: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: never;
+	};
+	login: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: never;
+	};
+	create: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertTaskRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Returns created task's id */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["CreateTaskResponseDTO"];
+				};
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to create tasks */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_by_id: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				task_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Found task */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["PublicTaskDTO"];
+				};
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Task not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_task: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				task_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertTaskRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Successfully updated task */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Wrong data format */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to update task */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Task not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_task: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				task_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Successfully deleted task */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to delete task */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Task not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_full_by_id: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				task_id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Found task */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["Task"];
+				};
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Task not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	add_topic_to_course: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertTopicRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Topic added successfully */
+			201: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid request data */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden: User cannot add topics */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Course not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_topic_by_id: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Topic found */
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["TopicResponseDTO"];
+				};
+			};
+			/** @description Topic not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	update_topic: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["UpsertTopicRequestDTO"];
+			};
+		};
+		responses: {
+			/** @description Topic updated successfully */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Invalid request data */
+			400: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Forbidden: User cannot update topics */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Topic not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	delete_topic: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				id: number;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			/** @description Topic deleted successfully */
+			204: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description Topic not found */
+			404: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	create: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		requestBody: {
+			content: {
+				"application/json": components["schemas"]["CreateVideoRequestDTO"];
+			};
+		};
+		responses: {
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["CreateVideoResponseDTO"];
+				};
+			};
+			/** @description No auth data found */
+			401: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+			/** @description User has no permission to upload videos */
+			403: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content?: never;
+			};
+		};
+	};
+	get_video_url: {
+		parameters: {
+			query?: never;
+			header?: never;
+			path: {
+				video_id: string;
+			};
+			cookie?: never;
+		};
+		requestBody?: never;
+		responses: {
+			200: {
+				headers: {
+					[name: string]: unknown;
+				};
+				content: {
+					"application/json": components["schemas"]["GetVideoUrlResponseDTO"];
+				};
+			};
+		};
+	};
 }

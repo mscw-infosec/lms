@@ -520,10 +520,9 @@ export function TaskPlayer({
 								>
 									<Checkbox
 										id={`q${currentQuestion.id}-${optionIndex}`}
-										checked={(
-											Array.isArray(answers[currentQuestion.id])
-												? (answers[currentQuestion.id] as number[])
-												: []
+										checked={(Array.isArray(answers[currentQuestion.id])
+											? (answers[currentQuestion.id] as number[])
+											: []
 										).includes(optionIndex)}
 										onCheckedChange={(checked) =>
 											handleMultipleAnswer(
@@ -584,10 +583,9 @@ export function TaskPlayer({
 								Drag and drop to reorder:
 							</p>
 							<div className="space-y-2">
-								{(
-									Array.isArray(answers[currentQuestion.id])
-										? (answers[currentQuestion.id] as number[])
-										: currentQuestion.options.map((_, i) => i)
+								{(Array.isArray(answers[currentQuestion.id])
+									? (answers[currentQuestion.id] as number[])
+									: currentQuestion.options.map((_, i) => i)
 								).map((itemIndex: number, position: number) => (
 									<div
 										key={itemIndex}
@@ -648,7 +646,10 @@ export function TaskPlayer({
 														answers[currentQuestion.id] &&
 														typeof answers[currentQuestion.id] === "object" &&
 														!Array.isArray(answers[currentQuestion.id])
-															? (answers[currentQuestion.id] as Record<number, number>)
+															? (answers[currentQuestion.id] as Record<
+																	number,
+																	number
+																>)
 															: {};
 													const newMatches = {
 														...currentMatches,
@@ -665,7 +666,11 @@ export function TaskPlayer({
 												}}
 												disabled={submitted}
 												className={`w-full rounded-lg border border-slate-700 p-3 text-left transition-colors ${
-													((answers[currentQuestion.id] as Record<number, number> | undefined)?.[0] === rightIndex)
+													(
+														answers[currentQuestion.id] as
+															| Record<number, number>
+															| undefined
+													)?.[0] === rightIndex
 														? "bg-red-600 text-white"
 														: "bg-slate-800 text-slate-300 hover:bg-slate-700"
 												}`}
