@@ -1,8 +1,10 @@
-use crate::errors::Result;
+use crate::{errors::Result, gen_openapi::DummyRepository};
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 
 use super::model::BasicUser;
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait BasicAuthRepository {
     async fn create(&self, user: &BasicUser) -> Result<()>;

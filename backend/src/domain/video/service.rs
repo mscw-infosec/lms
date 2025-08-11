@@ -2,25 +2,25 @@ use prost::Message;
 use prost_types::Duration;
 use std::sync::Arc;
 use yandex_cloud::{
-    AuthInterceptor,
     tonic_exports::{Channel, Endpoint},
     yandex::cloud::{
         operation::operation,
         video::v1::{
-            AutoTranscode, CreateVideoRequest, GetVideoPlayerUrlRequest, Video, VideoPlayerParams,
-            VideoSignUrlAccessParams, VideoTusdParams, VideoTusdSource,
             create_video_request::{self, AccessRights},
             video::Source,
             video_service_client::VideoServiceClient,
+            AutoTranscode, CreateVideoRequest, GetVideoPlayerUrlRequest, Video, VideoPlayerParams,
+            VideoSignUrlAccessParams, VideoTusdParams, VideoTusdSource,
         },
     },
+    AuthInterceptor,
 };
 
 use crate::{
     domain::video::{model::VideoModel, repository::VideoRepository},
     dto::video::CreateVideoRequestDTO,
     errors::{LMSError, Result},
-    infrastructure::iam::IAMTokenManager,
+    infrastructure::iam::IAMManager,
     repo,
 };
 
@@ -31,14 +31,14 @@ pub struct VideoService {
     repo: repo!(VideoRepository),
     channel: Channel,
     channel_id: String,
-    token_manager: IAMTokenManager,
+    token_manager: repo!(IAMManager),
 }
 
 impl VideoService {
     pub fn new(
         repo: repo!(VideoRepository),
         channel_id: String,
-        token_manager: IAMTokenManager,
+        token_manager: repo!(IAMManager),
     ) -> Result<Self> {
         let channel = Endpoint::from_static("https://video.api.cloud.yandex.net").connect_lazy();
 

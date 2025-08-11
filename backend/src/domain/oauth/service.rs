@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
+use base64::{prelude::BASE64_URL_SAFE_NO_PAD, Engine};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use tower_cookies::Cookies;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{errors::LMSError, infrastructure::s3::S3Manager, repo, utils::generate_random_string};
+use crate::{errors::LMSError, infrastructure::s3::S3, repo, utils::generate_random_string};
 
 use super::{
     model::{OAuth, OAuthUser},
@@ -31,11 +31,11 @@ pub trait OAuthProvider {
 #[derive(Clone)]
 pub struct OAuthService {
     repo: repo!(OAuthRepository),
-    s3: S3Manager,
+    s3: repo!(S3),
 }
 
 impl OAuthService {
-    pub const fn new(repo: repo!(OAuthRepository), s3: S3Manager) -> Self {
+    pub const fn new(repo: repo!(OAuthRepository), s3: repo!(S3)) -> Self {
         Self { repo, s3 }
     }
 

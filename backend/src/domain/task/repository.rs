@@ -2,8 +2,11 @@ use crate::domain::exam::model::Exam;
 use crate::domain::task::model::Task;
 use crate::dto::task::UpsertTaskRequestDTO;
 use crate::errors::Result;
+use crate::gen_openapi::DummyRepository;
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait TaskRepository {
     async fn create(&self, task_data: UpsertTaskRequestDTO) -> Result<Task>;
