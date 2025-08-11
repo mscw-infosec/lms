@@ -16,7 +16,7 @@ permissions:
 jobs:
   build-and-test:
     name: Lint, Typecheck, Build, Test
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
       NEXT_PUBLIC_API_BASE_URL: "http://infosec.moscow"
     defaults:
