@@ -164,8 +164,8 @@ async fn main() -> anyhow::Result<()> {
         .layer(
             CorsLayer::new()
                 .allow_origin([
-                    "http://localhost:3000".parse().unwrap(),
-                    "http://127.0.0.1:3000".parse().unwrap(),
+                    "http://localhost:3000".parse().expect("valid CORS origin URL"),
+                    "http://127.0.0.1:3000".parse().expect("valid CORS origin URL"),
                 ])
                 .allow_methods([
                     Method::GET,
