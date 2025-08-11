@@ -39,4 +39,4 @@ services:
     env_file:
       - .env
     volumes:
-      - iam-key.json:/iam-key.json
+      - ./iam-key.json:/iam-key.json

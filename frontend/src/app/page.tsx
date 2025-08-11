@@ -3,6 +3,7 @@
 import { type UpsertCourseResponseDTO, getAllCourses } from "@/api/courses";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -10,17 +11,21 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Clock, Shield } from "lucide-react";
+import { useUserStore } from "@/store/user";
+import { Clock, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 export default function HomePage() {
+	const { user } = useUserStore();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const [courses, setCourses] = useState<UpsertCourseResponseDTO[] | null>(
 		null,
 	);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
+
+	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
 
 	useEffect(() => {
 		let active = true;
@@ -74,9 +79,19 @@ export default function HomePage() {
 
 			<main className="container mx-auto px-4 py-8">
 				<div className="mb-8">
-					<h1 className="mb-4 font-bold text-4xl text-white">
-						Master Information Security
-					</h1>
+					<div className="flex items-center justify-between mb-4">
+						<h1 className="font-bold text-4xl text-white">
+							Master Information Security
+						</h1>
+						{canCreateCourse && (
+							<Link href="/courses/new">
+								<Button className="bg-red-600 text-white hover:bg-red-700">
+									<Plus className="mr-2 h-4 w-4" />
+									New Course
+								</Button>
+							</Link>
+						)}
+					</div>
 					<p className="max-w-2xl text-slate-300 text-xl">
 						Learn from industry experts and advance your cybersecurity skills
 						with hands-on courses designed for real-world scenarios.
