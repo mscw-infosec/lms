@@ -14,12 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle2, Key } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
 interface AuthModalProps {
 	type: "login" | "register" | null;
 	onClose: () => void;
+	onLoginSuccess?: () => void;
 }
 
 // Zod validation schemas
@@ -91,7 +93,8 @@ const checkUsernameAvailability = async (
 	return !takenUsernames.includes(username.toLowerCase());
 };
 
-export function AuthModal({ type, onClose }: AuthModalProps) {
+export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
+	const router = useRouter();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -209,6 +212,11 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 		try {
 			if (type === "login") {
 				await login({ username, password });
+				if (onLoginSuccess) {
+					onLoginSuccess();
+				} else {
+					router.push("/");
+				}
 			} else {
 				await register({ username: name, email, password });
 			}

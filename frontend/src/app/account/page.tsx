@@ -187,6 +187,19 @@ export default function AccountPage() {
 		},
 	});
 
+	const logoutMutation = useMutation<void, Error, void>({
+		mutationFn: logoutAllSessions,
+		onSuccess: async () => {
+
+			queryClient.clear();
+
+			toast({
+				title: "Logged out",
+				description: "You have been successfully logged out.",
+			});
+		},
+	});
+
 	if (meQuery.isLoading || sessionsQuery.isLoading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
@@ -254,8 +267,8 @@ export default function AccountPage() {
 
 			<main className="container mx-auto px-4 py-8">
 				<div className="mx-auto max-w-3xl space-y-6">
-					{/* Breadcrumb/back */}
-					<div>
+					{/* Breadcrumb/back and logout */}
+					<div className="flex items-center justify-between">
 						<Link href="/">
 							<Button
 								variant="outline"
@@ -266,6 +279,15 @@ export default function AccountPage() {
 								Back to Home
 							</Button>
 						</Link>
+						<Button
+							onClick={() => logoutMutation.mutate()}
+							disabled={logoutMutation.isPending}
+							className="bg-red-600 text-white hover:bg-red-700"
+							size="sm"
+						>
+							<LogOut className="mr-2 h-4 w-4" />
+							{logoutMutation.isPending ? "Logging out..." : "Logout"}
+						</Button>
 					</div>
 
 					{/* Profile card */}
