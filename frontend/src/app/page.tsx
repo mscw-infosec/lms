@@ -79,7 +79,7 @@ export default function HomePage() {
 
 			<main className="container mx-auto px-4 py-8">
 				<div className="mb-8">
-					<div className="flex items-center justify-between mb-4">
+					<div className="mb-4 flex items-center justify-between">
 						<h1 className="font-bold text-4xl text-white">
 							Master Information Security
 						</h1>

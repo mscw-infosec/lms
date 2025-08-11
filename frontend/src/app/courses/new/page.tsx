@@ -1,6 +1,6 @@
 "use client";
 
-import { createCourse, type UpsertCourseRequestDTO } from "@/api/courses";
+import { type UpsertCourseRequestDTO, createCourse } from "@/api/courses";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,9 +29,8 @@ export default function NewCoursePage() {
 		description: "",
 	});
 
-
 	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
-	
+
 	if (user && !canCreateCourse) {
 		router.push("/");
 		return null;
@@ -39,7 +38,7 @@ export default function NewCoursePage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		
+
 		if (!formData.name.trim()) {
 			setError("Course name is required");
 			return;
@@ -53,7 +52,7 @@ export default function NewCoursePage() {
 				name: formData.name.trim(),
 				description: formData.description?.trim() || null,
 			});
-			
+
 			router.push(`/course/${newCourse.id}`);
 		} catch (err) {
 			setError((err as Error).message || "Failed to create course");
@@ -64,9 +63,9 @@ export default function NewCoursePage() {
 
 	const handleInputChange = (
 		field: keyof UpsertCourseRequestDTO,
-		value: string
+		value: string,
 	) => {
-		setFormData(prev => ({
+		setFormData((prev) => ({
 			...prev,
 			[field]: value,
 		}));
@@ -75,21 +74,21 @@ export default function NewCoursePage() {
 	return (
 		<div className="min-h-screen bg-slate-950">
 			<Header onLogin={() => {}} onRegister={() => {}} />
-			
+
 			<main className="container mx-auto px-4 py-8">
 				<div className="mb-8">
-					<Link 
-						href="/" 
-						className="inline-flex items-center text-slate-300 hover:text-white transition-colors mb-4"
+					<Link
+						href="/"
+						className="mb-4 inline-flex items-center text-slate-300 transition-colors hover:text-white"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
 						Back to Courses
 					</Link>
-					
-					<h1 className="font-bold text-4xl text-white mb-2">
+
+					<h1 className="mb-2 font-bold text-4xl text-white">
 						Create New Course
 					</h1>
-					<p className="text-slate-300 text-lg">
+					<p className="text-lg text-slate-300">
 						Design and publish a new cybersecurity course for students.
 					</p>
 				</div>
@@ -132,13 +131,16 @@ export default function NewCoursePage() {
 									<Textarea
 										id="description"
 										value={formData.description || ""}
-										onChange={(e) => handleInputChange("description", e.target.value)}
+										onChange={(e) =>
+											handleInputChange("description", e.target.value)
+										}
 										placeholder="Enter course description..."
-										className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-400 focus:border-red-500 min-h-[120px]"
+										className="min-h-[120px] border-slate-700 bg-slate-800 text-white placeholder:text-slate-400 focus:border-red-500"
 										rows={5}
 									/>
 									<p className="text-slate-500 text-sm">
-										Provide a brief overview of what students will learn in this course.
+										Provide a brief overview of what students will learn in this
+										course.
 									</p>
 								</div>
 
@@ -160,7 +162,7 @@ export default function NewCoursePage() {
 											</>
 										)}
 									</Button>
-									
+
 									<Link href="/">
 										<Button
 											type="button"

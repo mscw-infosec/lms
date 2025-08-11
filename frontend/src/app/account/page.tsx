@@ -190,7 +190,6 @@ export default function AccountPage() {
 	const logoutMutation = useMutation<void, Error, void>({
 		mutationFn: logoutAllSessions,
 		onSuccess: async () => {
-
 			queryClient.clear();
 
 			toast({
