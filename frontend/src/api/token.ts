@@ -17,7 +17,9 @@ export function getAccessToken(): string | null {
 function notifyTokenChanged(token: string | null): void {
 	if (typeof window === "undefined") return;
 	try {
-		window.dispatchEvent(new CustomEvent("auth:token-changed", { detail: token }));
+		window.dispatchEvent(
+			new CustomEvent("auth:token-changed", { detail: token }),
+		);
 	} catch {
 		// ignore
 	}
@@ -37,4 +39,4 @@ export function setAccessToken(token: string | null): void {
 	} finally {
 		notifyTokenChanged(token);
 	}
-} 
+}

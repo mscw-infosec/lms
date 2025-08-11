@@ -1,6 +1,6 @@
+import type { components } from "@/api/schema/schema";
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { getAccessToken, setAccessToken } from "./token";
-import type { components } from "@/api/schema/schema";
 
 const DEFAULT_HEADERS: HeadersInit = {
 	"Content-Type": "application/json",
@@ -34,11 +34,13 @@ export interface HttpOptions extends RequestInit {
 	withAuth?: boolean;
 }
 
-export async function http<T>(path: string, options: HttpOptions = {}): Promise<T> {
+export async function http<T>(
+	path: string,
+	options: HttpOptions = {},
+): Promise<T> {
 	const baseUrl = getApiBaseUrl();
 	const url = path.startsWith("http") ? path : `${baseUrl}${path}`;
 	const headers = new Headers(DEFAULT_HEADERS);
-
 
 	if (options.headers) {
 		const provided = new Headers(options.headers as HeadersInit);
@@ -56,11 +58,14 @@ export async function http<T>(path: string, options: HttpOptions = {}): Promise<
 		headers: Object.fromEntries(headers.entries()),
 		data: (options as RequestInit).body,
 		signal: (options.signal ?? undefined) as AbortSignal | undefined,
-		withCredentials: options.credentials ? options.credentials === "include" : true,
+		withCredentials: options.credentials
+			? options.credentials === "include"
+			: true,
 		validateStatus: () => true,
 	});
 
-	const doRequest = async (): Promise<AxiosResponse> => axios.request(createConfig());
+	const doRequest = async (): Promise<AxiosResponse> =>
+		axios.request(createConfig());
 
 	let res = await doRequest();
 	if (res.status === 401 && options.withAuth) {
@@ -85,4 +90,4 @@ export async function http<T>(path: string, options: HttpOptions = {}): Promise<
 	if (res.status === 204) return undefined as unknown as T;
 
 	return res.data as T;
-} 
+}

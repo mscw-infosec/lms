@@ -1,12 +1,12 @@
 "use client";
 
+import type { GetUserResponseDTO } from "@/api/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/store/user";
 import { Shield } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { getAccessToken } from "@/api/token";
-import { getCurrentUser, type GetUserResponseDTO } from "@/api/auth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useMemo } from "react";
 
 interface HeaderProps {
 	onLogin: () => void;
@@ -14,45 +14,20 @@ interface HeaderProps {
 }
 
 export function Header({ onLogin, onRegister }: HeaderProps) {
-	const [user, setUser] = useState<GetUserResponseDTO | null>(null);
+	const { user, hasToken, loading, avatarSrc, avatarExists } = useUserStore();
 
-	useEffect(() => {
-		let active = true;
-
-		const loadUser = async () => {
-			const token = getAccessToken();
-			if (!token) {
-				if (active) setUser(null);
-				return;
-			}
-			try {
-				const me = await getCurrentUser();
-				if (active) setUser(me);
-			} catch {
-				if (active) setUser(null);
-			}
-		};
-
-		loadUser();
-
-		const onTokenChange = () => {
-			loadUser();
-		};
-		if (typeof window !== "undefined") {
-			window.addEventListener("auth:token-changed", onTokenChange as EventListener);
-		}
-		return () => {
-			active = false;
-			if (typeof window !== "undefined") {
-				window.removeEventListener("auth:token-changed", onTokenChange as EventListener);
-			}
-		};
-	}, []);
+	const userInitial = useMemo(
+		() => user?.username?.slice(0, 1).toUpperCase() ?? undefined,
+		[user?.username],
+	);
 
 	return (
 		<header className="sticky top-0 z-50 border-slate-800 border-b bg-slate-900/50 backdrop-blur-sm">
 			<div className="container mx-auto flex items-center justify-between px-4 py-4">
-				<Link href="/" className="flex items-center space-x-2 hover:opacity-90 transition-opacity">
+				<Link
+					href="/"
+					className="flex items-center space-x-2 transition-opacity hover:opacity-90"
+				>
 					<Shield className="h-8 w-8 text-red-500" />
 					<div>
 						<h1 className="font-bold text-white text-xl">infosec.moscow</h1>
@@ -64,12 +39,28 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 					{user ? (
 						<Link href="/account" className="inline-flex">
 							<Avatar className="h-9 w-9 ring-1 ring-slate-700">
-								<AvatarFallback className="bg-slate-700 text-white">
-									{user.username?.slice(0, 1).toUpperCase()}
+								<AvatarImage
+									src={avatarSrc}
+									alt={user?.username || "Account"}
+								/>
+								<AvatarFallback
+									className={
+										avatarExists
+											? "animate-pulse bg-slate-700"
+											: "bg-slate-700 text-white"
+									}
+								>
+									{avatarExists ? null : userInitial}
 								</AvatarFallback>
 							</Avatar>
 						</Link>
-					) : (
+					) : hasToken ? (
+						<Link href="/account" className="inline-flex">
+							<Avatar className="h-9 w-9 ring-1 ring-slate-700">
+								<AvatarFallback className="bg-slate-700" />
+							</Avatar>
+						</Link>
+					) : !loading && !user ? (
 						<>
 							<Button
 								variant="outline"
@@ -85,6 +76,8 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 								Register
 							</Button>
 						</>
+					) : (
+						<></>
 					)}
 				</div>
 			</div>

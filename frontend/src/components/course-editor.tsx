@@ -29,17 +29,33 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+interface Lecture {
+	id: number;
+	title: string;
+	type: "lecture" | "task";
+	completed: boolean;
+	content?: string;
+}
+
+interface CourseModule {
+	id: number;
+	title: string;
+	lectures: Lecture[];
+}
+
 interface CourseEditorProps {
-	courseStructure: any[];
-	onUpdateStructure: (newStructure: any[]) => void;
+	courseStructure: CourseModule[];
+	onUpdateStructure: (newStructure: CourseModule[]) => void;
 }
 
 export function CourseEditor({
 	courseStructure,
 	onUpdateStructure,
 }: CourseEditorProps) {
-	const [editingModule, setEditingModule] = useState<any>(null);
-	const [editingLecture, setEditingLecture] = useState<any>(null);
+	const [editingModule, setEditingModule] = useState<CourseModule | null>(null);
+	const [editingLecture, setEditingLecture] = useState<
+		(Lecture & { moduleId: number }) | null
+	>(null);
 	const [newModuleTitle, setNewModuleTitle] = useState("");
 	const [newLectureTitle, setNewLectureTitle] = useState("");
 	const [newLectureType, setNewLectureType] = useState<"lecture" | "task">(
@@ -52,7 +68,7 @@ export function CourseEditor({
 	const addModule = () => {
 		if (!newModuleTitle.trim()) return;
 
-		const newModule = {
+		const newModule: CourseModule = {
 			id: Math.max(...courseStructure.map((m) => m.id), 0) + 1,
 			title: newModuleTitle,
 			lectures: [],
@@ -68,11 +84,11 @@ export function CourseEditor({
 		const newStructure = courseStructure.map((module) => {
 			if (module.id === moduleId) {
 				const maxLectureId = Math.max(
-					...courseStructure.flatMap((m) => m.lectures.map((l: any) => l.id)),
+					...courseStructure.flatMap((m) => m.lectures.map((l) => l.id)),
 					0,
 				);
 
-				const newLecture = {
+				const newLecture: Lecture = {
 					id: maxLectureId + 1,
 					title: newLectureTitle,
 					type: newLectureType,
@@ -114,7 +130,7 @@ export function CourseEditor({
 			if (module.id === moduleId) {
 				return {
 					...module,
-					lectures: module.lectures.map((lecture: any) => {
+					lectures: module.lectures.map((lecture: Lecture) => {
 						if (lecture.id === lectureId) {
 							return { ...lecture, title: newTitle, content: newContent };
 						}
@@ -139,7 +155,7 @@ export function CourseEditor({
 			if (module.id === moduleId) {
 				return {
 					...module,
-					lectures: module.lectures.filter((l: any) => l.id !== lectureId),
+					lectures: module.lectures.filter((l: Lecture) => l.id !== lectureId),
 				};
 			}
 			return module;
@@ -148,12 +164,12 @@ export function CourseEditor({
 		onUpdateStructure(newStructure);
 	};
 
-	const openEditModule = (module: any) => {
+	const openEditModule = (module: CourseModule) => {
 		setEditingModule(module);
 		setEditModuleTitle(module.title);
 	};
 
-	const openEditLecture = (moduleId: number, lecture: any) => {
+	const openEditLecture = (moduleId: number, lecture: Lecture) => {
 		setEditingLecture({ ...lecture, moduleId });
 		setEditLectureTitle(lecture.title);
 		setEditLectureContent(lecture.content || "");
@@ -255,7 +271,7 @@ export function CourseEditor({
 
 							{/* Lectures List */}
 							<div className="space-y-1">
-								{module.lectures.map((lecture: any) => (
+								{module.lectures.map((lecture) => (
 									<div
 										key={lecture.id}
 										className="flex items-center justify-between rounded bg-slate-700 p-2 text-sm"
@@ -314,7 +330,10 @@ export function CourseEditor({
 						</div>
 						<div className="flex gap-2">
 							<Button
-								onClick={() => updateModule(editingModule?.id, editModuleTitle)}
+								onClick={() => {
+									if (!editingModule) return;
+									updateModule(editingModule.id, editModuleTitle);
+								}}
 								className="bg-red-600 hover:bg-red-700"
 							>
 								<Save className="mr-2 h-4 w-4" />
@@ -378,14 +397,15 @@ export function CourseEditor({
 						)}
 						<div className="flex gap-2">
 							<Button
-								onClick={() =>
+								onClick={() => {
+									if (!editingLecture) return;
 									updateLecture(
-										editingLecture?.moduleId,
-										editingLecture?.id,
+										editingLecture.moduleId,
+										editingLecture.id,
 										editLectureTitle,
 										editLectureContent,
-									)
-								}
+									);
+								}}
 								className="bg-red-600 hover:bg-red-700"
 							>
 								<Save className="mr-2 h-4 w-4" />

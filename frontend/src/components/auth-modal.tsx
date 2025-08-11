@@ -2,6 +2,7 @@
 
 import type React from "react";
 
+import { getOAuthLoginUrl, login, register } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -15,7 +16,6 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle2, Key } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { login, register, getOAuthLoginUrl } from "@/api/auth";
 
 interface AuthModalProps {
 	type: "login" | "register" | null;
@@ -121,11 +121,11 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				const newErrors: Record<string, string> = {};
-				error.errors.forEach((err) => {
+				for (const err of error.errors) {
 					if (err.path[0]) {
 						newErrors[err.path[0] as string] = err.message;
 					}
-				});
+				}
 				setErrors(newErrors);
 			}
 		}
@@ -189,11 +189,11 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				const newErrors: Record<string, string> = {};
-				error.errors.forEach((err) => {
+				for (const err of error.errors) {
 					if (err.path[0]) {
 						newErrors[err.path[0] as string] = err.message;
 					}
-				});
+				}
 				setErrors(newErrors);
 				return;
 			}
@@ -214,7 +214,10 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 			}
 			onClose();
 		} catch (err) {
-			setErrors((prev) => ({ ...prev, root: (err as Error).message || "Authentication failed" }));
+			setErrors((prev) => ({
+				...prev,
+				root: (err as Error).message || "Authentication failed",
+			}));
 		}
 	};
 
@@ -493,8 +496,22 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 							className="border-slate-700 bg-transparent hover:bg-slate-800"
 							onClick={() => handleOAuth("yandex")}
 						>
-							<svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-							   <path d="M2.04 12c0-5.523 4.476-10 10-10 5.522 0 10 4.477 10 10s-4.478 10-10 10c-5.524 0-10-4.477-10-10z" fill="#FC3F1D"/><path d="M13.32 7.666h-.924c-1.694 0-2.585.858-2.585 2.123 0 1.43.616 2.1 1.881 2.959l1.045.704-3.003 4.487H7.49l2.695-4.014c-1.55-1.111-2.42-2.19-2.42-4.015 0-2.288 1.595-3.85 4.62-3.85h3.003v11.868H13.32V7.666z" fill="#fff" />
+							<svg
+								className="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="currentColor"
+								role="img"
+								aria-labelledby="yandex-title"
+							>
+								<title id="yandex-title">Sign in with Yandex</title>
+								<path
+									d="M2.04 12c0-5.523 4.476-10 10-10 5.522 0 10 4.477 10 10s-4.478 10-10 10c-5.524 0-10-4.477-10-10z"
+									fill="#FC3F1D"
+								/>
+								<path
+									d="M13.32 7.666h-.924c-1.694 0-2.585.858-2.585 2.123 0 1.43.616 2.1 1.881 2.959l1.045.704-3.003 4.487H7.49l2.695-4.014c-1.55-1.111-2.42-2.19-2.42-4.015 0-2.288 1.595-3.85 4.62-3.85h3.003v11.868H13.32V7.666z"
+									fill="#fff"
+								/>
 							</svg>
 						</Button>
 
@@ -504,7 +521,14 @@ export function AuthModal({ type, onClose }: AuthModalProps) {
 							className="border-slate-700 bg-transparent hover:bg-slate-800"
 							onClick={() => handleOAuth("github")}
 						>
-							<svg className="h-4 w-4" viewBox="0 0 24 24" fill="#ffffff">
+							<svg
+								className="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="#ffffff"
+								role="img"
+								aria-labelledby="github-title"
+							>
+								<title id="github-title">Sign in with GitHub</title>
 								<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
 							</svg>
 						</Button>
