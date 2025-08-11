@@ -1,19 +1,19 @@
-name: Generate OpenAPI json spec and save it as artifact
+name: Run Clippy
 
 on:
-  push:
-    branches: ["main"]
+  pull_request:
+    branches: [ "main" ]
     paths:
       - "backend/**"
 
 jobs:
-  build_and_save:
-    runs-on: blacksmith-8vcput-ubuntu-2404
+  clippy:
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
 
-    specs:
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -32,13 +32,7 @@ jobs:
           key: rust-${{ hashFiles('backend/Cargo.lock') }}
           restore-keys: rust-
 
-      - name: Generate spec file
+      - name: Run cargo clippy
         working-directory: backend
-        run: cargo run -F openapi
+        run: cargo clippy
 
-      - name: Save spec as artifact
-        uses: actions/upload-artifact@v4
-        working-directory: backend
-        with:
-          name: openapi.json
-          path: openapi.json
