@@ -1,6 +1,6 @@
 use validator::Validate;
 
-#[derive(Clone, Validate)]
+#[derive(Clone, Validate, Default)]
 pub struct Config {
     pub database_url: String,
     pub redis_url: String,

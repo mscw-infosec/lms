@@ -1,10 +1,10 @@
 use async_trait::async_trait;
-use dyn_clone::DynClone;
+use impl_unimplemented::impl_unimplemented;
 
-use crate::{domain::video::model::VideoModel, errors::Result};
+use crate::{domain::video::model::VideoModel, errors::Result, gen_openapi::DummyRepository};
 
+#[impl_unimplemented]
 #[async_trait]
-pub trait VideoRepository: DynClone {
+pub trait VideoRepository {
     async fn create(&self, video: VideoModel) -> Result<VideoModel>;
 }
-dyn_clone::clone_trait_object!(VideoRepository);

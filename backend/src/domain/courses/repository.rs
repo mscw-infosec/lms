@@ -1,9 +1,12 @@
 use crate::{
     domain::courses::model::CourseModel, dto::course::UpsertCourseRequestDTO, errors::Result,
+    gen_openapi::DummyRepository,
 };
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait CourseRepository {
     async fn create_course(

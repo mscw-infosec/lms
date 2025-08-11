@@ -1,0 +1,44 @@
+name: Generate OpenAPI json spec and save it as artifact
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+
+jobs:
+  build_and_save:
+    runs-on: blacksmith-8vcput-ubuntu-2404
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_VERSION: stable
+
+    specs:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Restore Cargo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-${{ hashFiles('backend/Cargo.lock') }}
+          restore-keys: rust-
+
+      - name: Generate spec file
+        working-directory: backend
+        run: cargo run -F openapi
+
+      - name: Save spec as artifact
+        uses: actions/upload-artifact@v4
+        working-directory: backend
+        with:
+          name: openapi.json
+          path: openapi.json

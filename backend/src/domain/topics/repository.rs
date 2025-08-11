@@ -1,8 +1,11 @@
 use crate::{
     domain::topics::model::TopicModel, dto::topics::UpsertTopicRequestDTO, errors::Result,
+    gen_openapi::DummyRepository,
 };
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait TopicRepository {
     async fn get_topic_by_id(&self, id: i32) -> Result<TopicModel>;

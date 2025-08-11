@@ -1,12 +1,13 @@
 use async_trait::async_trait;
-use dyn_clone::DynClone;
+use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
 use super::model::{RefreshTokenData, SessionInfo};
-use crate::errors::LMSError;
+use crate::{errors::LMSError, gen_openapi::DummyRepository};
 
+#[impl_unimplemented]
 #[async_trait]
-pub trait RefreshTokenRepository: DynClone {
+pub trait RefreshTokenRepository {
     fn token_key(jti: Uuid) -> String
     where
         Self: Sized;
@@ -25,5 +26,3 @@ pub trait RefreshTokenRepository: DynClone {
     async fn get_user_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, LMSError>;
     async fn delete_all_user_sessions(&self, user_id: Uuid) -> Result<(), LMSError>;
 }
-
-dyn_clone::clone_trait_object!(RefreshTokenRepository);

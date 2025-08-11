@@ -1,10 +1,13 @@
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
 use crate::errors::LMSError;
+use crate::gen_openapi::DummyRepository;
 
 use super::model::{OAuth, OAuthUser};
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait OAuthRepository {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, LMSError>;

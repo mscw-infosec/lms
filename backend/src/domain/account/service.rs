@@ -8,7 +8,7 @@ use crate::{
         repository::{AccountCacheRepository, AccountRepository},
     },
     errors::{LMSError, Result},
-    infrastructure::s3::S3Manager,
+    infrastructure::s3::S3,
     repo,
 };
 
@@ -16,7 +16,7 @@ use crate::{
 pub struct AccountService {
     db_repo: repo!(AccountRepository),
     cache_repo: repo!(AccountCacheRepository),
-    s3: S3Manager,
+    s3: repo!(S3),
     pub redirect_url: String,
 }
 
@@ -24,7 +24,7 @@ impl AccountService {
     pub fn new(
         db_repo: repo!(AccountRepository),
         cache_repo: repo!(AccountCacheRepository),
-        s3: S3Manager,
+        s3: repo!(S3),
         redirect_url: &str,
     ) -> Self {
         Self {
