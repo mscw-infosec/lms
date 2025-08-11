@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{parse_macro_input, ItemTrait};
 
 #[proc_macro_attribute]
-pub fn impl_unimplemented(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn impl_unimplemented(_: TokenStream, item: TokenStream) -> TokenStream {
     let input_trait = parse_macro_input!(item as ItemTrait);
     let trait_ident = &input_trait.ident;
 
@@ -25,6 +25,7 @@ pub fn impl_unimplemented(attr: TokenStream, item: TokenStream) -> TokenStream {
     let expanded = quote! {
         #input_trait
 
+        #[allow(unused_variables)]
         #[async_trait::async_trait]
         impl #trait_ident for DummyRepository {
             #(#methods)*

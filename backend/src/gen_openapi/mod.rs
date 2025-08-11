@@ -14,6 +14,7 @@ use crate::{
 
 pub struct DummyRepository;
 
+#[allow(unreachable_code)]
 pub fn save_openapi() -> anyhow::Result<()> {
     #[cfg(not(feature = "openapi"))]
     return Ok(());
