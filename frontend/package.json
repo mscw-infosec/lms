@@ -14,8 +14,7 @@
 		"preview": "next build && next start",
 		"start": "next start",
 		"typecheck": "tsc --noEmit",
-		"schema": "openapi-typescript ../openapi.json -o ./src/api/schema/schema.d.ts",
-		"prepare": "simple-git-hooks"
+		"schema": "openapi-typescript ../openapi.json -o ./src/api/schema/schema.d.ts"
 	},
 	"dependencies": {
 		"@radix-ui/react-checkbox": "^1.3.2",
@@ -76,13 +75,9 @@
 		"@types/react-dom": "^19.0.0",
 		"openapi-typescript": "^7.8.0",
 		"postcss": "^8.5.3",
-		"simple-git-hooks": "^2.11.1",
 		"tailwindcss": "^4.0.15",
 		"tw-animate-css": "^1.3.5",
 		"typescript": "^5.9.2"
-	},
-	"simple-git-hooks": {
-		"pre-commit": "npm --prefix frontend run schema && git add frontend/src/api/schema/schema.d.ts"
 	},
 	"ct3aMetadata": {
 		"initVersion": "7.39.3"
