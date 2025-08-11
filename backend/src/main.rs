@@ -11,15 +11,16 @@
 )]
 
 use crate::{
+    app::{generate_router, Services},
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, oauth::service::OAuthService,
-        refresh_token::service::RefreshTokenService, topics::service::TopicService,
-        video::service::VideoService,
+        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
+        refresh_token::service::RefreshTokenService, task::service::TaskService,
+        topics::service::TopicService, video::service::VideoService,
     },
     infrastructure::{
-        db::postgres::{RepositoryPostgres, run_migrations},
+        db::postgres::{run_migrations, RepositoryPostgres},
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
@@ -42,12 +43,13 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
-use crate::domain::exam::service::ExamService;
-use crate::domain::task::service::TaskService;
 #[cfg(feature = "swagger")]
 use utoipa_swagger_ui::SwaggerUi;
 
+mod gen_openapi;
+
 pub mod api;
+pub mod app;
 pub mod config;
 pub mod domain;
 pub mod dto;
@@ -57,12 +59,14 @@ pub mod macros;
 pub mod openapi;
 pub mod utils;
 
-#[allow(clippy::too_many_lines)]
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    gen_openapi::save_openapi()?;
+
     init_tracing();
 
     let config = Config::from_env()?;
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.server_port));
 
     let db_repo = Arc::new(RepositoryPostgres::new(&config.database_url).await?);
     run_migrations(&db_repo).await?;
@@ -71,89 +75,44 @@ async fn main() -> anyhow::Result<()> {
         .user_agent("LMS Backend")
         .build()
         .expect("Failed to build client");
-    let s3 = S3Manager::new(config.clone(), client.clone()).await?;
+
+    let s3 = Arc::new(S3Manager::new(config.clone(), client.clone()).await?);
     let jwt = Arc::new(JWT::new(&config.jwt_secret));
-    let iam = IAMTokenManager::new(&config.iam_key_file)?;
+    let iam = Arc::new(IAMTokenManager::new(&config.iam_key_file)?);
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
 
-    let account_service = AccountService::new(
+    let account = AccountService::new(
         db_repo.clone(),
         rdb_repo.clone(),
         s3.clone(),
         &config.frontend_redirect_url,
     );
-    let basic_auth_service = BasicAuthService::new(db_repo.clone());
-    let course_service = CourseService::new(db_repo.clone());
-    let oauth_service = OAuthService::new(db_repo.clone(), s3.clone());
-    let refresh_token_service = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
-    let video_service = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
-    let task_service = TaskService::new(db_repo.clone());
-    let exam_service = ExamService::new(db_repo.clone());
-    let topic_service = TopicService::new(db_repo.clone());
+    let basic_auth = BasicAuthService::new(db_repo.clone());
+    let course = CourseService::new(db_repo.clone());
+    let exam = ExamService::new(db_repo.clone());
+    let oauth = OAuthService::new(db_repo.clone(), s3.clone());
+    let refresh_token = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
+    let task = TaskService::new(db_repo.clone());
+    let topic = TopicService::new(db_repo.clone());
+    let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
+
+    let services = Services {
+        account,
+        basic_auth,
+        course,
+        exam,
+        oauth,
+        refresh_token,
+        task,
+        topic,
+        video,
+    };
+
+    let app_router = generate_router(jwt, client, config, services)?;
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .nest(
-            "/api",
-            OpenApiRouter::new()
-                .route("/health", get(|| async { StatusCode::OK }))
-                .nest(
-                    "/account",
-                    api::account::configure(account_service.clone(), jwt.clone()),
-                )
-                .nest(
-                    "/auth",
-                    api::auth::configure(
-                        refresh_token_service.clone(),
-                        account_service.clone(),
-                        jwt.clone(),
-                    ),
-                )
-                .nest(
-                    "/basic",
-                    api::basic::configure(
-                        basic_auth_service,
-                        refresh_token_service.clone(),
-                        jwt.clone(),
-                    ),
-                )
-                .nest(
-                    "/courses",
-                    api::course::configure(
-                        jwt.clone(),
-                        topic_service.clone(),
-                        course_service.clone(),
-                        account_service.clone(),
-                    ),
-                )
-                .nest(
-                    "/oauth",
-                    api::oauth::configure(
-                        jwt.clone(),
-                        account_service.clone(),
-                        client,
-                        oauth_service,
-                        refresh_token_service,
-                        config.clone(),
-                    ),
-                )
-                .nest(
-                    "/video",
-                    api::video::configure(video_service, account_service.clone(), jwt.clone())?,
-                )
-                .nest(
-                    "/task",
-                    api::task::configure(task_service, account_service.clone(), jwt.clone()),
-                )
-                .nest(
-                    "/exam",
-                    api::exam::configure(exam_service, account_service.clone(), jwt.clone()),
-                )
-                .nest(
-                    "/topics",
-                    api::topics::configure(topic_service, account_service.clone(), jwt.clone()),
-                ),
-        )
+        .nest("/api", app_router)
         .layer(CookieManagerLayer::new())
         .layer(
             TraceLayer::new_for_http()
@@ -183,7 +142,6 @@ async fn main() -> anyhow::Result<()> {
     #[cfg(feature = "swagger")]
     let router = router.merge(SwaggerUi::new("/swagger").url("/openapi.json", api));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], config.server_port));
     info!("Listening on {}", addr);
 
     let listener = TcpListener::bind(&addr).await?;

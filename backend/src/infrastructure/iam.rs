@@ -1,10 +1,11 @@
 use std::{fs, path::Path};
 
-use crate::errors::Result;
+use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
+use crate::{ errors::Result, gen_openapi::DummyRepository };
 use chrono::{DateTime, Duration, Utc};
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use tokio::sync::RwLock;
 use yandex_cloud::{
     tonic_exports::Endpoint,
@@ -38,11 +39,17 @@ struct TokenState {
     expiry_time: DateTime<Utc>,
 }
 
-#[derive(Clone)]
-pub struct IAMTokenManager {
-    iam: Arc<IAMSchema>,
-    state: Arc<RwLock<TokenState>>,
+#[impl_unimplemented]
+#[async_trait]
+pub trait IAMManager {
+    async fn get_token(&self) -> Result<String>;
 }
+
+pub struct IAMTokenManager {
+    iam: IAMSchema,
+    state: RwLock<TokenState>,
+}
+
 
 impl IAMTokenManager {
     pub fn new(iam_key_file: impl AsRef<Path>) -> Result<Self> {
@@ -53,36 +60,13 @@ impl IAMTokenManager {
             token: None,
             expiry_time: DateTime::default(),
         };
+
         Ok(Self {
-            iam: Arc::new(schema),
-            state: Arc::new(RwLock::new(state)),
+            iam: schema,
+            state: RwLock::new(state),
         })
     }
 
-    pub async fn get_token(&self) -> Result<String> {
-        {
-            let state = self.state.read().await;
-            if let Some(token) = &state.token
-                && Utc::now() <= state.expiry_time
-            {
-                return Ok(token.clone());
-            }
-        }
-
-        let mut state = self.state.write().await;
-
-        if let Some(token) = &state.token
-            && Utc::now() <= state.expiry_time
-        {
-            return Ok(token.clone());
-        }
-
-        let token = self.get_iam_token().await?;
-        state.token = Some(token.clone());
-        state.expiry_time = Utc::now() + Duration::seconds(50 * 60);
-
-        Ok(token)
-    }
 
     fn create_jwt(&self) -> Result<String> {
         let header = Header {
@@ -124,6 +108,34 @@ impl IAMTokenManager {
 
         let response = client.create(request).await?;
         let token = response.into_inner().iam_token;
+
+        Ok(token)
+    }
+}
+
+#[async_trait]
+impl IAMManager for IAMTokenManager {
+    async fn get_token(&self) -> Result<String> {
+        {
+            let state = self.state.read().await;
+            if let Some(token) = &state.token
+                && Utc::now() <= state.expiry_time
+            {
+                return Ok(token.clone());
+            }
+        }
+
+        let mut state = self.state.write().await;
+
+        if let Some(token) = &state.token
+            && Utc::now() <= state.expiry_time
+        {
+            return Ok(token.clone());
+        }
+
+        let token = self.get_iam_token().await?;
+        state.token = Some(token.clone());
+        state.expiry_time = Utc::now() + Duration::seconds(50 * 60);
 
         Ok(token)
     }

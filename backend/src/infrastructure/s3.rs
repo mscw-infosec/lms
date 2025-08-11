@@ -1,15 +1,24 @@
 use std::{borrow::Cow, sync::Arc};
 
+use async_trait::async_trait;
 use axum::http::HeaderValue;
 use futures::StreamExt;
+use impl_unimplemented::impl_unimplemented;
 use s3::{
-    Bucket, BucketConfiguration, PostPolicy, PostPolicyField, PostPolicyValue, Region,
-    creds::Credentials, error::S3Error, post_policy::PresignedPost,
+    creds::Credentials, error::S3Error, post_policy::PresignedPost, Bucket, BucketConfiguration,
+    PostPolicy, PostPolicyField, PostPolicyValue, Region,
 };
 use tokio_util::io::StreamReader;
 use tracing::warn;
 
-use crate::{config::Config, errors::LMSError};
+use crate::{config::Config, errors::LMSError, gen_openapi::DummyRepository};
+
+#[impl_unimplemented]
+#[async_trait]
+pub trait S3 {
+    async fn presign_post(&self, path: &str) -> Result<PresignedPost, S3Error>;
+    async fn save_from_url(&self, path: &str, url: &str) -> Result<(), LMSError>;
+}
 
 #[derive(Clone)]
 pub struct S3Manager {
@@ -44,8 +53,11 @@ impl S3Manager {
 
         Ok(manager)
     }
+}
 
-    pub async fn presign_post(&self, path: &str) -> Result<PresignedPost, S3Error> {
+#[async_trait]
+impl S3 for S3Manager {
+    async fn presign_post(&self, path: &str) -> Result<PresignedPost, S3Error> {
         let post_policy = PostPolicy::new(60 * 60)
             .condition(
                 PostPolicyField::Key,
@@ -63,7 +75,7 @@ impl S3Manager {
         self.bucket.presign_post(post_policy).await
     }
 
-    pub async fn save_from_url(&self, path: &str, url: &str) -> Result<(), LMSError> {
+    async fn save_from_url(&self, path: &str, url: &str) -> Result<(), LMSError> {
         let response = self
             .client
             .get(url)

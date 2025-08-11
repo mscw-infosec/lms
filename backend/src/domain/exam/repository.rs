@@ -2,9 +2,12 @@ use crate::domain::exam::model::Exam;
 use crate::domain::task::model::{Task, TaskAnswer};
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
 use crate::errors::Result;
+use crate::gen_openapi::DummyRepository;
 use async_trait::async_trait;
+use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
+#[impl_unimplemented]
 #[async_trait]
 pub trait ExamRepository {
     async fn create(&self, exam_data: UpsertExamRequestDTO) -> Result<Exam>;
