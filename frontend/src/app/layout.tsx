@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { QueryProvider } from "@/components/query-provider";
 import { UserProvider } from "@/store/user";
+import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
 	title: "LMS",
@@ -28,9 +29,11 @@ html {
         `}</style>
 			</head>
 			<body>
-				<QueryProvider>
-					<UserProvider>{children}</UserProvider>
-				</QueryProvider>
+				<I18nProvider>
+					<QueryProvider>
+						<UserProvider>{children}</UserProvider>
+					</QueryProvider>
+				</I18nProvider>
 			</body>
 		</html>
 	);

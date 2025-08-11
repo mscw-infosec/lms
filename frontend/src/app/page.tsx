@@ -15,8 +15,10 @@ import { useUserStore } from "@/store/user";
 import { Clock, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
+	const { t, i18n } = useTranslation('common');
 	const { user } = useUserStore();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const [courses, setCourses] = useState<UpsertCourseResponseDTO[] | null>(
@@ -81,20 +83,19 @@ export default function HomePage() {
 				<div className="mb-8">
 					<div className="mb-4 flex items-center justify-between">
 						<h1 className="font-bold text-4xl text-white">
-							Master Information Security
+							{t('main_heading')}
 						</h1>
 						{canCreateCourse && (
 							<Link href="/courses/new">
 								<Button className="bg-red-600 text-white hover:bg-red-700">
 									<Plus className="mr-2 h-4 w-4" />
-									New Course
+									{t('new_course')}
 								</Button>
 							</Link>
 						)}
 					</div>
 					<p className="max-w-2xl text-slate-300 text-xl">
-						Learn from industry experts and advance your cybersecurity skills
-						with hands-on courses designed for real-world scenarios.
+						{t('main_subheading')}
 					</p>
 				</div>
 
@@ -112,13 +113,13 @@ export default function HomePage() {
 				{!loading && error && (
 					<div className="rounded-md border border-slate-800 bg-slate-900 p-4 text-slate-300">
 						{error.includes("401")
-							? "Please login to view courses."
-							: "Failed to load courses. Try again later."}
+							? t('error_login_prompt')
+							: t('error_load_failed')}
 					</div>
 				)}
 
 				{!loading && !error && courses && courses.length === 0 && (
-					<div className="text-slate-300">No courses available.</div>
+					<div className="text-slate-300">{t('no_courses')}</div>
 				)}
 
 				{!loading && !error && courses && courses.length > 0 && (
@@ -138,7 +139,7 @@ export default function HomePage() {
 									</CardHeader>
 									<CardContent className="pt-0">
 										<CardDescription className="mb-3 text-slate-400 text-sm">
-											{course.description ?? "No description"}
+											{course.description ?? t('no_description')}
 										</CardDescription>
 										<div className="flex items-center text-slate-500 text-sm">
 											<Clock className="mr-1 h-4 w-4" />

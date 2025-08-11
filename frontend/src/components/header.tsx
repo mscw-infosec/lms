@@ -7,6 +7,8 @@ import { useUserStore } from "@/store/user";
 import { Shield } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
+import { LanguageToggle } from "./language-toggle";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProps {
 	onLogin: () => void;
@@ -15,6 +17,7 @@ interface HeaderProps {
 
 export function Header({ onLogin, onRegister }: HeaderProps) {
 	const { user, hasToken, loading, avatarSrc, avatarExists } = useUserStore();
+	const { t } = useTranslation("common");
 
 	const userInitial = useMemo(
 		() => user?.username?.slice(0, 1).toUpperCase() ?? undefined,
@@ -31,17 +34,18 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 					<Shield className="h-8 w-8 text-red-500" />
 					<div>
 						<h1 className="font-bold text-white text-xl">infosec.moscow</h1>
-						<p className="text-slate-400 text-xs">Learning Management System</p>
+						<p className="text-slate-400 text-xs">{t("lms_tagline")}</p>
 					</div>
 				</Link>
 
 				<div className="flex items-center space-x-3">
+					<LanguageToggle />
 					{user ? (
 						<Link href="/account" className="inline-flex">
 							<Avatar className="h-9 w-9 ring-1 ring-slate-700">
 								<AvatarImage
 									src={avatarSrc}
-									alt={user?.username || "Account"}
+									alt={user?.username || t("account_alt")}
 								/>
 								<AvatarFallback
 									className={
@@ -67,13 +71,13 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 								onClick={onLogin}
 								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							>
-								Login
+								{t("login")}
 							</Button>
 							<Button
 								onClick={onRegister}
 								className="bg-red-600 text-white hover:bg-red-700"
 							>
-								Register
+								{t("register")}
 							</Button>
 						</>
 					) : (
