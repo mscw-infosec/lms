@@ -103,11 +103,7 @@ type TooltipPayloadItem = {
 	name?: string;
 	value?: number;
 	color?: string;
-<<<<<<< HEAD
 	payload?: Record<string, unknown> & { fill?: string };
-=======
-	payload: Record<string, any> & { fill?: string };
->>>>>>> a548896 (DEV-10: frontend api connect)
 };
 
 const ChartTooltipContent = React.forwardRef<
@@ -116,11 +112,7 @@ const ChartTooltipContent = React.forwardRef<
 		React.ComponentProps<"div"> & {
 			active?: boolean;
 			payload?: TooltipPayloadItem[];
-<<<<<<< HEAD
 			label?: string | number | React.ReactNode;
-=======
-			label?: any;
->>>>>>> a548896 (DEV-10: frontend api connect)
 			hideLabel?: boolean;
 			hideIndicator?: boolean;
 			indicator?: "line" | "dot" | "dashed";

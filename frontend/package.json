@@ -14,12 +14,7 @@
 		"preview": "next build && next start",
 		"start": "next start",
 		"typecheck": "tsc --noEmit",
-<<<<<<< HEAD
 		"schema": "openapi-typescript ../openapi.json -o ./src/api/schema/schema.d.ts"
-=======
-		"schema": "openapi-typescript ../openapi.json -o ./src/api/schema/schema.d.ts",
-		"prepare": "simple-git-hooks"
->>>>>>> a548896 (DEV-10: frontend api connect)
 	},
 	"dependencies": {
 		"@radix-ui/react-checkbox": "^1.3.2",
@@ -30,17 +25,11 @@
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tabs": "^1.1.12",
 		"@t3-oss/env-nextjs": "^0.12.0",
-<<<<<<< HEAD
 		"@tanstack/react-query": "^5.84.2",
 		"axios": "^1.11.0",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
-=======
-		"axios": "^1.11.0",
-		"class-variance-authority": "^0.7.1",
-		"clsx": "^2.1.1",
->>>>>>> a548896 (DEV-10: frontend api connect)
 		"embla-carousel-react": "^8.6.0",
 		"geist": "^1.4.2",
 		"input-otp": "^1.4.2",
@@ -86,16 +75,9 @@
 		"@types/react-dom": "^19.0.0",
 		"openapi-typescript": "^7.8.0",
 		"postcss": "^8.5.3",
-		"simple-git-hooks": "^2.11.1",
 		"tailwindcss": "^4.0.15",
 		"tw-animate-css": "^1.3.5",
 		"typescript": "^5.9.2"
-<<<<<<< HEAD
-=======
-	},
-	"simple-git-hooks": {
-		"pre-commit": "npm --prefix frontend run schema && git add frontend/src/api/schema/schema.d.ts"
->>>>>>> a548896 (DEV-10: frontend api connect)
 	},
 	"ct3aMetadata": {
 		"initVersion": "7.39.3"
