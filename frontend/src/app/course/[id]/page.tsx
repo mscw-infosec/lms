@@ -1,8 +1,13 @@
 "use client";
 
+import {
+	type TopicResponseDTO,
+	type UpsertCourseResponseDTO,
+	getCourseById,
+	getCourseTopics,
+} from "@/api/courses";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -25,109 +30,104 @@ import {
 	Home,
 	Play,
 	Shield,
-	Star,
-	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
-const courseData = {
-	1: {
-		title: "Web Application Security Fundamentals",
-		description:
-			"Learn the basics of web application security, including OWASP Top 10 vulnerabilities and mitigation strategies.",
-		image: "bg-gradient-to-br from-red-500 to-orange-600",
-		duration: "8 hours",
-		students: 1234,
-		rating: 4.8,
-		level: "Beginner",
-		fullDescription: `This comprehensive course covers the fundamental concepts of web application security. You'll learn about common vulnerabilities, attack vectors, and defensive strategies used in modern web applications.
+export default function CoursePage() {
+	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
+	const params = useParams<{ id: string }>();
+	const courseId = Number.parseInt(String(params.id));
 
-The course is designed for developers, security professionals, and anyone interested in understanding how to build and maintain secure web applications. Through hands-on exercises and real-world examples, you'll gain practical experience in identifying and mitigating security risks.
+	const [course, setCourse] = useState<UpsertCourseResponseDTO | null>(null);
+	const [topics, setTopics] = useState<TopicResponseDTO[] | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
 
-By the end of this course, you'll have a solid understanding of the OWASP Top 10, secure coding practices, and how to implement security controls in web applications.`,
-		structure: [
+	useEffect(() => {
+		let active = true;
+		(async () => {
+			setLoading(true);
+			setError(null);
+			try {
+				const data = await getCourseById(courseId);
+				if (!active) return;
+				setCourse(data);
+			} catch (err) {
+				if (!active) return;
+				setError((err as Error).message || "Failed to load course");
+				setCourse(null);
+			} finally {
+				if (active) setLoading(false);
+			}
+		})();
+		return () => {
+			active = false;
+		};
+	}, [courseId]);
+
+	useEffect(() => {
+		let active = true;
+		(async () => {
+			try {
+				const data = await getCourseTopics(courseId);
+				if (!active) return;
+				setTopics(data.sort((a, b) => a.order_index - b.order_index));
+			} catch {
+				if (!active) return;
+				setTopics([]);
+			}
+		})();
+		return () => {
+			active = false;
+		};
+	}, [courseId]);
+
+	const gradients = useMemo(
+		() => [
+			"bg-gradient-to-br from-red-500 to-orange-600",
+			"bg-gradient-to-br from-blue-500 to-cyan-600",
+			"bg-gradient-to-br from-purple-500 to-pink-600",
+			"bg-gradient-to-br from-green-500 to-teal-600",
+			"bg-gradient-to-br from-indigo-500 to-blue-600",
+			"bg-gradient-to-br from-yellow-500 to-orange-600",
+		],
+		[],
+	);
+
+	const courseImageClass = gradients[courseId % gradients.length];
+
+	const structure = useMemo(
+		() => [
 			{
 				id: 1,
-				title: "Introduction to Web Security",
-				lectures: [
-					{
-						id: 1,
-						title: "What is Web Application Security?",
-						type: "lecture",
-						completed: false,
-					},
-					{
-						id: 2,
-						title: "Common Attack Vectors",
-						type: "lecture",
-						completed: false,
-					},
-					{
-						id: 3,
-						title: "Security Principles",
-						type: "task",
-						completed: false,
-					},
-				],
-			},
-			{
-				id: 2,
-				title: "OWASP Top 10",
-				lectures: [
-					{
-						id: 4,
-						title: "Injection Attacks",
-						type: "lecture",
-						completed: false,
-					},
-					{
-						id: 5,
-						title: "Broken Authentication",
-						type: "lecture",
-						completed: false,
-					},
-					{
-						id: 6,
-						title: "Sensitive Data Exposure",
-						type: "lecture",
-						completed: false,
-					},
-					{ id: 7, title: "OWASP Quiz", type: "task", completed: false },
-				],
-			},
-			{
-				id: 3,
-				title: "Secure Development",
-				lectures: [
-					{
-						id: 8,
-						title: "Secure Coding Practices",
-						type: "lecture",
-						completed: false,
-					},
-					{
-						id: 9,
-						title: "Input Validation",
-						type: "lecture",
-						completed: false,
-					},
-					{ id: 10, title: "Final Assessment", type: "task", completed: false },
-				],
+				title: "Topics",
+				lectures: (topics ?? []).map((t) => ({
+					id: t.id,
+					title: t.title,
+					type: "lecture" as const,
+					completed: false,
+				})),
 			},
 		],
-	},
-};
+		[topics],
+	);
 
-export default function CoursePage({ params }: { params: { id: string } }) {
-	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
-	const courseId = Number.parseInt(params.id);
-	const course = courseData[courseId as keyof typeof courseData];
-
-	if (!course) {
+	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
-				Course not found
+			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+				Loading course...
+			</div>
+		);
+	}
+
+	if (error || !course) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+				{error?.includes("401")
+					? "Please login to view this course."
+					: "Course not found or failed to load."}
 			</div>
 		);
 	}
@@ -161,33 +161,17 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 							{/* Mobile: Image and basic info */}
 							<div className="lg:hidden">
 								<div
-									className={`h-40 w-full rounded-lg ${course.image} mb-4 flex items-center justify-center`}
+									className={`h-40 w-full rounded-lg ${courseImageClass} mb-4 flex items-center justify-center`}
 								>
 									<Shield className="h-12 w-12 text-white opacity-80" />
 								</div>
-								<div className="mb-3 flex items-center gap-2">
-									<Badge
-										variant="secondary"
-										className="bg-slate-800 text-slate-300 text-xs"
-									>
-										{course.level}
-									</Badge>
-									<div className="flex items-center text-yellow-400">
-										<Star className="mr-1 h-3 w-3 fill-current" />
-										<span className="text-xs">{course.rating}</span>
-									</div>
-								</div>
 								<h1 className="mb-3 font-bold text-2xl text-white">
-									{course.title}
+									{course.name}
 								</h1>
 								<div className="mb-4 flex items-center gap-4 text-slate-400 text-sm">
 									<div className="flex items-center">
 										<Clock className="mr-1 h-3 w-3" />
-										{course.duration}
-									</div>
-									<div className="flex items-center">
-										<Users className="mr-1 h-3 w-3" />
-										{course.students.toLocaleString()}
+										{new Date(course.created_at).toLocaleDateString()}
 									</div>
 								</div>
 								<Link href={`/course/${courseId}/learn`}>
@@ -204,37 +188,20 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 							{/* Desktop: Side by side layout */}
 							<div className="hidden lg:flex lg:gap-8">
 								<div
-									className={`h-48 w-80 rounded-lg ${course.image} flex flex-shrink-0 items-center justify-center`}
+									className={`h-48 w-80 rounded-lg ${courseImageClass} flex flex-shrink-0 items-center justify-center`}
 								>
 									<Shield className="h-16 w-16 text-white opacity-80" />
 								</div>
 
 								<div className="flex-1">
-									<div className="mb-4 flex items-center gap-2">
-										<Badge
-											variant="secondary"
-											className="bg-slate-800 text-slate-300"
-										>
-											{course.level}
-										</Badge>
-										<div className="flex items-center text-yellow-400">
-											<Star className="mr-1 h-4 w-4 fill-current" />
-											<span className="text-sm">{course.rating}</span>
-										</div>
-									</div>
-
 									<h1 className="mb-4 font-bold text-3xl text-white">
-										{course.title}
+										{course.name}
 									</h1>
 
 									<div className="mb-6 flex items-center gap-6 text-slate-400">
 										<div className="flex items-center">
 											<Clock className="mr-2 h-4 w-4" />
-											{course.duration}
-										</div>
-										<div className="flex items-center">
-											<Users className="mr-2 h-4 w-4" />
-											{course.students.toLocaleString()} students
+											{new Date(course.created_at).toLocaleDateString()}
 										</div>
 									</div>
 
@@ -259,7 +226,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 						</CardHeader>
 						<CardContent>
 							<div className="whitespace-pre-line text-slate-300">
-								{course.fullDescription}
+								{course.description ?? "No description."}
 							</div>
 						</CardContent>
 					</Card>
@@ -269,16 +236,13 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 						<CardHeader>
 							<CardTitle className="text-white">Course Structure</CardTitle>
 							<CardDescription className="text-slate-400">
-								{course.structure.length} modules •{" "}
-								{course.structure.reduce(
-									(acc, module) => acc + module.lectures.length,
-									0,
-								)}{" "}
+								{structure.length} module{structure.length !== 1 ? "s" : ""} •{" "}
+								{structure.reduce((acc, m) => acc + m.lectures.length, 0)}{" "}
 								lessons
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							{course.structure.map((module) => (
+							{structure.map((module) => (
 								<Collapsible key={module.id} defaultOpen>
 									<CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
 										<div className="flex items-center">

@@ -6,8 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, Maximize, Pause, Play, Volume2 } from "lucide-react";
 import { useState } from "react";
 
+interface LectureSummary {
+	title: string;
+}
+
 interface LecturePlayerProps {
-	lecture: any;
+	lecture: LectureSummary;
 	onComplete: () => void;
 	onNext: () => void;
 }

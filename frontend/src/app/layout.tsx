@@ -2,11 +2,13 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { QueryProvider } from "@/components/query-provider";
+import { UserProvider } from "@/store/user";
 
 export const metadata: Metadata = {
-	title: "v0 App",
-	description: "Created with v0",
-	generator: "v0.dev",
+	title: "LMS",
+	description: "Learning Management System",
+	generator: "",
 };
 
 export default function RootLayout({
@@ -25,7 +27,11 @@ html {
 }
         `}</style>
 			</head>
-			<body>{children}</body>
+			<body>
+				<QueryProvider>
+					<UserProvider>{children}</UserProvider>
+				</QueryProvider>
+			</body>
 		</html>
 	);
 }

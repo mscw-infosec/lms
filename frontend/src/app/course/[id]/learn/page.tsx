@@ -90,7 +90,7 @@ const courseStructure = [
 	},
 ];
 
-export default function LearnPage({ params }: { params: { id: string } }) {
+export default function LearnPage() {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [currentLecture, setCurrentLecture] = useState(1);
 	const [progress, setProgress] = useState<Record<number, boolean>>({
@@ -135,20 +135,22 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 
 	const goToNext = () => {
 		if (currentIndex < allLectures.length - 1) {
-			setCurrentLecture(allLectures[currentIndex + 1].id);
+			const next = allLectures[currentIndex + 1];
+			if (next) setCurrentLecture(next.id);
 		}
 	};
 
 	const goToPrevious = () => {
 		if (currentIndex > 0) {
-			setCurrentLecture(allLectures[currentIndex - 1].id);
+			const prev = allLectures[currentIndex - 1];
+			if (prev) setCurrentLecture(prev.id);
 		}
 	};
 
 	const handleLectureSelect = (lectureId: number) => {
 		setCurrentLecture(lectureId);
 		// Auto-close sidebar on mobile when selecting a lecture
-		if (window.innerWidth < 640) {
+		if (typeof window !== "undefined" && window.innerWidth < 640) {
 			setSidebarOpen(false);
 		}
 	};
@@ -160,6 +162,15 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 				<div
 					className="fixed inset-0 z-40 bg-black/50 sm:hidden"
 					onClick={() => setSidebarOpen(false)}
+					role="button"
+					tabIndex={0}
+					aria-label="Close sidebar overlay"
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							setSidebarOpen(false);
+						}
+					}}
 				/>
 			)}
 
@@ -201,6 +212,7 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 
 									return (
 										<button
+											type="button"
 											key={lecture.id}
 											onClick={() => handleLectureSelect(lecture.id)}
 											className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
@@ -307,13 +319,14 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 
 				{/* Content */}
 				<div className="flex-1 p-3 lg:p-6">
-					{currentLectureData?.type === "lecture" ? (
+					{currentLectureData && currentLectureData.type === "lecture" ? (
 						<LecturePlayer
 							lecture={currentLectureData}
 							onComplete={() => markComplete(currentLecture)}
 							onNext={goToNext}
 						/>
-					) : (
+					) : null}
+					{currentLectureData && currentLectureData.type === "task" ? (
 						<TaskPlayer
 							task={currentLectureData}
 							onComplete={() => markComplete(currentLecture)}
@@ -322,7 +335,7 @@ export default function LearnPage({ params }: { params: { id: string } }) {
 								handleQuestionProgress(currentLecture, questionId, hasAnswer)
 							}
 						/>
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>

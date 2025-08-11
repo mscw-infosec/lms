@@ -9,13 +9,69 @@ import { AlertCircle, Award, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 interface TaskPlayerProps {
-	task: any;
+	task: { id: number };
 	onComplete: () => void;
 	onNext: () => void;
 	onProgress?: (questionId: number, hasAnswer: boolean) => void;
 }
 
-const quizData = {
+type SingleQuestion = {
+	id: number;
+	type: "single";
+	question: string;
+	options: string[];
+	correct: number;
+};
+
+type MultipleQuestion = {
+	id: number;
+	type: "multiple";
+	question: string;
+	options: string[];
+	correct: number[];
+};
+
+type TextQuestion = {
+	id: number;
+	type: "text";
+	question: string;
+	correct: string;
+	alternatives?: string[];
+};
+
+type OrderingQuestion = {
+	id: number;
+	type: "ordering";
+	question: string;
+	options: string[];
+	correct: number[];
+};
+
+type MatchingQuestion = {
+	id: number;
+	type: "matching";
+	question: string;
+	leftItems: string[];
+	rightItems: string[];
+	correct: Record<number, number>;
+};
+
+type QuizQuestion =
+	| SingleQuestion
+	| MultipleQuestion
+	| TextQuestion
+	| OrderingQuestion
+	| MatchingQuestion;
+
+type Quiz = {
+	title: string;
+	description: string;
+	questions: QuizQuestion[];
+};
+
+type AnswerValue = number | number[] | string | Record<number, number>;
+
+const quizData: Record<number, Quiz> = {
 	3: {
 		title: "Security Principles Quiz",
 		description: "Test your understanding of fundamental security principles.",
@@ -185,7 +241,7 @@ export function TaskPlayer({
 	onNext,
 	onProgress,
 }: TaskPlayerProps) {
-	const [answers, setAnswers] = useState<Record<number, any>>({});
+	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
 	const [submitted, setSubmitted] = useState(false);
 	const [score, setScore] = useState(0);
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -211,6 +267,9 @@ export function TaskPlayer({
 	}
 
 	const currentQuestion = quiz.questions[currentQuestionIndex];
+	if (!currentQuestion) {
+		return null;
+	}
 	const totalQuestions = quiz.questions.length;
 
 	const handleSingleAnswer = (questionId: number, value: string) => {
@@ -224,17 +283,17 @@ export function TaskPlayer({
 		checked: boolean,
 	) => {
 		setAnswers((prev) => {
-			const current = prev[questionId] || [];
+			const current = Array.isArray(prev[questionId])
+				? (prev[questionId] as number[])
+				: [];
 			if (checked) {
 				const newAnswers = { ...prev, [questionId]: [...current, optionIndex] };
 				onProgress?.(questionId, true);
 				return newAnswers;
 			}
-			const newAnswers = {
-				...prev,
-				[questionId]: current.filter((i: number) => i !== optionIndex),
-			};
-			onProgress?.(questionId, newAnswers[questionId]?.length > 0);
+			const newArray = current.filter((i: number) => i !== optionIndex);
+			const newAnswers = { ...prev, [questionId]: newArray };
+			onProgress?.(questionId, newArray.length > 0);
 			return newAnswers;
 		});
 	};
@@ -242,38 +301,50 @@ export function TaskPlayer({
 	const handleSubmit = () => {
 		let correctAnswers = 0;
 
-		quiz.questions.forEach((question) => {
+		for (const question of quiz.questions) {
 			const userAnswer = answers[question.id];
 			let isCorrect = false;
 
 			if (question.type === "single") {
-				isCorrect = userAnswer === question.correct;
+				isCorrect = userAnswer === (question as SingleQuestion).correct;
 			} else if (question.type === "multiple") {
-				const correctArray = question.correct as number[];
-				const userArray = userAnswer || [];
+				const correctArray = (question as MultipleQuestion).correct;
+				const userArray = (
+					Array.isArray(userAnswer) ? userAnswer : []
+				) as number[];
 				isCorrect =
 					correctArray.length === userArray.length &&
 					correctArray.every((val: number) => userArray.includes(val));
 			} else if (question.type === "text") {
-				const userText = (userAnswer || "").toLowerCase().trim();
-				const correctText = question.correct.toLowerCase();
-				const alternatives = question.alternatives || [];
+				const userText = String((userAnswer as string | undefined) ?? "")
+					.toLowerCase()
+					.trim();
+				const correctText = String(
+					(question as TextQuestion).correct ?? "",
+				).toLowerCase();
+				const alternatives = (question as TextQuestion).alternatives || [];
 				isCorrect =
 					userText === correctText ||
-					alternatives.some((alt) => alt.toLowerCase() === userText);
+					alternatives.some(
+						(alt: string) => String(alt).toLowerCase() === userText,
+					);
 			} else if (question.type === "ordering") {
-				const userOrder = userAnswer || [];
-				const correctOrder = question.correct;
+				const userOrder = (
+					Array.isArray(userAnswer) ? userAnswer : []
+				) as number[];
+				const correctOrder = (question as OrderingQuestion).correct;
 				isCorrect = JSON.stringify(userOrder) === JSON.stringify(correctOrder);
 			} else if (question.type === "matching") {
-				const userMatches = userAnswer || {};
-				const correctMatches = question.correct;
+				const userMatches = (
+					userAnswer && typeof userAnswer === "object" ? userAnswer : {}
+				) as Record<number, number>;
+				const correctMatches = (question as MatchingQuestion).correct;
 				isCorrect =
 					JSON.stringify(userMatches) === JSON.stringify(correctMatches);
 			}
 
 			if (isCorrect) correctAnswers++;
-		});
+		}
 
 		const finalScore = Math.round((correctAnswers / totalQuestions) * 100);
 		setScore(finalScore);
@@ -293,33 +364,45 @@ export function TaskPlayer({
 		const userAnswer = answers[question.id];
 
 		if (question.type === "single") {
-			return userAnswer === question.correct;
+			return userAnswer === (question as SingleQuestion).correct;
 		}
 		if (question.type === "multiple") {
-			const correctArray = question.correct as number[];
-			const userArray = userAnswer || [];
+			const correctArray = (question as MultipleQuestion).correct;
+			const userArray = (
+				Array.isArray(userAnswer) ? userAnswer : []
+			) as number[];
 			return (
 				correctArray.length === userArray.length &&
 				correctArray.every((val: number) => userArray.includes(val))
 			);
 		}
 		if (question.type === "text") {
-			const userText = (userAnswer || "").toLowerCase().trim();
-			const correctText = question.correct.toLowerCase();
-			const alternatives = question.alternatives || [];
+			const userText = String((userAnswer as string | undefined) ?? "")
+				.toLowerCase()
+				.trim();
+			const correctText = String(
+				(question as TextQuestion).correct ?? "",
+			).toLowerCase();
+			const alternatives = (question as TextQuestion).alternatives || [];
 			return (
 				userText === correctText ||
-				alternatives.some((alt) => alt.toLowerCase() === userText)
+				alternatives.some(
+					(alt: string) => String(alt).toLowerCase() === userText,
+				)
 			);
 		}
 		if (question.type === "ordering") {
-			const userOrder = userAnswer || [];
-			const correctOrder = question.correct;
+			const userOrder = (
+				Array.isArray(userAnswer) ? userAnswer : []
+			) as number[];
+			const correctOrder = (question as OrderingQuestion).correct;
 			return JSON.stringify(userOrder) === JSON.stringify(correctOrder);
 		}
 		if (question.type === "matching") {
-			const userMatches = userAnswer || {};
-			const correctMatches = question.correct;
+			const userMatches = (
+				userAnswer && typeof userAnswer === "object" ? userAnswer : {}
+			) as Record<number, number>;
+			const correctMatches = (question as MatchingQuestion).correct;
 			return JSON.stringify(userMatches) === JSON.stringify(correctMatches);
 		}
 
@@ -350,13 +433,13 @@ export function TaskPlayer({
 							Question {currentQuestionIndex + 1} of {totalQuestions}
 						</p>
 						<div className="flex space-x-1">
-							{quiz.questions.map((_, index) => (
+							{quiz.questions.map((q, index) => (
 								<div
-									key={index}
+									key={q.id}
 									className={`h-2 w-2 rounded-full ${
 										index === currentQuestionIndex
 											? "bg-red-600"
-											: answers[quiz.questions[index].id] !== undefined
+											: answers[q.id ?? -1] !== undefined
 												? "bg-slate-600"
 												: "bg-slate-700"
 									}`}
@@ -397,7 +480,10 @@ export function TaskPlayer({
 							disabled={submitted}
 						>
 							{currentQuestion.options.map((option, optionIndex) => (
-								<div key={optionIndex} className="flex items-center space-x-2">
+								<div
+									key={`${currentQuestion.id}-single-${String(option)}`}
+									className="flex items-center space-x-2"
+								>
 									<RadioGroupItem
 										value={optionIndex.toString()}
 										id={`q${currentQuestion.id}-${optionIndex}`}
@@ -406,13 +492,16 @@ export function TaskPlayer({
 									<Label
 										htmlFor={`q${currentQuestion.id}-${optionIndex}`}
 										className={`cursor-pointer text-slate-300 ${
-											submitted && optionIndex === currentQuestion.correct
+											submitted &&
+											optionIndex ===
+												(currentQuestion as SingleQuestion).correct
 												? "font-medium text-green-400"
 												: ""
 										} ${
 											submitted &&
 											answers[currentQuestion.id] === optionIndex &&
-											optionIndex !== currentQuestion.correct
+											optionIndex !==
+												(currentQuestion as SingleQuestion).correct
 												? "text-red-400"
 												: ""
 										}`}
@@ -425,12 +514,16 @@ export function TaskPlayer({
 					) : currentQuestion.type === "multiple" ? (
 						<div className="space-y-3">
 							{currentQuestion.options.map((option, optionIndex) => (
-								<div key={optionIndex} className="flex items-center space-x-2">
+								<div
+									key={`${currentQuestion.id}-multiple-${String(option)}`}
+									className="flex items-center space-x-2"
+								>
 									<Checkbox
 										id={`q${currentQuestion.id}-${optionIndex}`}
-										checked={(answers[currentQuestion.id] || []).includes(
-											optionIndex,
-										)}
+										checked={(Array.isArray(answers[currentQuestion.id])
+											? (answers[currentQuestion.id] as number[])
+											: []
+										).includes(optionIndex)}
 										onCheckedChange={(checked) =>
 											handleMultipleAnswer(
 												currentQuestion.id,
@@ -445,7 +538,7 @@ export function TaskPlayer({
 										htmlFor={`q${currentQuestion.id}-${optionIndex}`}
 										className={`cursor-pointer text-slate-300 ${
 											submitted &&
-											(currentQuestion.correct as number[]).includes(
+											(currentQuestion as MultipleQuestion).correct.includes(
 												optionIndex,
 											)
 												? "font-medium text-green-400"
@@ -461,7 +554,7 @@ export function TaskPlayer({
 						<div className="space-y-3">
 							<input
 								type="text"
-								value={answers[currentQuestion.id] || ""}
+								value={String(answers[currentQuestion.id] ?? "")}
 								onChange={(e) => {
 									setAnswers((prev) => ({
 										...prev,
@@ -480,7 +573,7 @@ export function TaskPlayer({
 								<p
 									className={`text-sm ${getQuestionResult(currentQuestion.id) ? "text-green-400" : "text-red-400"}`}
 								>
-									Correct answer: {currentQuestion.correct}
+									Correct answer: {(currentQuestion as TextQuestion).correct}
 								</p>
 							)}
 						</div>
@@ -490,18 +583,27 @@ export function TaskPlayer({
 								Drag and drop to reorder:
 							</p>
 							<div className="space-y-2">
-								{(
-									answers[currentQuestion.id] ||
-									currentQuestion.options.map((_, i) => i)
-								).map((itemIndex, position) => (
+								{(Array.isArray(answers[currentQuestion.id])
+									? (answers[currentQuestion.id] as number[])
+									: currentQuestion.options.map((_, i) => i)
+								).map((itemIndex: number, position: number) => (
 									<div
 										key={itemIndex}
 										className={`cursor-move rounded-lg border border-slate-700 bg-slate-800 p-3 ${
 											submitted &&
-											currentQuestion.correct[position] === itemIndex
+											(currentQuestion as OrderingQuestion).correct[
+												position
+											] === itemIndex
 												? "border-green-500"
 												: ""
-										} ${submitted && currentQuestion.correct[position] !== itemIndex ? "border-red-500" : ""}`}
+										} ${
+											submitted &&
+											(currentQuestion as OrderingQuestion).correct[
+												position
+											] !== itemIndex
+												? "border-red-500"
+												: ""
+										}`}
 									>
 										<span className="text-slate-300">
 											{position + 1}. {currentQuestion.options[itemIndex]}
@@ -520,47 +622,63 @@ export function TaskPlayer({
 									<h4 className="font-medium text-slate-300">
 										Items to match:
 									</h4>
-									{currentQuestion.leftItems.map((item, leftIndex) => (
-										<div
-											key={leftIndex}
-											className="rounded-lg border border-slate-700 bg-slate-800 p-3"
-										>
-											<span className="text-slate-300">{item}</span>
-										</div>
-									))}
+									{(currentQuestion as MatchingQuestion).leftItems.map(
+										(item) => (
+											<div
+												key={`${currentQuestion.id}-left-${String(item)}`}
+												className="rounded-lg border border-slate-700 bg-slate-800 p-3"
+											>
+												<span className="text-slate-300">{item}</span>
+											</div>
+										),
+									)}
 								</div>
 								<div className="space-y-2">
 									<h4 className="font-medium text-slate-300">Match with:</h4>
-									{currentQuestion.rightItems.map((item, rightIndex) => (
-										<button
-											key={rightIndex}
-											onClick={() => {
-												// Simple matching logic - in a real app, you'd implement proper drag & drop
-												const currentMatches =
-													answers[currentQuestion.id] || {};
-												const newMatches = {
-													...currentMatches,
-													[0]: rightIndex,
-												}; // Simplified for demo
-												setAnswers((prev) => ({
-													...prev,
-													[currentQuestion.id]: newMatches,
-												}));
-												onProgress?.(
-													currentQuestion.id,
-													Object.keys(newMatches).length > 0,
-												);
-											}}
-											disabled={submitted}
-											className={`w-full rounded-lg border border-slate-700 p-3 text-left transition-colors ${
-												answers[currentQuestion.id]?.[0] === rightIndex
-													? "bg-red-600 text-white"
-													: "bg-slate-800 text-slate-300 hover:bg-slate-700"
-											}`}
-										>
-											{item}
-										</button>
-									))}
+									{(currentQuestion as MatchingQuestion).rightItems.map(
+										(item, rightIndex) => (
+											<button
+												type="button"
+												key={`${currentQuestion.id}-right-${String(item)}`}
+												onClick={() => {
+													// Simple matching logic - in a real app, you'd implement proper drag & drop
+													const currentMatches =
+														answers[currentQuestion.id] &&
+														typeof answers[currentQuestion.id] === "object" &&
+														!Array.isArray(answers[currentQuestion.id])
+															? (answers[currentQuestion.id] as Record<
+																	number,
+																	number
+																>)
+															: {};
+													const newMatches = {
+														...currentMatches,
+														[0]: rightIndex,
+													}; // Simplified for demo
+													setAnswers((prev) => ({
+														...prev,
+														[currentQuestion.id]: newMatches,
+													}));
+													onProgress?.(
+														currentQuestion.id,
+														Object.keys(newMatches).length > 0,
+													);
+												}}
+												disabled={submitted}
+												className={`w-full rounded-lg border border-slate-700 p-3 text-left transition-colors ${
+													(
+														answers[currentQuestion.id] as
+															| Record<number, number>
+															| undefined
+													)?.[0] === rightIndex
+														? "bg-red-600 text-white"
+														: "bg-slate-800 text-slate-300 hover:bg-slate-700"
+												}`}
+											>
+												{item}
+											</button>
+										),
+									)}
 								</div>
 							</div>
 						</div>

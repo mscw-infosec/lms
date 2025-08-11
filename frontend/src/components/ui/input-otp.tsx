@@ -1,7 +1,6 @@
 "use client";
 
 import { OTPInput, OTPInputContext } from "input-otp";
-import { Dot } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -30,12 +29,25 @@ const InputOTPGroup = React.forwardRef<
 ));
 InputOTPGroup.displayName = "InputOTPGroup";
 
+type OTPContextShape = {
+	slots: Array<{
+		char?: React.ReactNode;
+		hasFakeCaret?: boolean;
+		isActive?: boolean;
+	}>;
+} | null;
+
 const InputOTPSlot = React.forwardRef<
 	React.ElementRef<"div">,
 	React.ComponentPropsWithoutRef<"div"> & { index: number }
 >(({ index, className, ...props }, ref) => {
-	const inputOTPContext = React.useContext(OTPInputContext);
-	const { char, hasFakeCaret, isActive } = inputOTPContext.slots[index];
+	const inputOTPContext = React.useContext(OTPInputContext) as OTPContextShape;
+	const slot = inputOTPContext?.slots?.[index] ?? {};
+	const { char, hasFakeCaret, isActive } = slot as {
+		char?: React.ReactNode;
+		hasFakeCaret?: boolean;
+		isActive?: boolean;
+	};
 
 	return (
 		<div
@@ -59,13 +71,9 @@ const InputOTPSlot = React.forwardRef<
 InputOTPSlot.displayName = "InputOTPSlot";
 
 const InputOTPSeparator = React.forwardRef<
-	React.ElementRef<"div">,
-	React.ComponentPropsWithoutRef<"div">
->(({ ...props }, ref) => (
-	<div ref={ref} role="separator" {...props}>
-		<Dot />
-	</div>
-));
+	React.ElementRef<"hr">,
+	React.ComponentPropsWithoutRef<"hr">
+>(({ ...props }, ref) => <hr ref={ref} aria-hidden {...props} />);
 InputOTPSeparator.displayName = "InputOTPSeparator";
 
 export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator };
