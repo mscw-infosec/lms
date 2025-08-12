@@ -27,6 +27,11 @@
 	"course_structure": "Course Structure",
 	"course_structure_modules_lessons": "{{modules}} modules • {{lessons}} lessons",
 	"topics": "Topics",
+	"edit": "Edit",
+	"save": "Save",
+	"saving": "Saving...",
+	"saved_successfully": "Saved successfully",
+	"save_failed": "Failed to save",
 
 	"course_name_required": "Course name is required",
 	"failed_create_course": "Failed to create course",
