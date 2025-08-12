@@ -1,7 +1,7 @@
 use std::{fs::OpenOptions, io::Write, process::exit, sync::Arc};
 
 use crate::{
-    app::{generate_router, Services},
+    app::{Services, generate_router},
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
