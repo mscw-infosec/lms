@@ -2,9 +2,9 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { I18nProvider } from "@/components/i18n-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { UserProvider } from "@/store/user";
-import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
 	title: "LMS",

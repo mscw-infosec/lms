@@ -37,7 +37,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function CoursePage() {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation("common");
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const params = useParams<{ id: string }>();
 	const courseId = Number.parseInt(String(params.id));
@@ -119,7 +119,7 @@ export default function CoursePage() {
 	if (loading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{t('loading_course')}
+				{t("loading_course")}
 			</div>
 		);
 	}
@@ -128,8 +128,8 @@ export default function CoursePage() {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
 				{error?.includes("401")
-					? t('course_login_prompt')
-					: t('course_not_found')}
+					? t("course_login_prompt")
+					: t("course_not_found")}
 			</div>
 		);
 	}
@@ -152,8 +152,8 @@ export default function CoursePage() {
 								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							>
 								<Home className="mr-2 h-4 w-4" />
-								<span className="hidden sm:inline">{t('back_to_courses')}</span>
-								<span className="sm:hidden">{t('back')}</span>
+								<span className="hidden sm:inline">{t("back_to_courses")}</span>
+								<span className="sm:hidden">{t("back")}</span>
 							</Button>
 						</Link>
 					</div>
@@ -182,7 +182,7 @@ export default function CoursePage() {
 										className="w-full bg-red-600 text-white hover:bg-red-700"
 									>
 										<Play className="mr-2 h-4 w-4" />
-										{t('start_course')}
+										{t("start_course")}
 									</Button>
 								</Link>
 							</div>
@@ -213,7 +213,7 @@ export default function CoursePage() {
 											className="bg-red-600 text-white hover:bg-red-700"
 										>
 											<Play className="mr-2 h-5 w-5" />
-											{t('start_course')}
+											{t("start_course")}
 										</Button>
 									</Link>
 								</div>
@@ -224,11 +224,11 @@ export default function CoursePage() {
 					{/* Course Description */}
 					<Card className="mb-8 border-slate-800 bg-slate-900">
 						<CardHeader>
-							<CardTitle className="text-white">{t('about_course')}</CardTitle>
+							<CardTitle className="text-white">{t("about_course")}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<div className="whitespace-pre-line text-slate-300">
-								{course.description ?? t('no_description')}
+								{course.description ?? t("no_description")}
 							</div>
 						</CardContent>
 					</Card>
@@ -236,11 +236,16 @@ export default function CoursePage() {
 					{/* Course Structure */}
 					<Card className="border-slate-800 bg-slate-900">
 						<CardHeader>
-							<CardTitle className="text-white">{t('course_structure')}</CardTitle>
+							<CardTitle className="text-white">
+								{t("course_structure")}
+							</CardTitle>
 							<CardDescription className="text-slate-400">
-								{t('course_structure_modules_lessons', {
+								{t("course_structure_modules_lessons", {
 									modules: structure.length,
-									lessons: structure.reduce((acc, m) => acc + m.lectures.length, 0),
+									lessons: structure.reduce(
+										(acc, m) => acc + m.lectures.length,
+										0,
+									),
 								})}
 							</CardDescription>
 						</CardHeader>
@@ -251,7 +256,7 @@ export default function CoursePage() {
 										<div className="flex items-center">
 											<BookOpen className="mr-3 h-5 w-5 text-slate-400" />
 											<span className="font-medium text-white">
-												{t('topics')}
+												{t("topics")}
 											</span>
 										</div>
 										<ChevronDown className="h-5 w-5 text-slate-400" />

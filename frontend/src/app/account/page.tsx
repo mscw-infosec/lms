@@ -36,7 +36,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function AccountPage() {
-	const { t } = useTranslation('common');
+	const { t } = useTranslation("common");
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const queryClient = useQueryClient();
@@ -69,8 +69,8 @@ export default function AccountPage() {
 		}
 		if (!file.type.startsWith("image/")) {
 			toast({
-				title: t('invalid_file'),
-				description: t('please_select_image'),
+				title: t("invalid_file"),
+				description: t("please_select_image"),
 				variant: "destructive",
 			});
 			return;
@@ -78,8 +78,8 @@ export default function AccountPage() {
 		const MAX_MB = 5;
 		if (file.size > MAX_MB * 1024 * 1024) {
 			toast({
-				title: t('file_too_large'),
-				description: t('max_size', { size: MAX_MB }),
+				title: t("file_too_large"),
+				description: t("max_size", { size: MAX_MB }),
 				variant: "destructive",
 			});
 			return;
@@ -140,8 +140,8 @@ export default function AccountPage() {
 		},
 		onSuccess: async () => {
 			toast({
-				title: t('avatar_updated'),
-				description: t('avatar_uploaded_successfully'),
+				title: t("avatar_updated"),
+				description: t("avatar_uploaded_successfully"),
 			});
 			bumpAvatar(user?.id);
 			await queryClient.invalidateQueries({ queryKey: ["me"] });
@@ -149,7 +149,7 @@ export default function AccountPage() {
 		},
 		onError: (e) => {
 			toast({
-				title: t('upload_error'),
+				title: t("upload_error"),
 				description: e.message,
 				variant: "destructive",
 			});
@@ -195,8 +195,8 @@ export default function AccountPage() {
 			queryClient.clear();
 
 			toast({
-				title: t('logged_out'),
-				description: t('logged_out_successfully'),
+				title: t("logged_out"),
+				description: t("logged_out_successfully"),
 			});
 		},
 	});
@@ -204,7 +204,7 @@ export default function AccountPage() {
 	if (meQuery.isLoading || sessionsQuery.isLoading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{t('loading_account')}
+				{t("loading_account")}
 			</div>
 		);
 	}
@@ -220,11 +220,13 @@ export default function AccountPage() {
 					<div className="mx-auto max-w-2xl">
 						<Card className="border-slate-800 bg-slate-900">
 							<CardHeader>
-								<CardTitle className="text-white">{t('sign_in_required')}</CardTitle>
+								<CardTitle className="text-white">
+									{t("sign_in_required")}
+								</CardTitle>
 								<CardDescription className="text-slate-400">
 									{String(meQuery.error?.message || "").includes("401")
-										? t('please_login_to_view_account')
-										: t('could_not_load_account')}
+										? t("please_login_to_view_account")
+										: t("could_not_load_account")}
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="flex gap-3">
@@ -233,13 +235,13 @@ export default function AccountPage() {
 									className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 									onClick={() => setAuthModal("login")}
 								>
-									{t('login')}
+									{t("login")}
 								</Button>
 								<Button
 									className="bg-red-600 text-white hover:bg-red-700"
 									onClick={() => setAuthModal("register")}
 								>
-									{t('register')}
+									{t("register")}
 								</Button>
 								<Link href="/">
 									<Button
@@ -247,7 +249,7 @@ export default function AccountPage() {
 										className="ml-auto border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 									>
 										<Home className="mr-2 h-4 w-4" />
-										{t('home')}
+										{t("home")}
 									</Button>
 								</Link>
 							</CardContent>
@@ -277,7 +279,7 @@ export default function AccountPage() {
 								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							>
 								<Home className="mr-2 h-4 w-4" />
-								{t('back_to_home')}
+								{t("back_to_home")}
 							</Button>
 						</Link>
 						<Button
@@ -287,16 +289,16 @@ export default function AccountPage() {
 							size="sm"
 						>
 							<LogOut className="mr-2 h-4 w-4" />
-							{logoutMutation.isPending ? t('logging_out') : t('logout')}
+							{logoutMutation.isPending ? t("logging_out") : t("logout")}
 						</Button>
 					</div>
 
 					{/* Profile card */}
 					<Card className="border-slate-800 bg-slate-900">
 						<CardHeader>
-							<CardTitle className="text-white">{t('account_title')}</CardTitle>
+							<CardTitle className="text-white">{t("account_title")}</CardTitle>
 							<CardDescription className="text-slate-400">
-								{t('account_subtitle')}
+								{t("account_subtitle")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -339,7 +341,7 @@ export default function AccountPage() {
 							{/* Avatar upload */}
 							<div className="mt-6 grid gap-2">
 								<Label htmlFor="avatar" className="text-slate-300">
-									{t('upload_avatar')}
+									{t("upload_avatar")}
 								</Label>
 								<Input
 									id="avatar"
@@ -356,7 +358,9 @@ export default function AccountPage() {
 										disabled={!avatarFile || uploadAvatarMutation.isPending}
 										className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
 									>
-										{uploadAvatarMutation.isPending ? t('uploading') : t('upload')}
+										{uploadAvatarMutation.isPending
+											? t("uploading")
+											: t("upload")}
 									</Button>
 									{avatarFile ? (
 										<span className="text-slate-400 text-xs">
@@ -365,7 +369,7 @@ export default function AccountPage() {
 										</span>
 									) : (
 										<span className="text-slate-500 text-xs">
-											{t('file_hint_png_jpg')}
+											{t("file_hint_png_jpg")}
 										</span>
 									)}
 								</div>
@@ -377,9 +381,11 @@ export default function AccountPage() {
 					<Card className="border-slate-800 bg-slate-900">
 						<CardHeader className="flex flex-row items-center justify-between space-y-0">
 							<div>
-								<CardTitle className="text-white">{t('active_sessions')}</CardTitle>
+								<CardTitle className="text-white">
+									{t("active_sessions")}
+								</CardTitle>
 								<CardDescription className="text-slate-400">
-									{t('manage_devices')}
+									{t("manage_devices")}
 								</CardDescription>
 							</div>
 							<Button
@@ -388,7 +394,9 @@ export default function AccountPage() {
 								className="bg-red-600 text-white hover:bg-red-700"
 							>
 								<LogOut className="mr-2 h-4 w-4" />
-								{logoutAllMutation.isPending ? t('logging_out') : t('log_out_all')}
+								{logoutAllMutation.isPending
+									? t("logging_out")
+									: t("log_out_all")}
 							</Button>
 						</CardHeader>
 						<CardContent>
@@ -405,10 +413,13 @@ export default function AccountPage() {
 												</div>
 												<div>
 													<div className="text-sm text-white">
-														{t('device_label', { id: s.device_id })}
+														{t("device_label", { id: s.device_id })}
 													</div>
 													<div className="text-slate-400 text-xs">
-														{t('issued_last_used', { issued: new Date(s.issued_at).toLocaleString(), lastUsed: new Date(s.last_used).toLocaleString() })}
+														{t("issued_last_used", {
+															issued: new Date(s.issued_at).toLocaleString(),
+															lastUsed: new Date(s.last_used).toLocaleString(),
+														})}
 													</div>
 												</div>
 											</div>
@@ -420,15 +431,15 @@ export default function AccountPage() {
 												disabled={revokeSessionMutation.isPending}
 											>
 												{revokeSessionMutation.isPending
-													? t('revoking')
-													: t('revoke')}
+													? t("revoking")
+													: t("revoke")}
 											</Button>
 										</div>
 									))}
 								</div>
 							) : (
 								<div className="text-slate-400 text-sm">
-									{t('no_active_sessions')}
+									{t("no_active_sessions")}
 								</div>
 							)}
 						</CardContent>

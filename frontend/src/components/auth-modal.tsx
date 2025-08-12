@@ -16,8 +16,8 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle2, Key } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 
 interface AuthModalProps {
 	type: "login" | "register" | null;
