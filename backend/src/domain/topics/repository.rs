@@ -5,7 +5,7 @@ use crate::{
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait TopicRepository {
     async fn get_topic_by_id(&self, id: i32) -> Result<TopicModel>;

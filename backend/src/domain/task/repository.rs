@@ -6,7 +6,7 @@ use crate::gen_openapi::DummyRepository;
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait TaskRepository {
     async fn create(&self, task_data: UpsertTaskRequestDTO) -> Result<Task>;

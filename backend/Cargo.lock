@@ -1524,6 +1524,8 @@ dependencies = [
 [[package]]
 name = "impl_unimplemented"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "186f17f6453aecaf2039072f1b08bfef03eb25a8650edcfdd2b13c799b9aed85"
 dependencies = [
  "proc-macro2",
  "quote",
