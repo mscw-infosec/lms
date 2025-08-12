@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Plus, Shield, Loader2 } from "lucide-react";
+import { Clock, Loader2, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,8 +31,6 @@ export default function HomePage() {
 	});
 
 	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
-
-
 
 	const gradients = useMemo(
 		() => [
@@ -93,7 +91,9 @@ export default function HomePage() {
 				{!authLoading && !hasToken && (
 					<div className="flex min-h-[40vh] items-center justify-center">
 						<div className="max-w-xl text-center">
-							<p className="mb-6 text-slate-300 text-lg">{t("error_login_prompt")}</p>
+							<p className="mb-6 text-lg text-slate-300">
+								{t("error_login_prompt")}
+							</p>
 							<div className="flex items-center justify-center gap-3">
 								<Button
 									variant="outline"
@@ -120,47 +120,60 @@ export default function HomePage() {
 					</div>
 				)}
 
-				{!authLoading && hasToken && !coursesQuery.isLoading && coursesQuery.isError && (
-					<div className="rounded-md border border-slate-800 bg-slate-900 p-4 text-slate-300">
-						{coursesQuery.error?.message.includes("401")
-							? t("error_login_prompt")
-							: t("error_load_failed")}
-					</div>
-				)}
+				{!authLoading &&
+					hasToken &&
+					!coursesQuery.isLoading &&
+					coursesQuery.isError && (
+						<div className="rounded-md border border-slate-800 bg-slate-900 p-4 text-slate-300">
+							{coursesQuery.error?.message.includes("401")
+								? t("error_login_prompt")
+								: t("error_load_failed")}
+						</div>
+					)}
 
-				{!authLoading && hasToken && !coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length === 0 && (
-					<div className="text-slate-300">{t("no_courses")}</div>
-				)}
+				{!authLoading &&
+					hasToken &&
+					!coursesQuery.isLoading &&
+					!coursesQuery.isError &&
+					coursesQuery.data &&
+					coursesQuery.data.length === 0 && (
+						<div className="text-slate-300">{t("no_courses")}</div>
+					)}
 
-				{!authLoading && hasToken && !coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length > 0 && (
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{coursesQuery.data.map((course) => (
-							<Link key={course.id} href={`/course/${course.id}`}>
-								<Card className="h-full cursor-pointer border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-105 hover:border-slate-700">
-									<CardHeader className="pb-3">
-										<div
-											className={`h-32 w-full rounded-lg ${gradients[course.id % gradients.length]} mb-3 flex items-center justify-center`}
-										>
-											<Shield className="h-12 w-12 text-white opacity-80" />
-										</div>
-										<CardTitle className="text-lg text-white leading-tight">
-											{course.name}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="pt-0">
-										<CardDescription className="mb-3 text-slate-400 text-sm">
-											{course.description ?? t("no_description")}
-										</CardDescription>
-										<div className="flex items-center text-slate-500 text-sm">
-											<Clock className="mr-1 h-4 w-4" />
-											{new Date(course.created_at).toLocaleDateString()}
-										</div>
-									</CardContent>
-								</Card>
-							</Link>
-						))}
-					</div>
-				)}
+				{!authLoading &&
+					hasToken &&
+					!coursesQuery.isLoading &&
+					!coursesQuery.isError &&
+					coursesQuery.data &&
+					coursesQuery.data.length > 0 && (
+						<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+							{coursesQuery.data.map((course) => (
+								<Link key={course.id} href={`/course/${course.id}`}>
+									<Card className="h-full cursor-pointer border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-105 hover:border-slate-700">
+										<CardHeader className="pb-3">
+											<div
+												className={`h-32 w-full rounded-lg ${gradients[course.id % gradients.length]} mb-3 flex items-center justify-center`}
+											>
+												<Shield className="h-12 w-12 text-white opacity-80" />
+											</div>
+											<CardTitle className="text-lg text-white leading-tight">
+												{course.name}
+											</CardTitle>
+										</CardHeader>
+										<CardContent className="pt-0">
+											<CardDescription className="mb-3 text-slate-400 text-sm">
+												{course.description ?? t("no_description")}
+											</CardDescription>
+											<div className="flex items-center text-slate-500 text-sm">
+												<Clock className="mr-1 h-4 w-4" />
+												{new Date(course.created_at).toLocaleDateString()}
+											</div>
+										</CardContent>
+									</Card>
+								</Link>
+							))}
+						</div>
+					)}
 			</main>
 
 			<AuthModal type={authModal} onClose={() => setAuthModal(null)} />

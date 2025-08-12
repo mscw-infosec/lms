@@ -21,6 +21,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useQuery } from "@tanstack/react-query";
 import {
 	BookOpen,
 	CheckCircle2,
@@ -28,15 +29,14 @@ import {
 	Clock,
 	HelpCircle,
 	Home,
+	Loader2,
 	Play,
 	Shield,
-	Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 
 export default function CoursePage() {
 	const { t } = useTranslation("common");
@@ -93,12 +93,14 @@ export default function CoursePage() {
 			{
 				id: 1,
 				title: "Topics",
-				lectures: (topicsQuery.data ?? []).map((t: TopicResponseDTO): LectureItem => ({
-					id: t.id,
-					title: t.title,
-					type: "lecture",
-					completed: false,
-				})),
+				lectures: (topicsQuery.data ?? []).map(
+					(t: TopicResponseDTO): LectureItem => ({
+						id: t.id,
+						title: t.title,
+						type: "lecture",
+						completed: false,
+					}),
+				),
 			},
 		],
 		[topicsQuery.data],
@@ -191,7 +193,9 @@ export default function CoursePage() {
 									<div className="mb-6 flex items-center gap-6 text-slate-400">
 										<div className="flex items-center">
 											<Clock className="mr-2 h-4 w-4" />
-											{new Date(courseQuery.data.created_at).toLocaleDateString()}
+											{new Date(
+												courseQuery.data.created_at,
+											).toLocaleDateString()}
 										</div>
 									</div>
 
