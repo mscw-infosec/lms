@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::model::{RefreshTokenData, SessionInfo};
 use crate::{errors::LMSError, gen_openapi::DummyRepository};
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait RefreshTokenRepository {
     fn token_key(jti: Uuid) -> String

@@ -39,7 +39,7 @@ struct TokenState {
     expiry_time: DateTime<Utc>,
 }
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait IAMManager {
     async fn get_token(&self) -> Result<String>;

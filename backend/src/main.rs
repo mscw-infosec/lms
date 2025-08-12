@@ -27,8 +27,10 @@ use crate::{
     },
 };
 
-use axum::{http::StatusCode, routing::get};
-use axum::http::{header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE}, Method};
+use axum::http::{
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+    Method,
+};
 use infrastructure::{db::redis::RepositoryRedis, jwt::JWT};
 use openapi::ApiDoc;
 use std::{net::SocketAddr, sync::Arc};
@@ -36,7 +38,7 @@ use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{
     compression::CompressionLayer,
-    cors::{Any, CorsLayer},
+    cors::CorsLayer,
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
 use tracing::info;
@@ -61,7 +63,8 @@ pub mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    gen_openapi::save_openapi()?;
+    #[cfg(feature = "gen-openapi")]
+    gen_openapi::save_openapi();
 
     init_tracing();
 
@@ -123,8 +126,12 @@ async fn main() -> anyhow::Result<()> {
         .layer(
             CorsLayer::new()
                 .allow_origin([
-                    "http://localhost:3000".parse().expect("valid CORS origin URL"),
-                    "http://127.0.0.1:3000".parse().expect("valid CORS origin URL"),
+                    "http://localhost:3000"
+                        .parse()
+                        .expect("valid CORS origin URL"),
+                    "http://127.0.0.1:3000"
+                        .parse()
+                        .expect("valid CORS origin URL"),
                 ])
                 .allow_methods([
                     Method::GET,

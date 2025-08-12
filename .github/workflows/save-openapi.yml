@@ -34,11 +34,10 @@ jobs:
 
       - name: Generate spec file
         working-directory: backend
-        run: cargo run -F openapi
+        run: cargo run -F gen-openapi
 
       - name: Save spec as artifact
         uses: actions/upload-artifact@v4
-        working-directory: backend
         with:
           name: openapi.json
-          path: openapi.json
+          path: backend/openapi.json

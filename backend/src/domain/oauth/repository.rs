@@ -7,7 +7,7 @@ use crate::gen_openapi::DummyRepository;
 
 use super::model::{OAuth, OAuthUser};
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait OAuthRepository {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, LMSError>;

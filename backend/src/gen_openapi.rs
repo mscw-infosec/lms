@@ -12,13 +12,11 @@ use crate::{
     infrastructure::jwt::JWT,
 };
 
+#[allow(dead_code)]
 pub struct DummyRepository;
 
-#[allow(unreachable_code)]
-pub fn save_openapi() -> anyhow::Result<()> {
-    #[cfg(not(feature = "openapi"))]
-    return Ok(());
-
+#[allow(dead_code)]
+pub fn save_openapi() {
     let client = reqwest::Client::new();
     let config = Config::default();
 
@@ -39,7 +37,8 @@ pub fn save_openapi() -> anyhow::Result<()> {
     let refresh_token = RefreshTokenService::new(dummy.clone(), jwt.clone());
     let task = TaskService::new(dummy.clone());
     let topic = TopicService::new(dummy.clone());
-    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)?;
+    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
+        .expect("Failed to create VideoService");
 
     let services = Services {
         account,
@@ -53,14 +52,26 @@ pub fn save_openapi() -> anyhow::Result<()> {
         video,
     };
 
-    let (_, api) = generate_router(jwt, client, config, services)?.split_for_parts();
-    let spec = api.to_pretty_json()?;
+    let (_, api) = generate_router(jwt, client, config, services)
+        .expect("Failed to generate app router")
+        .split_for_parts();
+
+    let spec = api
+        .to_pretty_json()
+        .expect("Failed to convert OpenAPI struct to json");
+
     let mut file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
-        .open("openapi.json")?;
+        .open("openapi.json")
+        .expect("Failed to open file");
 
-    let () = file.write_all(spec.as_bytes())?;
+    let () = file
+        .write_all(spec.as_bytes())
+        .expect("Failed to write to file");
+
+    drop(file);
+
     exit(0)
 }

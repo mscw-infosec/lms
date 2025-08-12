@@ -3,15 +3,16 @@ use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
 use super::model::UserModel;
-use crate::{errors::Result, gen_openapi::DummyRepository};
+use crate::errors::Result;
+use crate::gen_openapi::DummyRepository;
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait AccountRepository {
     async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>>;
 }
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait AccountCacheRepository {
     fn user_key(id: Uuid) -> String

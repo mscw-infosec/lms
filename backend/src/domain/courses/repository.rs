@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait CourseRepository {
     async fn create_course(

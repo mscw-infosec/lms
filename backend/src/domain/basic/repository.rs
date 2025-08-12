@@ -4,7 +4,7 @@ use impl_unimplemented::impl_unimplemented;
 
 use super::model::BasicUser;
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait BasicAuthRepository {
     async fn create(&self, user: &BasicUser) -> Result<()>;

@@ -13,7 +13,7 @@ use tracing::warn;
 
 use crate::{config::Config, errors::LMSError, gen_openapi::DummyRepository};
 
-#[impl_unimplemented]
+#[impl_unimplemented(DummyRepository)]
 #[async_trait]
 pub trait S3 {
     async fn presign_post(&self, path: &str) -> Result<PresignedPost, S3Error>;

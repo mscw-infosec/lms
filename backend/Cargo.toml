@@ -11,7 +11,7 @@ publish = false
 [features]
 default = []
 swagger = ["dep:utoipa-swagger-ui"]
-openapi = ["dep:utoipa-swagger-ui"]
+gen-openapi = ["dep:utoipa-swagger-ui"]
 
 [dependencies]
 anyhow = "1.0.98"
@@ -21,6 +21,7 @@ axum = { version = "0.8.4", features = ["multipart"] }
 axum-macros = "0.5.0"
 base64 = "0.22.1"
 chrono = { version = "0.4.41", features = ["serde"] }
+impl_unimplemented = "0.1.0"
 dotenvy = "0.15.7"
 futures = "0.3.31"
 jsonwebtoken = "9.3.1"
@@ -52,8 +53,6 @@ utoipa-swagger-ui = { version = "9.0.1", features = ["axum"], optional = true }
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 validator = { version = "0.20.0", features = ["derive"] }
 yandex-cloud = "2025.4.14"
-
-impl_unimplemented = { path = "../impl_unimplemented" }
 
 [profile.release]
 lto = "fat"

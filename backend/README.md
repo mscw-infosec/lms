@@ -80,4 +80,8 @@ cargo sqlx migrate revert
 
 ## CI/CD
 
-В репозитории работает GitHub Actions, который прогоняет Clippy в PR, а в мастере - собирает проект с `--release` и пушит его в Container Registry. 
+В репозитории работает GitHub Actions, который прогоняет Clippy в PR, а в мастере - собирает проект с `--release` и пушит его в Container Registry.
+
+## OpenAPI
+
+Для генерации openapi.json, требуется запустить приложение с фичей gen-openapi - `cargo run -F gen-openapi`. Для этого не требуются переменные окружения или любые другие зависимости.
