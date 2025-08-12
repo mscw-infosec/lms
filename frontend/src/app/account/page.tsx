@@ -30,7 +30,7 @@ import {
 	getAvatarSrc,
 } from "@/lib/avatar-cache";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, LogOut, Shield, Smartphone } from "lucide-react";
+import { Home, Loader2, LogOut, Shield, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -204,7 +204,7 @@ export default function AccountPage() {
 	if (meQuery.isLoading || sessionsQuery.isLoading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{t("loading_account")}
+				<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 			</div>
 		);
 	}

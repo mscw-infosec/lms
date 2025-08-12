@@ -87,5 +87,6 @@
 	"or": "ИЛИ",
 	"passkey": "Ключ-пароль",
 	"sign_in_with_yandex": "Войти через Яндекс",
-	"sign_in_with_github": "Войти через GitHub"
+	"sign_in_with_github": "Войти через GitHub",
+	"completing_sign_in": "Завершаем вход…"
 }

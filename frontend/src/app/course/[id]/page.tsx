@@ -21,6 +21,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useQuery } from "@tanstack/react-query";
 import {
 	BookOpen,
 	CheckCircle2,
@@ -28,12 +29,13 @@ import {
 	Clock,
 	HelpCircle,
 	Home,
+	Loader2,
 	Play,
 	Shield,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function CoursePage() {
@@ -42,49 +44,35 @@ export default function CoursePage() {
 	const params = useParams<{ id: string }>();
 	const courseId = Number.parseInt(String(params.id));
 
-	const [course, setCourse] = useState<UpsertCourseResponseDTO | null>(null);
-	const [topics, setTopics] = useState<TopicResponseDTO[] | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
-	const [error, setError] = useState<string | null>(null);
+	const courseQuery = useQuery<UpsertCourseResponseDTO, Error>({
+		queryKey: ["course", courseId],
+		queryFn: () => getCourseById(courseId),
+		enabled: Number.isFinite(courseId),
+		retry: false,
+	});
 
-	useEffect(() => {
-		let active = true;
-		(async () => {
-			setLoading(true);
-			setError(null);
-			try {
-				const data = await getCourseById(courseId);
-				if (!active) return;
-				setCourse(data);
-			} catch (err) {
-				if (!active) return;
-				setError((err as Error).message || "Failed to load course");
-				setCourse(null);
-			} finally {
-				if (active) setLoading(false);
-			}
-		})();
-		return () => {
-			active = false;
-		};
-	}, [courseId]);
+	const topicsQuery = useQuery<TopicResponseDTO[], Error>({
+		queryKey: ["course-topics", courseId],
+		queryFn: async () => {
+			const data = await getCourseTopics(courseId);
+			return data.sort((a, b) => a.order_index - b.order_index);
+		},
+		enabled: courseQuery.isSuccess,
+		retry: false,
+	});
 
-	useEffect(() => {
-		let active = true;
-		(async () => {
-			try {
-				const data = await getCourseTopics(courseId);
-				if (!active) return;
-				setTopics(data.sort((a, b) => a.order_index - b.order_index));
-			} catch {
-				if (!active) return;
-				setTopics([]);
-			}
-		})();
-		return () => {
-			active = false;
-		};
-	}, [courseId]);
+	type LectureItem = {
+		id: number;
+		title: string;
+		type: "lecture" | "task";
+		completed: boolean;
+	};
+
+	type ModuleItem = {
+		id: number;
+		title: string;
+		lectures: LectureItem[];
+	};
 
 	const gradients = useMemo(
 		() => [
@@ -100,34 +88,36 @@ export default function CoursePage() {
 
 	const courseImageClass = gradients[courseId % gradients.length];
 
-	const structure = useMemo(
+	const structure = useMemo<ModuleItem[]>(
 		() => [
 			{
 				id: 1,
 				title: "Topics",
-				lectures: (topics ?? []).map((t) => ({
-					id: t.id,
-					title: t.title,
-					type: "lecture" as const,
-					completed: false,
-				})),
+				lectures: (topicsQuery.data ?? []).map(
+					(t: TopicResponseDTO): LectureItem => ({
+						id: t.id,
+						title: t.title,
+						type: "lecture",
+						completed: false,
+					}),
+				),
 			},
 		],
-		[topics],
+		[topicsQuery.data],
 	);
 
-	if (loading) {
+	if (courseQuery.isLoading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{t("loading_course")}
+				<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 			</div>
 		);
 	}
 
-	if (error || !course) {
+	if (courseQuery.isError || !courseQuery.data) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{error?.includes("401")
+				{courseQuery.error?.message.includes("401")
 					? t("course_login_prompt")
 					: t("course_not_found")}
 			</div>
@@ -168,12 +158,12 @@ export default function CoursePage() {
 									<Shield className="h-12 w-12 text-white opacity-80" />
 								</div>
 								<h1 className="mb-3 font-bold text-2xl text-white">
-									{course.name}
+									{courseQuery.data.name}
 								</h1>
 								<div className="mb-4 flex items-center gap-4 text-slate-400 text-sm">
 									<div className="flex items-center">
 										<Clock className="mr-1 h-3 w-3" />
-										{new Date(course.created_at).toLocaleDateString()}
+										{new Date(courseQuery.data.created_at).toLocaleDateString()}
 									</div>
 								</div>
 								<Link href={`/course/${courseId}/learn`}>
@@ -197,13 +187,15 @@ export default function CoursePage() {
 
 								<div className="flex-1">
 									<h1 className="mb-4 font-bold text-3xl text-white">
-										{course.name}
+										{courseQuery.data.name}
 									</h1>
 
 									<div className="mb-6 flex items-center gap-6 text-slate-400">
 										<div className="flex items-center">
 											<Clock className="mr-2 h-4 w-4" />
-											{new Date(course.created_at).toLocaleDateString()}
+											{new Date(
+												courseQuery.data.created_at,
+											).toLocaleDateString()}
 										</div>
 									</div>
 
@@ -228,7 +220,7 @@ export default function CoursePage() {
 						</CardHeader>
 						<CardContent>
 							<div className="whitespace-pre-line text-slate-300">
-								{course.description ?? t("no_description")}
+								{courseQuery.data.description ?? t("no_description")}
 							</div>
 						</CardContent>
 					</Card>
