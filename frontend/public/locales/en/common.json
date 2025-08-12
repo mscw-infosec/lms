@@ -71,6 +71,7 @@
   "avatar_uploaded_successfully": "Your avatar was uploaded successfully.",
   "upload_error": "Upload error",
   "logged_out": "Logged out",
+  "log_out_all": "Log out all",
   "logged_out_successfully": "You have been successfully logged out.",
   "please_login_to_view_account": "Please login to view your account.",
   "could_not_load_account": "We couldn't load your account. Please login and try again.",

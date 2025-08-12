@@ -1,31 +1,59 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { GbFlag } from "./icons/gb-flag";
 import { RuFlag } from "./icons/ru-flag";
 
 export function LanguageToggle() {
   const { i18n } = useTranslation();
 
+  const currentLang = useMemo(() => {
+    const lng = i18n.language || "en";
+    // Normalize e.g. en-US -> en
+    return lng.split("-")[0];
+  }, [i18n.language]);
+
+  const Flag = currentLang === "ru" ? RuFlag : GbFlag;
+
   return (
-    <div className="flex items-center gap-x-2">
-      <Button
-        variant={i18n.language === "en" ? "outline" : "ghost"}
-        size="icon"
-        onClick={() => i18n.changeLanguage("en")}
-        className="h-8 w-8"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-slate-300 hover:bg-slate-800"
+          aria-label="Change language"
+        >
+          <Flag className="h-5 w-5" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-40 bg-slate-900 border-slate-700 text-slate-200"
       >
-        <GbFlag className="h-5 w-5" />
-      </Button>
-      <Button
-        variant={i18n.language === "ru" ? "outline" : "ghost"}
-        size="icon"
-        onClick={() => i18n.changeLanguage("ru")}
-        className="h-8 w-8"
-      >
-        <RuFlag className="h-5 w-5" />
-      </Button>
-    </div>
+        <DropdownMenuRadioGroup
+          value={currentLang}
+          onValueChange={(lng) => i18n.changeLanguage(lng)}
+        >
+          <DropdownMenuRadioItem value="en">
+            <GbFlag className="h-4 w-4" />
+            <span className="ml-2">English</span>
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="ru">
+            <RuFlag className="h-4 w-4" />
+            <span className="ml-2">Русский</span>
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
