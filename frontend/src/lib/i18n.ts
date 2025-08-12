@@ -17,6 +17,9 @@ i18n.use(initReactI18next).init({
 	defaultNS: "common",
 	supportedLngs: ["en", "ru"],
 	nonExplicitSupportedLngs: true,
+	react: {
+		useSuspense: false,
+	},
 	interpolation: {
 		escapeValue: false,
 	},

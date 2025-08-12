@@ -30,6 +30,7 @@ import {
 	Home,
 	Play,
 	Shield,
+	Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -119,7 +120,7 @@ export default function CoursePage() {
 	if (loading) {
 		return (
 			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-				{t("loading_course")}
+				<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 			</div>
 		);
 	}

@@ -12,7 +12,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useUserStore } from "@/store/user";
-import { Clock, Plus, Shield } from "lucide-react";
+import { Clock, Plus, Shield, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -100,13 +100,8 @@ export default function HomePage() {
 				</div>
 
 				{loading && (
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{skeletonKeys.map((key) => (
-							<div
-								key={key}
-								className="h-64 animate-pulse rounded-lg bg-slate-800"
-							/>
-						))}
+					<div className="flex min-h-[40vh] items-center justify-center">
+						<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 					</div>
 				)}
 
