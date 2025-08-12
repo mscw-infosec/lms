@@ -18,8 +18,10 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function NewCoursePage() {
+	const { t } = useTranslation("common");
 	const { user } = useUserStore();
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ export default function NewCoursePage() {
 		e.preventDefault();
 
 		if (!formData.name.trim()) {
-			setError("Course name is required");
+			setError(t("course_name_required"));
 			return;
 		}
 
@@ -55,7 +57,7 @@ export default function NewCoursePage() {
 
 			router.push(`/course/${newCourse.id}`);
 		} catch (err) {
-			setError((err as Error).message || "Failed to create course");
+			setError((err as Error).message || t("failed_create_course"));
 		} finally {
 			setLoading(false);
 		}
@@ -82,23 +84,23 @@ export default function NewCoursePage() {
 						className="mb-4 inline-flex items-center text-slate-300 transition-colors hover:text-white"
 					>
 						<ArrowLeft className="mr-2 h-4 w-4" />
-						Back to Courses
+						{t("back_to_courses")}
 					</Link>
 
 					<h1 className="mb-2 font-bold text-4xl text-white">
-						Create New Course
+						{t("create_new_course")}
 					</h1>
-					<p className="text-lg text-slate-300">
-						Design and publish a new cybersecurity course for students.
-					</p>
+					<p className="text-lg text-slate-300">{t("new_course_intro")}</p>
 				</div>
 
 				<div className="max-w-2xl">
 					<Card className="border-slate-800 bg-slate-900">
 						<CardHeader>
-							<CardTitle className="text-white">Course Details</CardTitle>
+							<CardTitle className="text-white">
+								{t("course_details")}
+							</CardTitle>
 							<CardDescription className="text-slate-400">
-								Fill in the basic information for your new course.
+								{t("course_details_help")}
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
@@ -111,14 +113,14 @@ export default function NewCoursePage() {
 
 								<div className="space-y-2">
 									<Label htmlFor="name" className="text-white">
-										Course Name *
+										{t("course_name_label")}
 									</Label>
 									<Input
 										id="name"
 										type="text"
 										value={formData.name}
 										onChange={(e) => handleInputChange("name", e.target.value)}
-										placeholder="Enter course name..."
+										placeholder={t("course_name_placeholder")}
 										className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-400 focus:border-red-500"
 										required
 									/>
@@ -126,7 +128,7 @@ export default function NewCoursePage() {
 
 								<div className="space-y-2">
 									<Label htmlFor="description" className="text-white">
-										Description
+										{t("description_label")}
 									</Label>
 									<Textarea
 										id="description"
@@ -134,13 +136,12 @@ export default function NewCoursePage() {
 										onChange={(e) =>
 											handleInputChange("description", e.target.value)
 										}
-										placeholder="Enter course description..."
+										placeholder={t("course_description_placeholder")}
 										className="min-h-[120px] border-slate-700 bg-slate-800 text-white placeholder:text-slate-400 focus:border-red-500"
 										rows={5}
 									/>
 									<p className="text-slate-500 text-sm">
-										Provide a brief overview of what students will learn in this
-										course.
+										{t("course_description_help")}
 									</p>
 								</div>
 
@@ -153,12 +154,12 @@ export default function NewCoursePage() {
 										{loading ? (
 											<>
 												<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-												Creating...
+												{t("creating")}
 											</>
 										) : (
 											<>
 												<Save className="mr-2 h-4 w-4" />
-												Create Course
+												{t("create_course")}
 											</>
 										)}
 									</Button>
@@ -169,7 +170,7 @@ export default function NewCoursePage() {
 											variant="outline"
 											className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 										>
-											Cancel
+											{t("cancel")}
 										</Button>
 									</Link>
 								</div>
