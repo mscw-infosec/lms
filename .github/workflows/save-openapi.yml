@@ -8,7 +8,7 @@ on:
 
 jobs:
   build_and_save:
-    runs-on: blacksmith-8vcput-ubuntu-2404
+    runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
