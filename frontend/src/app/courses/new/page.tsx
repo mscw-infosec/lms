@@ -19,12 +19,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function NewCoursePage() {
 	const { t } = useTranslation("common");
 	const { user } = useUserStore();
 	const router = useRouter();
-	const [loading, setLoading] = useState(false);
+	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
 	const [formData, setFormData] = useState<UpsertCourseRequestDTO>({
 		name: "",
@@ -38,6 +39,19 @@ export default function NewCoursePage() {
 		return null;
 	}
 
+	const { mutate, isPending } = useMutation({
+		mutationFn: async (payload: UpsertCourseRequestDTO) => {
+			return createCourse(payload);
+		},
+		onSuccess: async (newCourse) => {
+			await queryClient.invalidateQueries({ queryKey: ["courses"] });
+			router.push(`/course/${newCourse.id}`);
+		},
+		onError: (err: unknown) => {
+			setError((err as Error).message || t("failed_create_course"));
+		},
+	});
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
@@ -46,21 +60,11 @@ export default function NewCoursePage() {
 			return;
 		}
 
-		setLoading(true);
 		setError(null);
-
-		try {
-			const newCourse = await createCourse({
-				name: formData.name.trim(),
-				description: formData.description?.trim() || null,
-			});
-
-			router.push(`/course/${newCourse.id}`);
-		} catch (err) {
-			setError((err as Error).message || t("failed_create_course"));
-		} finally {
-			setLoading(false);
-		}
+		mutate({
+			name: formData.name.trim(),
+			description: formData.description?.trim() || null,
+		});
 	};
 
 	const handleInputChange = (
@@ -148,10 +152,10 @@ export default function NewCoursePage() {
 								<div className="flex gap-4 pt-4">
 									<Button
 										type="submit"
-										disabled={loading || !formData.name.trim()}
+										disabled={isPending || !formData.name.trim()}
 										className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
 									>
-										{loading ? (
+										{isPending ? (
 											<>
 												<div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
 												{t("creating")}

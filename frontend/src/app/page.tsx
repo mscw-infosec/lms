@@ -12,44 +12,26 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { useUserStore } from "@/store/user";
+import { useQuery } from "@tanstack/react-query";
 import { Clock, Plus, Shield, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
 	const { t, i18n } = useTranslation("common");
 	const { user } = useUserStore();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
-	const [courses, setCourses] = useState<UpsertCourseResponseDTO[] | null>(
-		null,
-	);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
+
+	const coursesQuery = useQuery<UpsertCourseResponseDTO[], Error>({
+		queryKey: ["courses"],
+		queryFn: getAllCourses,
+		retry: false,
+	});
 
 	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
 
-	useEffect(() => {
-		let active = true;
-		(async () => {
-			setLoading(true);
-			setError(null);
-			try {
-				const data = await getAllCourses();
-				if (!active) return;
-				setCourses(data);
-			} catch (err) {
-				if (!active) return;
-				setError((err as Error).message || "Failed to load courses");
-				setCourses(null);
-			} finally {
-				if (active) setLoading(false);
-			}
-		})();
-		return () => {
-			active = false;
-		};
-	}, []);
+
 
 	const gradients = useMemo(
 		() => [
@@ -99,27 +81,27 @@ export default function HomePage() {
 					</p>
 				</div>
 
-				{loading && (
+				{coursesQuery.isLoading && (
 					<div className="flex min-h-[40vh] items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 					</div>
 				)}
 
-				{!loading && error && (
+				{!coursesQuery.isLoading && coursesQuery.isError && (
 					<div className="rounded-md border border-slate-800 bg-slate-900 p-4 text-slate-300">
-						{error.includes("401")
+						{coursesQuery.error?.message.includes("401")
 							? t("error_login_prompt")
 							: t("error_load_failed")}
 					</div>
 				)}
 
-				{!loading && !error && courses && courses.length === 0 && (
+				{!coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length === 0 && (
 					<div className="text-slate-300">{t("no_courses")}</div>
 				)}
 
-				{!loading && !error && courses && courses.length > 0 && (
+				{!coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length > 0 && (
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-						{courses.map((course) => (
+						{coursesQuery.data.map((course) => (
 							<Link key={course.id} href={`/course/${course.id}`}>
 								<Card className="h-full cursor-pointer border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-105 hover:border-slate-700">
 									<CardHeader className="pb-3">
