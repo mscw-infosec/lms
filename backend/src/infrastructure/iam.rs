@@ -1,9 +1,9 @@
 use std::{fs, path::Path};
 
+use crate::{errors::Result, gen_openapi::DummyRepository};
 use async_trait::async_trait;
-use impl_unimplemented::impl_unimplemented;
-use crate::{ errors::Result, gen_openapi::DummyRepository };
 use chrono::{DateTime, Duration, Utc};
+use impl_unimplemented::impl_unimplemented;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
@@ -50,7 +50,6 @@ pub struct IAMTokenManager {
     state: RwLock<TokenState>,
 }
 
-
 impl IAMTokenManager {
     pub fn new(iam_key_file: impl AsRef<Path>) -> Result<Self> {
         let content =
@@ -66,7 +65,6 @@ impl IAMTokenManager {
             state: RwLock::new(state),
         })
     }
-
 
     fn create_jwt(&self) -> Result<String> {
         let header = Header {

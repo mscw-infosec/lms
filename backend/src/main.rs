@@ -11,7 +11,7 @@
 )]
 
 use crate::{
-    app::{generate_router, Services},
+    app::{Services, generate_router},
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
@@ -20,7 +20,7 @@ use crate::{
         topics::service::TopicService, video::service::VideoService,
     },
     infrastructure::{
-        db::postgres::{run_migrations, RepositoryPostgres},
+        db::postgres::{RepositoryPostgres, run_migrations},
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
@@ -28,8 +28,8 @@ use crate::{
 };
 
 use axum::http::{
-    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
     Method,
+    header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
 };
 use infrastructure::{db::redis::RepositoryRedis, jwt::JWT};
 use openapi::ApiDoc;

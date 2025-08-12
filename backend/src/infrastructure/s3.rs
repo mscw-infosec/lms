@@ -5,8 +5,8 @@ use axum::http::HeaderValue;
 use futures::StreamExt;
 use impl_unimplemented::impl_unimplemented;
 use s3::{
-    creds::Credentials, error::S3Error, post_policy::PresignedPost, Bucket, BucketConfiguration,
-    PostPolicy, PostPolicyField, PostPolicyValue, Region,
+    Bucket, BucketConfiguration, PostPolicy, PostPolicyField, PostPolicyValue, Region,
+    creds::Credentials, error::S3Error, post_policy::PresignedPost,
 };
 use tokio_util::io::StreamReader;
 use tracing::warn;
