@@ -40,3 +40,7 @@ services:
       - .env
     volumes:
       - ./iam-key.json:/iam-key.json
+    depends_on:
+      - db
+      - redis
+      - s3

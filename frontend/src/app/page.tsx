@@ -20,13 +20,14 @@ import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
 	const { t, i18n } = useTranslation("common");
-	const { user } = useUserStore();
+	const { user, hasToken, loading: authLoading } = useUserStore();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 
 	const coursesQuery = useQuery<UpsertCourseResponseDTO[], Error>({
 		queryKey: ["courses"],
 		queryFn: getAllCourses,
 		retry: false,
+		enabled: hasToken,
 	});
 
 	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
@@ -81,13 +82,45 @@ export default function HomePage() {
 					</p>
 				</div>
 
-				{coursesQuery.isLoading && (
+				{/* Auth loading state */}
+				{authLoading && (
 					<div className="flex min-h-[40vh] items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
 					</div>
 				)}
 
-				{!coursesQuery.isLoading && coursesQuery.isError && (
+				{/* Not logged in placeholder */}
+				{!authLoading && !hasToken && (
+					<div className="flex min-h-[40vh] items-center justify-center">
+						<div className="max-w-xl text-center">
+							<p className="mb-6 text-slate-300 text-lg">{t("error_login_prompt")}</p>
+							<div className="flex items-center justify-center gap-3">
+								<Button
+									variant="outline"
+									onClick={() => setAuthModal("login")}
+									className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+								>
+									{t("login")}
+								</Button>
+								<Button
+									onClick={() => setAuthModal("register")}
+									className="bg-red-600 text-white hover:bg-red-700"
+								>
+									{t("register")}
+								</Button>
+							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Authenticated: courses states */}
+				{!authLoading && hasToken && coursesQuery.isLoading && (
+					<div className="flex min-h-[40vh] items-center justify-center">
+						<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+					</div>
+				)}
+
+				{!authLoading && hasToken && !coursesQuery.isLoading && coursesQuery.isError && (
 					<div className="rounded-md border border-slate-800 bg-slate-900 p-4 text-slate-300">
 						{coursesQuery.error?.message.includes("401")
 							? t("error_login_prompt")
@@ -95,11 +128,11 @@ export default function HomePage() {
 					</div>
 				)}
 
-				{!coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length === 0 && (
+				{!authLoading && hasToken && !coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length === 0 && (
 					<div className="text-slate-300">{t("no_courses")}</div>
 				)}
 
-				{!coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length > 0 && (
+				{!authLoading && hasToken && !coursesQuery.isLoading && !coursesQuery.isError && coursesQuery.data && coursesQuery.data.length > 0 && (
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 						{coursesQuery.data.map((course) => (
 							<Link key={course.id} href={`/course/${course.id}`}>

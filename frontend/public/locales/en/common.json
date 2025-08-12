@@ -90,5 +90,6 @@
 	"or": "OR",
 	"passkey": "Passkey",
 	"sign_in_with_yandex": "Sign in with Yandex",
-	"sign_in_with_github": "Sign in with GitHub"
+	"sign_in_with_github": "Sign in with GitHub",
+	"completing_sign_in": "Completing sign-in…"
 }
