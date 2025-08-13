@@ -22,7 +22,7 @@ spec:
             - containerPort: 8080
           env:
             - name: PORT
-              value: 8080
+              value: "8080"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
