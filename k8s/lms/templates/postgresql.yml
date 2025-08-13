@@ -7,8 +7,6 @@ spec:
   instances: 3
   storage:
     size: 10Gi
-  imageCatalogRef:
-    major: 17
   bootstrap:
     initdb:
       database: lms
