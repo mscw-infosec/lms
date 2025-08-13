@@ -8,8 +8,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   encryptedData:
-    username: {{ .Values.secrets.POSTGRES_PASSWORD }}
-    password: {{ .Values.secrets.POSTGRES_USER }}
+    username: {{ .Values.secrets.POSTGRES_USER }}
+    password: {{ .Values.secrets.POSTGRES_PASSWORD }}
   template:
     metadata:
       annotations:
