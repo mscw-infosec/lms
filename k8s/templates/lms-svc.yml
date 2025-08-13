@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms-frontend
+  namespace: lms
+spec:
+  selector:
+    app: lms-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms-backend
+  namespace: lms
+spec:
+  selector:
+    app: lms-backend
+  ports:
+    - port: 80
+      targetPort: 8080

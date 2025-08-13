@@ -1,7 +1,25 @@
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
+  annotations:
+    sealedsecrets.bitnami.com/cluster-wide: "true"
+  creationTimestamp: null
   name: lms-secrets
   namespace: {{ .Release.Namespace }}
 spec:
-  encryptedData: {}
+  encryptedData:
+    AWS_ACCESS_KEY_ID: {{ .Values.secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: {{ .Values.secrets.AWS_SECRET_ACCESS_KEY }}
+    GITHUB_CLIENT_ID: {{ .Values.secrets.GITHUB_CLIENT_ID }}
+    GITHUB_CLIENT_SECRET: {{ .Values.secrets.GITHUB_CLIENT_SECRET }}
+    YANDEX_CLIENT_ID: {{ .Values.secrets.YANDEX_CLIENT_ID }}
+    YANDEX_CLIENT_SECRET: {{ .Values.secrets.YANDEX_CLIENT_SECRET }}
+    YC_CHANNEL_ID: {{ .Values.secrets.YC_CHANNEL_ID }}
+    JWT_SECRET: {{ .Values.secrets.JWT_SECRET }}
+  template:
+    metadata:
+      annotations:
+        sealedsecrets.bitnami.com/cluster-wide: "true"
+      creationTimestamp: null
+      name: lms-secrets
+      namespace: {{ .Release.Namespace }}

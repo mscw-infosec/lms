@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: lms-backend
+  name: redis
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
-    app: lms
+    app: redis
   ports:
-    - port: 80
-      targetPort: 8080
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
