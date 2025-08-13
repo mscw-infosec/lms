@@ -37,7 +37,7 @@ jobs:
         run: npm ci
 
       - name: Copy OpenAPI schema
-        run: cp openapi.json frontend/openapi.json
+        run: cp ../openapi.json openapi.json
 
       - name: Generate API schema
         run: npm run schema
