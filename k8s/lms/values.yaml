@@ -3,4 +3,6 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+BACKEND_PORT: 8080
+
 secrets: {}

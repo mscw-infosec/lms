@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: 3
+  storage:
+    size: 10Gi
+  imageCatalogRef:
+    major: 17
+  bootstrap:
+    initdb:
+      database: lms
+      owner: lms
+      secret:
+        name: lms-pg-secrets

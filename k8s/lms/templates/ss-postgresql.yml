@@ -8,9 +8,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   encryptedData:
-    POSTGRES_DB: {{ .Values.secrets.POSTGRES_DB }}
-    POSTGRES_PASSWORD: {{ .Values.secrets.POSTGRES_PASSWORD }}
-    POSTGRES_USER: {{ .Values.secrets.POSTGRES_USER }}
+    username: {{ .Values.secrets.POSTGRES_PASSWORD }}
+    password: {{ .Values.secrets.POSTGRES_USER }}
   template:
     metadata:
       annotations:
