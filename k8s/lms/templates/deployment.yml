@@ -19,10 +19,10 @@ spec:
         - name: lms-backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
-            - containerPort: {{ .Values.BACKEND_PORT }}
+            - containerPort: 8080
           env:
             - name: PORT
-              value: "{{ .Values.BACKEND_PORT }}"
+              value: "8080"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
