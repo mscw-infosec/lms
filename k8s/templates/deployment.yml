@@ -13,6 +13,8 @@ spec:
       labels:
         app: lms-backend
     spec:
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: lms-backend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
