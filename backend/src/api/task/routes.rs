@@ -178,11 +178,11 @@ pub async fn list_tasks(
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't list tasks".to_string()));
     }
-    if limit > 20 || limit < 0 {
+    if !(0..=20).contains(&limit) {
         limit = 20;
     }
     if offset < 0 {
-        offset = 0
+        offset = 0;
     }
 
     let task = state.task_service.get_tasks(limit, offset).await?;
