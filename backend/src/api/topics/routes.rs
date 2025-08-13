@@ -117,7 +117,7 @@ pub async fn add_topic_to_course(
     Ok(StatusCode::CREATED)
 }
 
-/// Adds a new topic to a course.
+/// Get topic exams
 #[utoipa::path(
     get,
     tag = "Topic",
@@ -126,16 +126,16 @@ pub async fn add_topic_to_course(
         ("topic_id", Path)
     ),
     responses(
-        (status = 201, description = "Topic added successfully"),
+        (status = 200, description = "Exams listed"),
         (status = 400, description = "Invalid request data"),
-        (status = 403, description = "Forbidden: User cannot add topics"),
-        (status = 404, description = "Course not found")
+        (status = 401, description = "No auth data")
     ),
     security(
         ("BearerAuth" = [])
     ),
 )]
 pub async fn get_exams(
+    _: AccessTokenClaim,
     Path(topic_id): Path<i32>,
     State(state): State<TopicsState>,
 ) -> Result<Json<Vec<Exam>>, LMSError> {
