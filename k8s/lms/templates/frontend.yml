@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lms
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: lms-frontend
+  template:
+    metadata:
+      labels:
+        app: lms-frontend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: lms-frontend
+          image: "{{ .Values.image.frontend_img }}:{{ .Values.image.frontend_tag }}"
+          ports:
+            - containerPort: {{ .Values.FRONTEND_PORT }}

@@ -17,7 +17,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: lms-backend
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.backend_img }}:{{ .Values.image.backend_tag }}"
           ports:
             - containerPort: {{ .Values.BACKEND_PORT }}
           env:
