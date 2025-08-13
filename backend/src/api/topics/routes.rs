@@ -23,6 +23,9 @@ use crate::domain::exam::model::Exam;
         (status = 200, body = TopicResponseDTO, description = "Topic found"),
         (status = 404, description = "Topic not found"),
     ),
+    security(
+        ("BearerAuth" = [])
+    ),
 )]
 pub async fn get_topic_by_id(
     // TODO: Start using proper ACL
@@ -43,6 +46,9 @@ pub async fn get_topic_by_id(
         (status = 204, description = "Topic deleted successfully"),
         (status = 404, description = "Topic not found"),
     ),
+    security(
+        ("BearerAuth" = [])
+    )
 )]
 pub async fn delete_topic(
     claims: AccessTokenClaim,
