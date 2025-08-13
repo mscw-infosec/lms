@@ -28,6 +28,6 @@ pub fn configure(
 
     OpenApiRouter::new()
         .routes(routes!(create, get_by_id, delete_task, update_task))
-        .routes(routes!(get_full_by_id))
+        .routes(routes!(list_tasks))
         .with_state(state)
 }
