@@ -12,6 +12,7 @@ use crate::{
     infrastructure::jwt::AccessTokenClaim,
     utils::ValidatedJson,
 };
+use crate::domain::exam::model::Exam;
 
 /// Retrieves a specific topic by its ID.
 #[utoipa::path(
@@ -21,6 +22,9 @@ use crate::{
     responses(
         (status = 200, body = TopicResponseDTO, description = "Topic found"),
         (status = 404, description = "Topic not found"),
+    ),
+    security(
+        ("BearerAuth" = [])
     ),
 )]
 pub async fn get_topic_by_id(
@@ -42,6 +46,9 @@ pub async fn get_topic_by_id(
         (status = 204, description = "Topic deleted successfully"),
         (status = 404, description = "Topic not found"),
     ),
+    security(
+        ("BearerAuth" = [])
+    )
 )]
 pub async fn delete_topic(
     claims: AccessTokenClaim,
@@ -114,4 +121,29 @@ pub async fn add_topic_to_course(
     state.topic_service.add_topic_to_course(topic).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+/// Get topic exams
+#[utoipa::path(
+    get,
+    tag = "Topic",
+    path = "/{topic_id}/exams",
+    params(
+        ("topic_id", Path)
+    ),
+    responses(
+        (status = 200, description = "Exams listed"),
+        (status = 400, description = "Invalid request data"),
+        (status = 401, description = "No auth data")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn get_exams(
+    _: AccessTokenClaim,
+    Path(topic_id): Path<i32>,
+    State(state): State<TopicsState>,
+) -> Result<Json<Vec<Exam>>, LMSError> {
+    Ok(Json(state.topic_service.get_exams(topic_id).await?))
 }

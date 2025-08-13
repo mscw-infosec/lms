@@ -36,5 +36,8 @@ pub fn configure(
             update_topic,
             add_topic_to_course
         ))
+        .routes(routes!(
+            get_exams
+        ))
         .with_state(state)
 }
