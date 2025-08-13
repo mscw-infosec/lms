@@ -5,6 +5,7 @@ use crate::{
     repo,
 };
 use std::sync::Arc;
+use crate::domain::exam::model::Exam;
 
 #[derive(Clone)]
 pub struct TopicService {
@@ -34,5 +35,9 @@ impl TopicService {
 
     pub async fn add_topic_to_course(&self, topic: UpsertTopicRequestDTO) -> Result<()> {
         self.repo.add_topic_to_course(topic).await
+    }
+
+    pub async fn get_exams(&self, id: i32) -> Result<Vec<Exam>> {
+        self.repo.get_exams(id).await
     }
 }

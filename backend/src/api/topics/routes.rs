@@ -12,6 +12,7 @@ use crate::{
     infrastructure::jwt::AccessTokenClaim,
     utils::ValidatedJson,
 };
+use crate::domain::exam::model::Exam;
 
 /// Retrieves a specific topic by its ID.
 #[utoipa::path(
@@ -114,4 +115,29 @@ pub async fn add_topic_to_course(
     state.topic_service.add_topic_to_course(topic).await?;
 
     Ok(StatusCode::CREATED)
+}
+
+/// Adds a new topic to a course.
+#[utoipa::path(
+    get,
+    tag = "Topic",
+    path = "/{topic_id}/exams",
+    params(
+        ("topic_id", Path)
+    ),
+    responses(
+        (status = 201, description = "Topic added successfully"),
+        (status = 400, description = "Invalid request data"),
+        (status = 403, description = "Forbidden: User cannot add topics"),
+        (status = 404, description = "Course not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn get_exams(
+    Path(topic_id): Path<i32>,
+    State(state): State<TopicsState>,
+) -> Result<Json<Vec<Exam>>, LMSError> {
+    Ok(Json(state.topic_service.get_exams(topic_id).await?))
 }
