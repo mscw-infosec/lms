@@ -1,12 +1,19 @@
 "use client";
 
 import type { GetUserResponseDTO } from "@/api/auth";
+import { logoutAllSessions } from "@/api/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
 import { Shield } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageToggle } from "./language-toggle";
 
@@ -18,6 +25,8 @@ interface HeaderProps {
 export function Header({ onLogin, onRegister }: HeaderProps) {
 	const { user, hasToken, loading, avatarSrc, avatarExists } = useUserStore();
 	const { t } = useTranslation("common");
+	const router = useRouter();
+	const [loggingOut, setLoggingOut] = useState(false);
 
 	const userInitial = useMemo(
 		() => user?.username?.slice(0, 1).toUpperCase() ?? undefined,
@@ -39,31 +48,89 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 				</Link>
 
 				<div className="flex items-center space-x-3">
+					{user && (user.role === "Teacher" || user.role === "Admin") ? (
+						<Link href="/tasks" className="hidden sm:inline-flex">
+							<Button
+								variant="outline"
+								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+							>
+								{t("tasks")}
+							</Button>
+						</Link>
+					) : null}
 					<LanguageToggle />
 					{user ? (
-						<Link href="/account" className="inline-flex">
-							<Avatar className="h-9 w-9 ring-1 ring-slate-700">
-								<AvatarImage
-									src={avatarSrc}
-									alt={user?.username || t("account_alt")}
-								/>
-								<AvatarFallback
-									className={
-										avatarExists
-											? "animate-pulse bg-slate-700"
-											: "bg-slate-700 text-white"
-									}
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button aria-label="User menu" className="inline-flex">
+									<Avatar className="h-9 w-9 ring-1 ring-slate-700">
+										<AvatarImage
+											src={avatarSrc}
+											alt={user?.username || t("account_alt")}
+										/>
+										<AvatarFallback
+											className={
+												avatarExists
+													? "animate-pulse bg-slate-700"
+													: "bg-slate-700 text-white"
+											}
+										>
+											{avatarExists ? null : userInitial}
+										</AvatarFallback>
+									</Avatar>
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-48 border-slate-700 bg-slate-900 text-slate-200"
+							>
+								<Link
+									href="/account"
+									className="block rounded-sm px-3 py-2 text-sm hover:bg-slate-800"
 								>
-									{avatarExists ? null : userInitial}
-								</AvatarFallback>
-							</Avatar>
-						</Link>
+									{t("account") || "Account"}
+								</Link>
+								<button
+									onClick={async () => {
+										if (loggingOut) return;
+										setLoggingOut(true);
+										try {
+											await logoutAllSessions();
+										} finally {
+											setLoggingOut(false);
+											router.push("/");
+										}
+									}}
+									disabled={loggingOut}
+									className="block w-full rounded-sm px-3 py-2 text-left text-red-400 text-sm hover:bg-slate-800 hover:text-red-300 disabled:opacity-50"
+								>
+									{loggingOut
+										? t("logging_out") || "Logging out..."
+										: t("logout") || "Logout"}
+								</button>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					) : hasToken ? (
-						<Link href="/account" className="inline-flex">
-							<Avatar className="h-9 w-9 ring-1 ring-slate-700">
-								<AvatarFallback className="bg-slate-700" />
-							</Avatar>
-						</Link>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<button aria-label="User menu" className="inline-flex">
+									<Avatar className="h-9 w-9 ring-1 ring-slate-700">
+										<AvatarFallback className="bg-slate-700" />
+									</Avatar>
+								</button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="w-48 border-slate-700 bg-slate-900 text-slate-200"
+							>
+								<Link
+									href="/account"
+									className="block rounded-sm px-3 py-2 text-sm hover:bg-slate-800"
+								>
+									{t("account") || "Account"}
+								</Link>
+							</DropdownMenuContent>
+						</DropdownMenu>
 					) : !loading && !user ? (
 						<>
 							<Button

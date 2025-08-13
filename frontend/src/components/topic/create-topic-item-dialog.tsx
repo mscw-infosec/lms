@@ -90,7 +90,7 @@ export default function CreateTopicItemDialog({
 
 	const canSubmit = () => {
 		if (kind === "exam")
-			return examState.duration > 0 && examState.tries_count > 0;
+			return examState.duration >= 0 && examState.tries_count > 0;
 		return false;
 	};
 
@@ -108,7 +108,7 @@ export default function CreateTopicItemDialog({
 					size="icon"
 					className={
 						triggerClassName ??
-							"bg-transparent hover:bg-transparent text-slate-300 hover:text-slate-400"
+						"bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
 					}
 					aria-label={t("create") || "Create"}
 				>
@@ -134,7 +134,9 @@ export default function CreateTopicItemDialog({
 									/>
 								</SelectTrigger>
 								<SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
-									<SelectItem value="lecture">{t("lecture") || "Lecture"}</SelectItem>
+									<SelectItem value="lecture">
+										{t("lecture") || "Lecture"}
+									</SelectItem>
 									<SelectItem value="exam">{t("exam") || "Exam"}</SelectItem>
 								</SelectContent>
 							</Select>
@@ -169,6 +171,7 @@ export default function CreateTopicItemDialog({
 									</Label>
 									<Input
 										type="number"
+										min={0}
 										value={examState.duration}
 										onChange={(e) =>
 											setExamState((s) => ({
@@ -199,9 +202,12 @@ export default function CreateTopicItemDialog({
 						</div>
 					) : (
 						<div className="space-y-4 rounded-lg border border-slate-800 bg-slate-900 p-4 text-slate-300">
-							<div className="text-sm font-medium">{t("lecture") || "Lecture"}</div>
-							<div className="text-xs text-slate-400">
-								{t("tbd_placeholder") || "Lecture creation is coming soon (TBD)."}
+							<div className="font-medium text-sm">
+								{t("lecture") || "Lecture"}
+							</div>
+							<div className="text-slate-400 text-xs">
+								{t("tbd_placeholder") ||
+									"Lecture creation is coming soon (TBD)."}
 							</div>
 						</div>
 					)}
@@ -216,7 +222,9 @@ export default function CreateTopicItemDialog({
 						{t("cancel") || "Cancel"}
 					</Button>
 					<Button
-						onClick={() => (kind === "exam" ? examMutation.mutate() : undefined)}
+						onClick={() =>
+							kind === "exam" ? examMutation.mutate() : undefined
+						}
 						disabled={!canSubmit() || examMutation.isPending}
 						className="bg-red-600 text-white hover:bg-red-700"
 					>

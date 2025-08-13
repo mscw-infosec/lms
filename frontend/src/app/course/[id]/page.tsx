@@ -8,10 +8,16 @@ import {
 	getCourseById,
 	getCourseTopics,
 } from "@/api/courses";
-import { getExamTasks, updateExamTasks } from "@/api/exam";
+import {
+	deleteExam,
+	getExamTasks,
+	getTopicExams,
+	updateExamTasks,
+} from "@/api/exam";
 import type { components } from "@/api/schema/schema";
 import { createTopic, deleteTopic, updateTopic } from "@/api/topics";
 import { AuthModal } from "@/components/auth-modal";
+import ConfirmDialog from "@/components/common/confirm-dialog";
 import CourseHeaderActions from "@/components/course/course-header-actions";
 import { Header } from "@/components/header";
 import CreateTopicItemDialog from "@/components/topic/create-topic-item-dialog";
@@ -36,7 +42,6 @@ import { useUserStore } from "@/store/user";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	BookOpen,
-	CheckCircle2,
 	ChevronDown,
 	Clock,
 	Edit,
@@ -44,7 +49,6 @@ import {
 	Home,
 	Loader2,
 	Play,
-	Plus,
 	Save,
 	Shield,
 	Trash2,
@@ -93,7 +97,6 @@ export default function CoursePage() {
 		retry: false,
 	});
 
-
 	const gradients = useMemo(
 		() => [
 			"bg-gradient-to-br from-red-500 to-orange-600",
@@ -114,7 +117,6 @@ export default function CoursePage() {
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState<string | null>("");
 
-	// Topic create/edit state
 	const nextOrderIndex = useMemo(() => {
 		const list = topicsQuery.data ?? [];
 		return list.length ? Math.max(...list.map((t) => t.order_index)) + 1 : 1;
@@ -138,6 +140,41 @@ export default function CoursePage() {
 		tasks?: PublicTaskDTO[];
 	};
 	const [topicExams, setTopicExams] = useState<Record<number, ExamLite[]>>({});
+	const [deletingExamIds, setDeletingExamIds] = useState<Set<string>>(
+		new Set(),
+	);
+
+	useEffect(() => {
+		async function loadExams() {
+			if (!topicsQuery.isSuccess || !topicsQuery.data) return;
+			try {
+				const entries = await Promise.all(
+					topicsQuery.data.map(async (topic) => {
+						try {
+							const exams = await getTopicExams(topic.id);
+							const simplified = await Promise.all(
+								exams.map(async (e) => ({
+									id: e.id,
+									type: e.type,
+									duration: e.duration,
+									tries_count: e.tries_count,
+									tasks: await getExamTasks(e.id).catch(() => []),
+								})),
+							);
+							return [topic.id, simplified] as const;
+						} catch (_) {
+							return [topic.id, []] as const;
+						}
+					}),
+				);
+				setTopicExams(Object.fromEntries(entries));
+			} catch (_) {
+				// noop; UI will show empty state
+			}
+		}
+		loadExams();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [topicsQuery.isSuccess, topicsQuery.data]);
 
 	const attachTaskToExam = async (examId: string, newTaskId: number) => {
 		try {
@@ -188,7 +225,6 @@ export default function CoursePage() {
 		},
 	});
 
-	// Topic mutations
 	const createTopicMutation = useMutation({
 		mutationFn: async () =>
 			createTopic({
@@ -525,7 +561,7 @@ export default function CoursePage() {
 																setEditTopicTitle(topic.title);
 																setEditTopicOrderIndex(topic.order_index);
 															}}
-															className="bg-transparent hover:bg-transparent text-slate-300 hover:text-slate-400"
+															className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
 														>
 															<Edit className="h-4 w-4" />
 														</Button>
@@ -534,60 +570,120 @@ export default function CoursePage() {
 															onCreatedExam={(exam) => {
 																setTopicExams((prev) => ({
 																	...prev,
-																	[topic.id]: [...(prev[topic.id] ?? []), { ...exam }],
+																	[topic.id]: [
+																		...(prev[topic.id] ?? []),
+																		{ ...exam },
+																	],
 																}));
 															}}
 														/>
-														<Button
-															variant="ghost"
-															size="icon"
-															title={t("delete") ?? "Delete"}
-															aria-label={t("delete") ?? "Delete"}
-															onClick={() =>
+														<ConfirmDialog
+															title={t("delete") || "Delete"}
+															description={
+																t("confirm_delete_item") ||
+																"Are you sure you want to delete this item?"
+															}
+															confirmText={t("delete") || "Delete"}
+															cancelText={t("cancel") || "Cancel"}
+															onConfirm={() =>
 																deleteTopicMutation.mutate(topic.id)
 															}
-															disabled={deleteTopicMutation.isPending}
-															className="bg-transparent hover:bg-transparent text-red-400 hover:text-red-300"
 														>
-															<Trash2 className="h-4 w-4" />
-														</Button>
+															<Button
+																variant="ghost"
+																size="icon"
+																title={t("delete") ?? "Delete"}
+																aria-label={t("delete") ?? "Delete"}
+																disabled={deleteTopicMutation.isPending}
+																className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+															>
+																<Trash2 className="h-4 w-4" />
+															</Button>
+														</ConfirmDialog>
 													</>
 												))}
 											<ChevronDown className="h-5 w-5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
 										</div>
 									</CollapsibleTrigger>
 									<CollapsibleContent className="mt-2 ml-8 space-y-2">
-										{/* Exams list for this topic styled like reference rows */}
-										{(topicExams[topic.id] ?? []).length === 0 ? (
-											<div className="flex items-center rounded-lg bg-slate-800/50 p-3">
-												<div className="mr-3 h-4 w-4 rounded-full border-2 border-slate-600" />
-												<Play className="mr-3 h-4 w-4 text-blue-400" />
-												<span className="text-slate-300 text-sm">{t("no_content_yet") ?? "No content yet"}</span>
-											</div>
-										) : (
-											(topicExams[topic.id] ?? []).map((exam) => (
-												<div key={exam.id} className="space-y-2">
-													<div className="flex items-center rounded-lg bg-slate-800/50 p-3">
+										{(topicExams[topic.id] ?? []).map((exam) => (
+											<div key={exam.id} className="space-y-2">
+												<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
+													<div className="flex items-center">
 														<div className="mr-3 h-4 w-4 rounded-full border-2 border-slate-600" />
 														<HelpCircle className="mr-3 h-4 w-4 text-orange-400" />
 														<span className="text-slate-300 text-sm">
-															Exam – {exam.type} · {exam.duration}m · {exam.tries_count}x
+															{t("exam_card", {
+																type: t(
+																	exam.type === "Instant"
+																		? "exam_type_instant"
+																		: "exam_type_delayed",
+																),
+																duration: exam.duration,
+																tries: exam.tries_count,
+															})}
 														</span>
 													</div>
-													{(exam.tasks ?? []).map((task) => (
-														<div key={task.id} className="ml-6 flex items-center rounded-lg bg-slate-800/50 p-3">
-															<CheckCircle2 className="mr-3 h-4 w-4 text-green-500" />
-															<span className="text-slate-300 text-sm">
-																{task.title} <span className="text-slate-400">· {task.task_type} · {task.points} {t("points") ?? "points"}</span>
-															</span>
-														</div>
-													))}
-													{(exam.tasks ?? []).length === 0 ? (
-														<div className="ml-6 text-xs text-slate-400">{t("no_tasks_attached") ?? "No tasks attached yet."}</div>
-													) : null}
+													<div className="flex items-center gap-3">
+														{user &&
+														(user.role === "Teacher" ||
+															user.role === "Admin") ? (
+															<div className="text-slate-400 text-xs">
+																ID: {exam.id}
+															</div>
+														) : null}
+														{user &&
+														(user.role === "Teacher" ||
+															user.role === "Admin") ? (
+															<ConfirmDialog
+																title={t("delete") || "Delete"}
+																description={
+																	t("confirm_delete_exam") ||
+																	"Are you sure you want to delete this exam?"
+																}
+																confirmText={t("delete") || "Delete"}
+																cancelText={t("cancel") || "Cancel"}
+																onConfirm={async () => {
+																	setDeletingExamIds((prev) =>
+																		new Set(prev).add(exam.id),
+																	);
+																	try {
+																		await deleteExam(exam.id);
+																		setTopicExams((prev) => ({
+																			...prev,
+																			[topic.id]: (prev[topic.id] ?? []).filter(
+																				(e) => e.id !== exam.id,
+																			),
+																		}));
+																	} finally {
+																		setDeletingExamIds((prev) => {
+																			const next = new Set(prev);
+																			next.delete(exam.id);
+																			return next;
+																		});
+																	}
+																}}
+															>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	title={t("delete") ?? "Delete"}
+																	aria-label={t("delete") ?? "Delete"}
+																	disabled={deletingExamIds.has(exam.id)}
+																	className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																>
+																	{deletingExamIds.has(exam.id) ? (
+																		<Loader2 className="h-4 w-4 animate-spin" />
+																	) : (
+																		<Trash2 className="h-4 w-4" />
+																	)}
+																</Button>
+															</ConfirmDialog>
+														) : null}
+													</div>
 												</div>
-											))
-										)}
+											</div>
+										))}
 									</CollapsibleContent>
 								</Collapsible>
 							))}
@@ -596,7 +692,9 @@ export default function CoursePage() {
 				</div>
 			</main>
 
-			<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
+			{authModal ? (
+				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
+			) : null}
 		</div>
 	);
 }
