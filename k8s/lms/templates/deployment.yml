@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: lms
+  name: lms-backend
   namespace: {{ .Release.Namespace }}
 spec:
   replicas: 2
