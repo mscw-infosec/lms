@@ -67,7 +67,7 @@ spec:
                 secretKeyRef:
                   name: lms-secrets
                   key: YANDEX_CLIENT_SECRET
-            - name: YC_CHANNEL_ID
+            - name: CHANNEL_ID
               valueFrom:
                 secretKeyRef:
                   name: lms-secrets
