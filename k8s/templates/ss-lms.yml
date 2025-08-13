@@ -16,6 +16,7 @@ spec:
     YANDEX_CLIENT_SECRET: {{ .Values.secrets.YANDEX_CLIENT_SECRET }}
     YC_CHANNEL_ID: {{ .Values.secrets.YC_CHANNEL_ID }}
     JWT_SECRET: {{ .Values.secrets.JWT_SECRET }}
+    DATABASE_URL: {{ .Values.secrets.DATABASE_URL }}
   template:
     metadata:
       annotations:
