@@ -4,6 +4,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
+use crate::domain::exam::model::Exam;
 
 #[impl_unimplemented(DummyRepository)]
 #[async_trait]
@@ -13,4 +14,5 @@ pub trait TopicRepository {
     async fn add_topic_to_course(&self, topic: UpsertTopicRequestDTO) -> Result<()>;
     async fn delete_topic(&self, id: i32) -> Result<()>;
     async fn update_topic(&self, id: i32, topic: UpsertTopicRequestDTO) -> Result<()>;
+    async fn get_exams(&self, id: i32) -> Result<Vec<Exam>>;
 }

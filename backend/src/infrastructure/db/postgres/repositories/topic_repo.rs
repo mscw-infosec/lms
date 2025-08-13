@@ -5,6 +5,7 @@ use crate::{
     infrastructure::db::postgres::RepositoryPostgres,
 };
 use async_trait::async_trait;
+use crate::domain::exam::model::{Exam, ExamType};
 
 #[async_trait]
 impl TopicRepository for RepositoryPostgres {
@@ -90,5 +91,21 @@ impl TopicRepository for RepositoryPostgres {
         .await?;
 
         Ok(())
+    }
+
+    async fn get_exams(&self, id: i32) -> Result<Vec<Exam>> {
+        let exams = sqlx::query_as!(
+            Exam,
+            r#"
+                SELECT id, topic_id, tries_count, duration, type as "type: ExamType"
+                FROM exams
+                WHERE topic_id = $1
+            "#,
+            id
+        )
+            .fetch_all(&self.pool)
+            .await?;
+
+        Ok(exams)
     }
 }
