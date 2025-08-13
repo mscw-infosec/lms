@@ -157,8 +157,8 @@ pub async fn update_task(
     path = "/list",
     description = "List all tasks. Limit <= 20.",
     params(
-        ("limit" = Option<i32>, Query),
-        ("offset" = Option<i32>, Query)
+        ("limit" = i32, Query),
+        ("offset" = i32, Query)
     ),
     responses(
         (status = 200, description = "Successfully got tasks list"),
