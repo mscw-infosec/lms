@@ -298,7 +298,7 @@ pub async fn get_last_attempt(
     Ok(Json(attempt))
 }
 
-/// Get exam tasks (only with active attempt or if exam scores are available)
+/// Get exam tasks (only with active attempt or if exam scores are available or if admin)
 #[utoipa::path(
     get,
     tag = "Exam",
@@ -328,6 +328,7 @@ pub async fn get_tasks(
         .await?;
     if attempts.iter().any(|att| att.active)
         || attempts.iter().any(|att| att.scoring_data.show_results)
+        || matches!(claims.role, UserRole::Admin | UserRole::Teacher)
     {
         let mut public_tasks: Vec<PublicTaskDTO> = Vec::new();
         let tasks = state.exam_service.get_tasks(exam_id).await?;

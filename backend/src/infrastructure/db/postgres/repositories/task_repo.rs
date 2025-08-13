@@ -77,7 +77,25 @@ impl TaskRepository for RepositoryPostgres {
     }
 
     async fn get_tasks(&self, limit: i32, offset: i32) -> Result<Vec<Task>> {
-        todo!()
+        let tasks = sqlx::query_as!(
+            Task,
+            r#"
+                SELECT id,
+                       title,
+                       description,
+                       task_type as "task_type: TaskType",
+                       points,
+                       configuration
+                FROM tasks
+                OFFSET $1
+                LIMIT $2
+            "#,
+            i64::from(offset),
+            i64::from(limit)
+        )
+            .fetch_all(&self.pool)
+            .await?;
+        Ok(tasks)
     }
 
     async fn delete_task(&self, id: i32) -> Result<()> {

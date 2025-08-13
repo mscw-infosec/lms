@@ -42,4 +42,8 @@ impl TaskService {
         }
         self.repo.update_task(task_id, task_data).await
     }
+
+    pub async fn get_tasks(&self, limit: i32, offset: i32) -> Result<Vec<Task>> {
+        self.repo.get_tasks(limit, offset).await
+    }
 }

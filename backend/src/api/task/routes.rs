@@ -6,7 +6,7 @@ use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
 use axum::Json;
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use rand::prelude::SliceRandom;
 use rand::rng;
@@ -59,10 +59,14 @@ pub async fn create(
     )
 )]
 pub async fn get_by_id(
+    claims: AccessTokenClaim,
     State(state): State<TaskState>,
     Path(task_id): Path<i32>,
-) -> Result<Json<PublicTaskDTO>, LMSError> {
+) -> Result<Json<Task>, LMSError> {
     // TODO: ACL for tasks (owners + hidden tasks)
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("Students can't access task from catalogue".to_string()));
+    }
     let mut task = state.task_service.get_task(task_id).await?;
     match &mut task.configuration {
         TaskConfig::SingleChoice {
@@ -75,37 +79,7 @@ pub async fn get_by_id(
         }
         _ => {}
     }
-    Ok(Json(task.into()))
-}
-
-/// Get administrative view of the task by id
-#[utoipa::path(
-    get,
-    tag = "Task",
-    path = "/{task_id}/admin",
-    params(
-        ("task_id" = i32, Path)
-    ),
-    responses(
-        (status = 200, body = Task, description = "Found task"),
-        (status = 401, description = "No auth data found"),
-        (status = 404, description = "Task not found")
-    ),
-    security(
-        ("BearerAuth" = [])
-    )
-)]
-pub async fn get_full_by_id(
-    claims: AccessTokenClaim,
-    State(state): State<TaskState>,
-    Path(task_id): Path<i32>,
-) -> Result<Json<Task>, LMSError> {
-    // TODO: ACL for tasks (owners + hidden tasks)
-    if matches!(claims.role, UserRole::Student) {
-        return Err(LMSError::Forbidden("You can't admin tasks".to_string()));
-    }
-    let task = state.task_service.get_task(task_id).await?;
-    Ok(task.into())
+    Ok(Json(task))
 }
 
 /// Delete task by id
@@ -173,5 +147,44 @@ pub async fn update_task(
     }
 
     let task = state.task_service.update_task(task_id, payload).await?;
+    Ok(task.into())
+}
+
+/// List tasks
+#[utoipa::path(
+    get,
+    tag = "Task",
+    path = "/list",
+    description = "List all tasks. Limit <= 20.",
+    params(
+        ("limit" = i32, Query),
+        ("offset" = i32, Query)
+    ),
+    responses(
+        (status = 200, description = "Successfully got tasks list"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "User has no permission to view tasks list")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn list_tasks(
+    claims: AccessTokenClaim,
+    Query((mut limit, mut offset)): Query<(i32, i32)>,
+    State(state): State<TaskState>
+) -> Result<Json<Vec<Task>>, LMSError> {
+    // TODO: ACL for tasks (owners)
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't list tasks".to_string()));
+    }
+    if !(0..=20).contains(&limit) {
+        limit = 20;
+    }
+    if offset < 0 {
+        offset = 0;
+    }
+
+    let task = state.task_service.get_tasks(limit, offset).await?;
     Ok(task.into())
 }
