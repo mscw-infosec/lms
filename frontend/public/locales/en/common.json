@@ -33,6 +33,17 @@
 	"saved_successfully": "Saved successfully",
 	"save_failed": "Failed to save",
 
+	"add_topic": "Add Topic",
+	"topic_title": "Topic title...",
+	"order_index": "Order",
+
+	"delete": "Delete",
+	"deleting": "Deleting...",
+	"delete_course": "Delete Course",
+	"delete_course_confirm": "This action cannot be undone. This will permanently delete the course and all of its data.",
+	"deleted_successfully": "Deleted successfully",
+	"delete_failed": "Failed to delete",
+
 	"course_name_required": "Course name is required",
 	"failed_create_course": "Failed to create course",
 	"create_new_course": "Create New Course",
@@ -96,5 +107,18 @@
 	"passkey": "Passkey",
 	"sign_in_with_yandex": "Sign in with Yandex",
 	"sign_in_with_github": "Sign in with GitHub",
-	"completing_sign_in": "Completing sign-in…"
+	"completing_sign_in": "Completing sign-in…",
+	"no_content_yet": "No content yet",
+    "create": "Create",
+    "create_item": "Create Item",
+    "type": "Type",
+    "select_type": "Select type",
+    "lecture": "Lecture",
+    "exam": "Exam",
+    "exam_type": "Exam Type",
+    "duration_minutes": "Duration (min)",
+    "tries_count": "Tries",
+    "points": "points",
+    "no_tasks_attached": "No tasks attached yet.",
+    "tbd_placeholder": "Lecture creation is coming soon (TBD)."
 }

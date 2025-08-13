@@ -32,6 +32,17 @@
 	"saving": "Сохранение...",
 	"saved_successfully": "Успешно сохранено",
 	"save_failed": "Не удалось сохранить",
+
+	"add_topic": "Добавить тему",
+	"topic_title": "Название темы...",
+	"order_index": "Порядок",
+
+	"delete": "Удалить",
+	"deleting": "Удаление...",
+	"delete_course": "Удалить курс",
+	"delete_course_confirm": "Это действие необратимо. Курс и все его данные будут удалены без возможности восстановления.",
+	"deleted_successfully": "Успешно удалено",
+	"delete_failed": "Не удалось удалить",
 	"course_name_required": "Требуется название курса",
 	"failed_create_course": "Не удалось создать курс",
 	"create_new_course": "Создать новый курс",
@@ -93,5 +104,18 @@
 	"passkey": "Ключ-пароль",
 	"sign_in_with_yandex": "Войти через Яндекс",
 	"sign_in_with_github": "Войти через GitHub",
-	"completing_sign_in": "Завершаем вход…"
+	"completing_sign_in": "Завершаем вход…",
+	"no_content_yet": "Пока нет контента",
+    "create": "Создать",
+    "create_item": "Создать элемент",
+    "type": "Тип",
+    "select_type": "Выберите тип",
+    "lecture": "Лекция",
+    "exam": "Экзамен",
+    "exam_type": "Тип экзамена",
+    "duration_minutes": "Длительность (мин)",
+    "tries_count": "Попытки",
+    "points": "баллов",
+    "no_tasks_attached": "Задания пока не прикреплены.",
+    "tbd_placeholder": "Создание лекций будет доступно позже (TBD)."
 }
