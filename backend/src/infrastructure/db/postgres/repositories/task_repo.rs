@@ -59,7 +59,8 @@ impl TaskRepository for RepositoryPostgres {
         let exams: Vec<Exam> = sqlx::query_as!(
             Exam,
             r#"
-                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS "type: ExamType"
+                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS "type: ExamType",
+                       e.description, e.name
                 FROM exam_tasks et
                 LEFT JOIN exams e ON e.id = et.exam_id
                 WHERE et.task_id = $1

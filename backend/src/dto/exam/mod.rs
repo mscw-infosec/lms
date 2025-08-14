@@ -14,6 +14,8 @@ use validator::Validate;
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
 pub struct UpsertExamRequestDTO {
     pub topic_id: i32,
+    pub name: String,
+    pub description: Option<String>,
     pub tries_count: i32,
     pub duration: i32,
     pub r#type: ExamType,

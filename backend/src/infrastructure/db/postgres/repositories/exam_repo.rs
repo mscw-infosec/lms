@@ -20,14 +20,16 @@ impl ExamRepository for RepositoryPostgres {
             Exam,
             r#"
                 INSERT INTO exams
-                (topic_id, tries_count, duration, type)
-                VALUES ($1, $2, $3, $4)
-                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType"
+                (topic_id, tries_count, duration, type, description, name)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType", name, description
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
             exam_data.duration,
-            exam_data.r#type as ExamType
+            exam_data.r#type as ExamType,
+            exam_data.description,
+            exam_data.name,
         )
         .fetch_one(tx.as_mut())
         .await
@@ -74,7 +76,7 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, tries_count, duration, type AS "type: ExamType"
+                SELECT id, topic_id, name, description, tries_count, duration, type AS "type: ExamType"
                 FROM exams
                 WHERE id = $1
             "#,
@@ -100,14 +102,18 @@ impl ExamRepository for RepositoryPostgres {
                     topic_id = $1,
                     tries_count = $2,
                     duration = $3,
-                    type = $4
-                WHERE id = $5
-                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType"
+                    type = $4,
+                    name = $5,
+                    description = $6
+                WHERE id = $7
+                RETURNING id, topic_id, tries_count, name, description, duration, type AS "type: ExamType"
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
             exam_data.duration,
             exam_data.r#type as ExamType,
+            exam_data.name,
+            exam_data.description,
             id
         )
         .fetch_one(&self.pool)
