@@ -1,0 +1,4 @@
+ALTER TABLE exams
+    ADD COLUMN name TEXT NOT NULL DEFAULT '';
+ALTER TABLE exams
+    ADD COLUMN description TEXT;

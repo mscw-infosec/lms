@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS \"type: ExamType\"\n                FROM exam_tasks et\n                LEFT JOIN exams e ON e.id = et.exam_id\n                WHERE et.task_id = $1\n            ",
+  "query": "\n                SELECT id, topic_id, tries_count, duration, type as \"type: ExamType\", description, name\n                FROM exams\n                WHERE topic_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -37,6 +37,16 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 5,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "name",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -49,8 +59,10 @@
       false,
       false,
       false,
+      false,
+      true,
       false
     ]
   },
-  "hash": "9ab2ccc0d21ad75c65105ed4e071946c217774895f8b07777503a6b046a6671b"
+  "hash": "771168305f4ec80d13976c13ba07f37d8ab41ed37a40abed3e90e9e0454ff6c8"
 }

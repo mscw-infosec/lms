@@ -97,7 +97,7 @@ impl TopicRepository for RepositoryPostgres {
         let exams = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, tries_count, duration, type as "type: ExamType"
+                SELECT id, topic_id, tries_count, duration, type as "type: ExamType", description, name
                 FROM exams
                 WHERE topic_id = $1
             "#,

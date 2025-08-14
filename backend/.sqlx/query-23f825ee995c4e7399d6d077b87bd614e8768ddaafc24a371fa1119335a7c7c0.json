@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                UPDATE exams SET\n                    topic_id = $1,\n                    tries_count = $2,\n                    duration = $3,\n                    type = $4\n                WHERE id = $5\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\"\n            ",
+  "query": "\n                UPDATE exams SET\n                    topic_id = $1,\n                    tries_count = $2,\n                    duration = $3,\n                    type = $4,\n                    name = $5,\n                    description = $6\n                WHERE id = $7\n                RETURNING id, topic_id, tries_count, name, description, duration, type AS \"type: ExamType\"\n            ",
   "describe": {
     "columns": [
       {
@@ -20,11 +20,21 @@
       },
       {
         "ordinal": 3,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
         "name": "duration",
         "type_info": "Int4"
       },
       {
-        "ordinal": 4,
+        "ordinal": 6,
         "name": "type: ExamType",
         "type_info": {
           "Custom": {
@@ -55,6 +65,8 @@
             }
           }
         },
+        "Text",
+        "Text",
         "Uuid"
       ]
     },
@@ -63,8 +75,10 @@
       false,
       false,
       false,
+      true,
+      false,
       false
     ]
   },
-  "hash": "e7b9a97c12a0d35ac46c6bb2d150c56d8ceac995825aa82e6c209d594e0a58fe"
+  "hash": "23f825ee995c4e7399d6d077b87bd614e8768ddaafc24a371fa1119335a7c7c0"
 }

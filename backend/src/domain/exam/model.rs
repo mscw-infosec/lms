@@ -10,6 +10,8 @@ pub struct Exam {
     pub topic_id: i32,
     pub tries_count: i32,
     pub duration: i32,
+    pub name: String,
+    pub description: Option<String>,
     pub r#type: ExamType,
 }
 
