@@ -176,7 +176,7 @@ pub async fn update_task(
 pub async fn list_tasks(
     claims: AccessTokenClaim,
     State(state): State<TaskState>,
-    ValidatedQuery(mut query): ValidatedQuery<LimitOffsetDTO>,
+    ValidatedQuery(query): ValidatedQuery<LimitOffsetDTO>,
 ) -> Result<Json<Vec<Task>>, LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(claims.role, UserRole::Student) {
