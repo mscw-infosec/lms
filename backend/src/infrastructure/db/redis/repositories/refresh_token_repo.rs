@@ -91,7 +91,11 @@ impl RefreshTokenRepository for RepositoryRedis {
         Ok(())
     }
 
-    async fn get_user_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>, LMSError> {
+    async fn get_user_sessions(
+        &self,
+        user_id: Uuid,
+        current_jti: Uuid,
+    ) -> Result<Vec<SessionInfo>, LMSError> {
         let mut conn = self.conn();
         let key = Self::user_sessions_key(user_id);
 
@@ -104,6 +108,7 @@ impl RefreshTokenRepository for RepositoryRedis {
             {
                 sessions.push(SessionInfo {
                     jti,
+                    is_current: jti == current_jti,
                     device_id: token_data.device_id,
                     last_used: token_data.last_used,
                     issued_at: token_data.issued_at,

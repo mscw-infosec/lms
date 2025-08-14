@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS \"type: ExamType\"\n                FROM exam_tasks et\n                LEFT JOIN exams e ON e.id = et.exam_id\n                WHERE et.task_id = $1\n            ",
+  "query": "\n                SELECT id, topic_id, name, description, tries_count, duration, type AS \"type: ExamType\"\n                FROM exams\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -15,16 +15,26 @@
       },
       {
         "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
         "name": "tries_count",
         "type_info": "Int4"
       },
       {
-        "ordinal": 3,
+        "ordinal": 5,
         "name": "duration",
         "type_info": "Int4"
       },
       {
-        "ordinal": 4,
+        "ordinal": 6,
         "name": "type: ExamType",
         "type_info": {
           "Custom": {
@@ -41,16 +51,18 @@
     ],
     "parameters": {
       "Left": [
-        "Int4"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
       false,
+      true,
+      false,
       false,
       false
     ]
   },
-  "hash": "9ab2ccc0d21ad75c65105ed4e071946c217774895f8b07777503a6b046a6671b"
+  "hash": "4374eaef91e93edfc312c04e6d92282bdd1466d31c98c7c910bd13371bc7e77f"
 }

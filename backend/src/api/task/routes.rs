@@ -1,10 +1,12 @@
 use crate::api::task::TaskState;
 use crate::domain::account::model::UserRole;
 use crate::domain::task::model::{Task, TaskConfig};
-use crate::dto::task::{CreateTaskResponseDTO, PublicTaskDTO, UpsertTaskRequestDTO};
+use crate::dto::task::{
+    CreateTaskResponseDTO, LimitOffsetDTO, PublicTaskDTO, UpsertTaskRequestDTO,
+};
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
-use crate::utils::ValidatedJson;
+use crate::utils::{ValidatedJson, ValidatedQuery};
 use axum::Json;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
@@ -65,7 +67,9 @@ pub async fn get_by_id(
 ) -> Result<Json<Task>, LMSError> {
     // TODO: ACL for tasks (owners + hidden tasks)
     if matches!(claims.role, UserRole::Student) {
-        return Err(LMSError::Forbidden("Students can't access task from catalogue".to_string()));
+        return Err(LMSError::Forbidden(
+            "Students can't access task from catalogue".to_string(),
+        ));
     }
     let mut task = state.task_service.get_task(task_id).await?;
     match &mut task.configuration {
@@ -171,20 +175,16 @@ pub async fn update_task(
 )]
 pub async fn list_tasks(
     claims: AccessTokenClaim,
-    Query((mut limit, mut offset)): Query<(i32, i32)>,
-    State(state): State<TaskState>
+    State(state): State<TaskState>,
+    ValidatedQuery(query): ValidatedQuery<LimitOffsetDTO>,
 ) -> Result<Json<Vec<Task>>, LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't list tasks".to_string()));
     }
-    if !(0..=20).contains(&limit) {
-        limit = 20;
-    }
-    if offset < 0 {
-        offset = 0;
-    }
-
-    let task = state.task_service.get_tasks(limit, offset).await?;
+    let task = state
+        .task_service
+        .get_tasks(query.limit, query.offset)
+        .await?;
     Ok(task.into())
 }

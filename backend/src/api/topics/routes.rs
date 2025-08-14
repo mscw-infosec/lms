@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
 };
 
+use crate::domain::exam::model::Exam;
 use crate::{
     api::topics::TopicsState,
     domain::account::model::UserRole,

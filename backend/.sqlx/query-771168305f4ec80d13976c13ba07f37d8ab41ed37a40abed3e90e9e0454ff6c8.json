@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                UPDATE exams SET\n                    topic_id = $1,\n                    tries_count = $2,\n                    duration = $3,\n                    type = $4\n                WHERE id = $5\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\"\n            ",
+  "query": "\n                SELECT id, topic_id, tries_count, duration, type as \"type: ExamType\", description, name\n                FROM exams\n                WHERE topic_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -37,25 +37,21 @@
             }
           }
         }
+      },
+      {
+        "ordinal": 5,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "name",
+        "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Int4",
-        "Int4",
-        "Int4",
-        {
-          "Custom": {
-            "name": "exam_type",
-            "kind": {
-              "Enum": [
-                "Instant",
-                "Delayed"
-              ]
-            }
-          }
-        },
-        "Uuid"
+        "Int4"
       ]
     },
     "nullable": [
@@ -63,8 +59,10 @@
       false,
       false,
       false,
+      false,
+      true,
       false
     ]
   },
-  "hash": "e7b9a97c12a0d35ac46c6bb2d150c56d8ceac995825aa82e6c209d594e0a58fe"
+  "hash": "771168305f4ec80d13976c13ba07f37d8ab41ed37a40abed3e90e9e0454ff6c8"
 }

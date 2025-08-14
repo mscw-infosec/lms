@@ -1,3 +1,4 @@
+use crate::domain::exam::model::{Exam, ExamType};
 use crate::{
     domain::topics::{model::TopicModel, repository::TopicRepository},
     dto::topics::UpsertTopicRequestDTO,
@@ -97,14 +98,14 @@ impl TopicRepository for RepositoryPostgres {
         let exams = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, tries_count, duration, type as "type: ExamType"
+                SELECT id, topic_id, tries_count, duration, type as "type: ExamType", description, name
                 FROM exams
                 WHERE topic_id = $1
             "#,
             id
         )
-            .fetch_all(&self.pool)
-            .await?;
+        .fetch_all(&self.pool)
+        .await?;
 
         Ok(exams)
     }

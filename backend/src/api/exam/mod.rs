@@ -32,5 +32,6 @@ pub fn configure(
         .routes(routes!(update_exam_tasks, start_new_attempt))
         .routes(routes!(stop_attempt, patch_attempt, get_last_attempt))
         .routes(routes!(get_tasks))
+        .routes(routes!(get_user_exam_attempts))
         .with_state(state)
 }

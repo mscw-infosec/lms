@@ -14,6 +14,8 @@ use validator::Validate;
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
 pub struct UpsertExamRequestDTO {
     pub topic_id: i32,
+    pub name: String,
+    pub description: Option<String>,
     pub tries_count: i32,
     pub duration: i32,
     pub r#type: ExamType,
@@ -62,6 +64,13 @@ pub struct ExamAttemptSchema {
     pub active: bool,
     pub answer_data: ExamAnswer,
     pub scoring_data: Option<ScoringData>,
+}
+
+#[derive(Serialize, Deserialize, FromRow, ToSchema)]
+pub struct ExamAttemptsListDTO {
+    pub ran_out_of_attempts: bool,
+    pub attempts_left: usize,
+    pub attempts: Vec<ExamAttemptSchema>,
 }
 
 impl From<ExamAttempt> for ExamAttemptSchema {

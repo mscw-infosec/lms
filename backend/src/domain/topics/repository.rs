@@ -1,3 +1,4 @@
+use crate::domain::exam::model::Exam;
 use crate::{
     domain::topics::model::TopicModel, dto::topics::UpsertTopicRequestDTO, errors::Result,
     gen_openapi::DummyRepository,

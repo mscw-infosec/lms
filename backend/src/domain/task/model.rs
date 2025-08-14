@@ -25,6 +25,7 @@ pub enum TaskType {
     LongText,
     Ordering,
     FileUpload,
+    #[serde(rename = "CTFd")]
     CTFd,
 }
 
