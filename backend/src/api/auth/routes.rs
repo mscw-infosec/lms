@@ -52,14 +52,16 @@ pub async fn refresh(
         (status = 401, description = "Unauthorized")
     ),
     security(
-        ("BearerAuth" = [])
+        ("BearerAuth" = []),
+        ("CookieAuth" = [])
     )
 )]
 pub async fn get_sessions(
+    refresh_token: RefreshTokenClaim,
     AccessTokenClaim { sub, .. }: AccessTokenClaim,
     State(state): State<AuthState>,
 ) -> Result<Json<Vec<SessionInfo>>, LMSError> {
-    let sessions = state.refresh_service.get_user_sessions(sub).await?;
+    let sessions = state.refresh_service.get_user_sessions(sub, refresh_token.jti).await?;
     Ok(Json(sessions))
 }
 

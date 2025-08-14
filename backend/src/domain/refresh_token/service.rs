@@ -76,8 +76,8 @@ impl RefreshTokenService {
         self.repo.check_if_rotated(jti).await
     }
 
-    pub async fn get_user_sessions(&self, user_id: Uuid) -> Result<Vec<SessionInfo>> {
-        self.repo.get_user_sessions(user_id).await
+    pub async fn get_user_sessions(&self, user_id: Uuid, current_jti: Uuid) -> Result<Vec<SessionInfo>> {
+        self.repo.get_user_sessions(user_id, current_jti).await
     }
 
     pub async fn logout_session(&self, user_id: Uuid, jti: Uuid) -> Result<()> {

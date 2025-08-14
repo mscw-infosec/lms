@@ -1,7 +1,7 @@
 use crate::api::task::TaskState;
 use crate::domain::account::model::UserRole;
 use crate::domain::task::model::{Task, TaskConfig};
-use crate::dto::task::{CreateTaskResponseDTO, PublicTaskDTO, UpsertTaskRequestDTO};
+use crate::dto::task::{CreateTaskResponseDTO, LimitOffsetDTO, PublicTaskDTO, UpsertTaskRequestDTO};
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
@@ -171,20 +171,20 @@ pub async fn update_task(
 )]
 pub async fn list_tasks(
     claims: AccessTokenClaim,
-    Query((mut limit, mut offset)): Query<(i32, i32)>,
+    Query(mut query): Query<LimitOffsetDTO>,
     State(state): State<TaskState>
 ) -> Result<Json<Vec<Task>>, LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't list tasks".to_string()));
     }
-    if !(0..=20).contains(&limit) {
-        limit = 20;
+    if !(0..=20).contains(&query.limit) {
+        query.limit = 20;
     }
-    if offset < 0 {
-        offset = 0;
+    if query.offset < 0 {
+        query.offset = 0;
     }
 
-    let task = state.task_service.get_tasks(limit, offset).await?;
+    let task = state.task_service.get_tasks(query.limit, query.offset).await?;
     Ok(task.into())
 }

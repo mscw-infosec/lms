@@ -19,6 +19,12 @@ pub struct UpsertTaskRequestDTO {
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct LimitOffsetDTO {
+    pub limit: i32,
+    pub offset: i32
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
 pub struct TaskId {
     #[validate(range(min = 1))]
     pub id: i32,
