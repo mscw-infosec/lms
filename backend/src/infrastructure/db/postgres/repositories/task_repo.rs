@@ -93,8 +93,8 @@ impl TaskRepository for RepositoryPostgres {
             i64::from(offset),
             i64::from(limit)
         )
-            .fetch_all(&self.pool)
-            .await?;
+        .fetch_all(&self.pool)
+        .await?;
         Ok(tasks)
     }
 

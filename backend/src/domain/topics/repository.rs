@@ -1,10 +1,10 @@
+use crate::domain::exam::model::Exam;
 use crate::{
     domain::topics::model::TopicModel, dto::topics::UpsertTopicRequestDTO, errors::Result,
     gen_openapi::DummyRepository,
 };
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
-use crate::domain::exam::model::Exam;
 
 #[impl_unimplemented(DummyRepository)]
 #[async_trait]

@@ -23,6 +23,10 @@ pub trait RefreshTokenRepository {
     async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError>;
     async fn add_to_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;
     async fn remove_from_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;
-    async fn get_user_sessions(&self, user_id: Uuid, current_jti: Uuid) -> Result<Vec<SessionInfo>, LMSError>;
+    async fn get_user_sessions(
+        &self,
+        user_id: Uuid,
+        current_jti: Uuid,
+    ) -> Result<Vec<SessionInfo>, LMSError>;
     async fn delete_all_user_sessions(&self, user_id: Uuid) -> Result<(), LMSError>;
 }

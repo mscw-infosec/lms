@@ -68,9 +68,8 @@ pub struct ExamAttemptSchema {
 pub struct ExamAttemptsListDTO {
     pub ran_out_of_attempts: bool,
     pub attempts_left: usize,
-    pub attempts: Vec<ExamAttemptSchema>
+    pub attempts: Vec<ExamAttemptSchema>,
 }
-
 
 impl From<ExamAttempt> for ExamAttemptSchema {
     fn from(value: ExamAttempt) -> Self {

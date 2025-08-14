@@ -1,8 +1,10 @@
-use std::cmp::max;
 use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::Exam;
-use crate::dto::exam::{CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO, UpsertExamRequestDTO};
+use crate::dto::exam::{
+    CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO,
+    UpsertExamRequestDTO,
+};
 use crate::dto::task::PublicTaskDTO;
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
@@ -10,6 +12,7 @@ use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use std::cmp::max;
 use uuid::Uuid;
 
 /// Create new exam
@@ -326,8 +329,10 @@ pub async fn get_user_exam_attempts(
         .exam_service
         .get_user_attempts(exam_id, claims.sub)
         .await?;
-    let mut attempts: Vec<ExamAttemptSchema> =
-        exam_attempts.iter().map(|x| ExamAttemptSchema::from(x.clone())).collect();
+    let mut attempts: Vec<ExamAttemptSchema> = exam_attempts
+        .iter()
+        .map(|x| ExamAttemptSchema::from(x.clone()))
+        .collect();
     for attempt in &mut attempts {
         if let Some(scoring_data) = attempt.scoring_data.as_mut()
             && !scoring_data.show_results
@@ -339,7 +344,7 @@ pub async fn get_user_exam_attempts(
     Ok(Json(ExamAttemptsListDTO {
         attempts_left: max(exam.tries_count as usize - attempts.len(), 0),
         ran_out_of_attempts: exam.tries_count != 0 && attempts.len() >= exam.tries_count as usize,
-        attempts
+        attempts,
     }))
 }
 
