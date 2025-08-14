@@ -17,6 +17,7 @@ pub struct Exam {
 
 #[derive(Serialize, Deserialize, sqlx::Type, ToSchema)]
 #[sqlx(type_name = "EXAM_TYPE")]
+#[serde(rename_all = "UPPERCASE")]
 pub enum ExamType {
     Instant,
     Delayed,
