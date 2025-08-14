@@ -5,7 +5,6 @@ use crate::{
 };
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
-use crate::domain::exam::model::Exam;
 
 #[impl_unimplemented(DummyRepository)]
 #[async_trait]

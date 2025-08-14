@@ -8,7 +8,7 @@ use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::{ValidatedJson, ValidatedQuery};
 use axum::Json;
-use axum::extract::{Path, Query, State};
+use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use rand::prelude::SliceRandom;
 use rand::rng;

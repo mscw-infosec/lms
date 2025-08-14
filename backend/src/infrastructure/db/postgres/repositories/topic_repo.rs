@@ -1,4 +1,3 @@
-use crate::domain::exam::model::{Exam, ExamType};
 use crate::{
     domain::topics::{model::TopicModel, repository::TopicRepository},
     dto::topics::UpsertTopicRequestDTO,
