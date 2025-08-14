@@ -62,7 +62,11 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 					{user ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<button aria-label="User menu" className="inline-flex">
+								<button
+									type="button"
+									aria-label="User menu"
+									className="inline-flex"
+								>
 									<Avatar className="h-9 w-9 ring-1 ring-slate-700">
 										<AvatarImage
 											src={avatarSrc}
@@ -91,6 +95,7 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 									{t("account") || "Account"}
 								</Link>
 								<button
+									type="button"
 									onClick={async () => {
 										if (loggingOut) return;
 										setLoggingOut(true);
@@ -113,7 +118,11 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 					) : hasToken ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<button aria-label="User menu" className="inline-flex">
+								<button
+									type="button"
+									aria-label="User menu"
+									className="inline-flex"
+								>
 									<Avatar className="h-9 w-9 ring-1 ring-slate-700">
 										<AvatarFallback className="bg-slate-700" />
 									</Avatar>

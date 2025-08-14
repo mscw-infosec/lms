@@ -40,13 +40,11 @@ export default function EditTaskDialog({
 	const { t } = useTranslation("common");
 	const [open, setOpen] = useState(false);
 
-	// Editing only configuration fields; title/description/points/type remain unchanged
 	const taskType = task.task_type;
 	const [submitting, setSubmitting] = useState(false);
 
-	// Local config states per type
 	const [scOptions, setScOptions] = useState<string>("");
-	// Keep input as string so user can clear it
+
 	const [scCorrectInput, setScCorrectInput] = useState<string>("0");
 	const [scShuffle, setScShuffle] = useState<"true" | "false">("true");
 
@@ -81,45 +79,100 @@ export default function EditTaskDialog({
 		Number.isFinite(parsedScCorrect) &&
 		parsedScCorrect >= scOptionsCount;
 
-	// When dialog opens, initialize config state from task.configuration
 	useEffect(() => {
 		if (!open) return;
-		// no-op for title/description/points/type (unchanged in edit)
 
-		const cfg = task.configuration as any;
+		type LooseCfg = {
+			options?: unknown;
+			correct?: unknown;
+			shuffle?: unknown;
+			partial_score?: unknown;
+			answers?: unknown;
+			auto_grade?: unknown;
+			max_chars_count?: unknown;
+			items?: unknown;
+			max_size?: unknown;
+			task_id?: unknown;
+		};
+		const cfg = task.configuration as unknown as LooseCfg;
 		switch (task.task_type) {
 			case "SingleChoice":
-				setScOptions((cfg.options ?? []).join("\n"));
-				setScCorrectInput(String(cfg.correct ?? 0));
-				setScShuffle(Boolean(cfg.shuffle) ? "true" : "false");
+				setScOptions(
+					(Array.isArray(cfg.options) ? (cfg.options as unknown[]) : [])
+						.map((s) => String(s))
+						.join("\n"),
+				);
+				setScCorrectInput(
+					String(typeof cfg.correct === "number" ? (cfg.correct as number) : 0),
+				);
+				setScShuffle(
+					(cfg.shuffle === true ? "true" : "false") as "true" | "false",
+				);
 				break;
 			case "MultipleChoice":
-				setMcOptions((cfg.options ?? []).join("\n"));
-				setMcCorrect(Array.isArray(cfg.correct) ? cfg.correct.join(",") : "");
-				setMcPartial(Boolean(cfg.partial_score) ? "true" : "false");
-				setMcShuffle(Boolean(cfg.shuffle) ? "true" : "false");
+				setMcOptions(
+					(Array.isArray(cfg.options) ? (cfg.options as unknown[]) : [])
+						.map((s) => String(s))
+						.join("\n"),
+				);
+				setMcCorrect(
+					Array.isArray(cfg.correct)
+						? (cfg.correct as unknown[]).map((x) => String(x)).join(",")
+						: "",
+				);
+				setMcPartial(
+					(cfg.partial_score === true ? "true" : "false") as "true" | "false",
+				);
+				setMcShuffle(
+					(cfg.shuffle === true ? "true" : "false") as "true" | "false",
+				);
 				break;
 			case "ShortText":
-				setStAnswers((cfg.answers ?? []).join("\n"));
-				setStAuto(Boolean(cfg.auto_grade) ? "true" : "false");
-				setStMaxChars(cfg.max_chars_count ?? 256);
+				setStAnswers(
+					(Array.isArray(cfg.answers) ? (cfg.answers as unknown[]) : [])
+						.map((s) => String(s))
+						.join("\n"),
+				);
+				setStAuto(
+					(cfg.auto_grade === true ? "true" : "false") as "true" | "false",
+				);
+				setStMaxChars(
+					typeof cfg.max_chars_count === "number"
+						? (cfg.max_chars_count as number)
+						: 256,
+				);
 				break;
 			case "LongText":
-				setLtMaxChars(cfg.max_chars_count ?? 2000);
+				setLtMaxChars(
+					typeof cfg.max_chars_count === "number"
+						? (cfg.max_chars_count as number)
+						: 2000,
+				);
 				break;
 			case "Ordering":
-				setOrdItems((cfg.items ?? []).join("\n"));
+				setOrdItems(
+					(Array.isArray(cfg.items) ? (cfg.items as unknown[]) : [])
+						.map((s) => String(s))
+						.join("\n"),
+				);
 				setOrdOrder(
-					Array.isArray(cfg.answers) && Array.isArray(cfg.answers[0])
-						? cfg.answers[0].join(",")
+					Array.isArray(cfg.answers) &&
+						Array.isArray((cfg.answers as unknown[])[0])
+						? ((cfg.answers as unknown[])[0] as unknown[])
+								.map((x) => String(x))
+								.join(",")
 						: "",
 				);
 				break;
 			case "FileUpload":
-				setFuMaxSize(cfg.max_size ?? 10);
+				setFuMaxSize(
+					typeof cfg.max_size === "number" ? (cfg.max_size as number) : 10,
+				);
 				break;
 			case "CTFd":
-				setCtfdTaskId(cfg.task_id ?? 0);
+				setCtfdTaskId(
+					typeof cfg.task_id === "number" ? (cfg.task_id as number) : 0,
+				);
 				break;
 		}
 	}, [open, task]);
@@ -140,7 +193,7 @@ export default function EditTaskDialog({
 						options,
 						correct,
 						shuffle: scShuffle === "true",
-					} as any;
+					};
 					break;
 				}
 				case "MultipleChoice": {
@@ -160,7 +213,7 @@ export default function EditTaskDialog({
 						correct,
 						partial_score: mcPartial === "true",
 						shuffle: mcShuffle === "true",
-					} as any;
+					};
 					break;
 				}
 				case "ShortText": {
@@ -173,11 +226,11 @@ export default function EditTaskDialog({
 						answers,
 						auto_grade: stAuto === "true",
 						max_chars_count: stMaxChars,
-					} as any;
+					};
 					break;
 				}
 				case "LongText": {
-					config = { name: "long_text", max_chars_count: ltMaxChars } as any;
+					config = { name: "long_text", max_chars_count: ltMaxChars };
 					break;
 				}
 				case "Ordering": {
@@ -191,15 +244,15 @@ export default function EditTaskDialog({
 						.filter((s) => s.length > 0)
 						.map((s) => Number(s))
 						.filter((n) => Number.isFinite(n));
-					config = { name: "ordering", items, answers: [order] } as any;
+					config = { name: "ordering", items, answers: [order] };
 					break;
 				}
 				case "FileUpload": {
-					config = { name: "file_upload", max_size: fuMaxSize } as any;
+					config = { name: "file_upload", max_size: fuMaxSize };
 					break;
 				}
 				case "CTFd": {
-					config = { name: "c_t_fd", task_id: ctfdTaskId } as any;
+					config = { name: "c_t_fd", task_id: ctfdTaskId };
 					break;
 				}
 			}
@@ -234,8 +287,6 @@ export default function EditTaskDialog({
 				</DialogHeader>
 
 				<div className="space-y-3 py-2">
-					{/* Only type-specific configuration fields below */}
-
 					{taskType === "SingleChoice" && (
 						<div className="space-y-2">
 							<Label className="text-slate-300">

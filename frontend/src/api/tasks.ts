@@ -1,7 +1,7 @@
 import type { components } from "@/api/schema/schema";
 import { http } from "./http";
 
-export type TaskDTO = components["schemas"]["Task"];
+export type TaskDTO = components["schemas"]["PublicTaskDTO"];
 export type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
 export type TaskType = components["schemas"]["TaskType"];
 export type TaskConfig = components["schemas"]["TaskConfig"];
@@ -25,6 +25,7 @@ export async function getTaskById(task_id: number): Promise<TaskDTO> {
 export async function getTaskAdminById(task_id: number): Promise<TaskDTO> {
 	return http<TaskDTO>(`/api/task/${task_id}/admin`, { withAuth: true });
 }
+
 export async function updateTask(
 	task_id: number,
 	data: UpsertTaskRequestDTO,
@@ -43,4 +44,15 @@ export async function deleteTask(task_id: number): Promise<void> {
 	});
 }
 
-// NOTE: No list endpoint exists in the schema. When backend exposes it, add here, e.g. getAllTasks(params)
+export async function listTasks(
+	limit: number,
+	offset: number,
+): Promise<PublicTaskDTO[]> {
+	const qs = new URLSearchParams({
+		limit: String(limit),
+		offset: String(offset),
+	});
+	return http<PublicTaskDTO[]>(`/api/task/list?${qs.toString()}`, {
+		withAuth: true,
+	});
+}

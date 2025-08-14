@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/account": {
+    "/api/account": {
         parameters: {
             query?: never;
             header?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/account/avatar": {
+    "/api/account/avatar": {
         parameters: {
             query?: never;
             header?: never;
@@ -37,7 +37,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/logout-all": {
+    "/api/auth/logout-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -54,7 +54,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/logout-session/{jti}": {
+    "/api/auth/logout-session/{jti}": {
         parameters: {
             query?: never;
             header?: never;
@@ -71,7 +71,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/refresh": {
+    "/api/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -88,7 +88,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/sessions": {
+    "/api/auth/sessions": {
         parameters: {
             query?: never;
             header?: never;
@@ -105,7 +105,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/basic/login": {
+    "/api/basic/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -122,7 +122,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/basic/register": {
+    "/api/basic/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -139,7 +139,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/courses": {
+    "/api/courses": {
         parameters: {
             query?: never;
             header?: never;
@@ -156,7 +156,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/courses/new": {
+    "/api/courses/new": {
         parameters: {
             query?: never;
             header?: never;
@@ -173,7 +173,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/courses/{course_id}": {
+    "/api/courses/{course_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -192,7 +192,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/courses/{course_id}/topics": {
+    "/api/courses/{course_id}/topics": {
         parameters: {
             query?: never;
             header?: never;
@@ -209,7 +209,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/new": {
+    "/api/exam/new": {
         parameters: {
             query?: never;
             header?: never;
@@ -226,7 +226,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}": {
+    "/api/exam/{exam_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -245,7 +245,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}/attempt/last": {
+    "/api/exam/{exam_id}/attempt/last": {
         parameters: {
             query?: never;
             header?: never;
@@ -262,7 +262,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}/attempt/patch": {
+    "/api/exam/{exam_id}/attempt/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user attempts for exam */
+        get: operations["get_user_exam_attempts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exam/{exam_id}/attempt/patch": {
         parameters: {
             query?: never;
             header?: never;
@@ -279,7 +296,7 @@ export interface paths {
         patch: operations["patch_attempt"];
         trace?: never;
     };
-    "/exam/{exam_id}/attempt/start": {
+    "/api/exam/{exam_id}/attempt/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -296,7 +313,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}/attempt/stop": {
+    "/api/exam/{exam_id}/attempt/stop": {
         parameters: {
             query?: never;
             header?: never;
@@ -313,14 +330,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}/tasks": {
+    "/api/exam/{exam_id}/tasks": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get exam tasks (only with active attempt or if exam scores are available) */
+        /** Get exam tasks (only with active attempt or if exam scores are available or if admin) */
         get: operations["get_tasks"];
         /** Update exam's tasks by id */
         put: operations["update_exam_tasks"];
@@ -331,7 +348,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/oauth/github/callback": {
+    "/api/oauth/github/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -348,7 +365,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/oauth/github/login": {
+    "/api/oauth/github/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -365,7 +382,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/oauth/yandex/callback": {
+    "/api/oauth/yandex/callback": {
         parameters: {
             query?: never;
             header?: never;
@@ -382,7 +399,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/oauth/yandex/login": {
+    "/api/oauth/yandex/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -399,7 +416,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/task/new": {
+    "/api/task/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List tasks
+         * @description List all tasks. Limit <= 20.
+         */
+        get: operations["list_tasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/task/new": {
         parameters: {
             query?: never;
             header?: never;
@@ -416,7 +453,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/task/{task_id}": {
+    "/api/task/{task_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -435,24 +472,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/task/{task_id}/admin": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get administrative view of the task by id */
-        get: operations["get_full_by_id"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/topics/new": {
+    "/api/topics/new": {
         parameters: {
             query?: never;
             header?: never;
@@ -469,7 +489,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/topics/{id}": {
+    "/api/topics/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -488,7 +508,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/topics/{topic_id}/exams": {
+    "/api/topics/{topic_id}/exams": {
         parameters: {
             query?: never;
             header?: never;
@@ -505,7 +525,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/video/new": {
+    "/api/video/new": {
         parameters: {
             query?: never;
             header?: never;
@@ -522,7 +542,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/video/{video_id}": {
+    "/api/video/{video_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -614,6 +634,11 @@ export interface components {
             /** Format: uuid */
             user_id: string;
         };
+        ExamAttemptsListDTO: {
+            attempts: components["schemas"]["ExamAttemptSchema"][];
+            attempts_left: number;
+            ran_out_of_attempts: boolean;
+        };
         /** @enum {string} */
         ExamType: "Instant" | "Delayed";
         GetUserResponseDTO: {
@@ -677,22 +702,13 @@ export interface components {
         };
         SessionInfo: {
             device_id: string;
+            is_current: boolean;
             /** Format: date-time */
             issued_at: string;
             /** Format: uuid */
             jti: string;
             /** Format: date-time */
             last_used: string;
-        };
-        Task: {
-            configuration: components["schemas"]["TaskConfig"];
-            description?: string | null;
-            /** Format: int64 */
-            id: number;
-            /** Format: int64 */
-            points: number;
-            task_type: components["schemas"]["TaskType"];
-            title: string;
         };
         TaskAnswer: {
             answer: string;
@@ -1488,6 +1504,49 @@ export interface operations {
             };
         };
     };
+    get_user_exam_attempts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully got attempts list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamAttemptsListDTO"];
+                };
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     patch_attempt: {
         parameters: {
             query?: never;
@@ -1773,6 +1832,41 @@ export interface operations {
         requestBody?: never;
         responses: never;
     };
+    list_tasks: {
+        parameters: {
+            query: {
+                limit: number;
+                offset: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully got tasks list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to view tasks list */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     create: {
         parameters: {
             query?: never;
@@ -1933,42 +2027,6 @@ export interface operations {
             };
             /** @description User has no permission to delete task */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Task not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    get_full_by_id: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Found task */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Task"];
-                };
-            };
-            /** @description No auth data found */
-            401: {
                 headers: {
                     [name: string]: unknown;
                 };

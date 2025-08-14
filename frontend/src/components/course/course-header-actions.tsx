@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 type Props = {
 	isEditing: boolean;
 	canEdit: boolean;
-	onEdit: () => void; // enter edit mode
+	onEdit: () => void;
 	onSave: () => void;
 	savePending?: boolean;
 	canSave?: boolean;
@@ -35,7 +35,7 @@ export default function CourseHeaderActions({
 	if (!canEdit) return null;
 
 	return (
-		<div className={"flex items-center gap-2 " + (className ?? "")}>
+		<div className={`flex items-center gap-2 ${className ?? ""}`}>
 			{isEditing ? (
 				<>
 					<Button

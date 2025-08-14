@@ -49,14 +49,12 @@ export default function CreateTaskDialog({
 	const [points, setPoints] = useState<number>(1);
 	const [taskType, setTaskType] = useState<TaskType>("SingleChoice");
 	const [submitting, setSubmitting] = useState(false);
-	// Config state per type
-	const [scOptions, setScOptions] = useState<string>(""); // newline-separated
-	// Keep a string for input so user can clear it (no forced 0)
+	const [scOptions, setScOptions] = useState<string>("");
 	const [scCorrectInput, setScCorrectInput] = useState<string>("0");
 	const [scShuffle, setScShuffle] = useState<"true" | "false">("true");
 
 	const [mcOptions, setMcOptions] = useState<string>("");
-	const [mcCorrect, setMcCorrect] = useState<string>(""); // comma-separated indices
+	const [mcCorrect, setMcCorrect] = useState<string>("");
 	const [mcPartial, setMcPartial] = useState<"true" | "false">("true");
 	const [mcShuffle, setMcShuffle] = useState<"true" | "false">("true");
 
@@ -67,13 +65,12 @@ export default function CreateTaskDialog({
 	const [ltMaxChars, setLtMaxChars] = useState<number>(2000);
 
 	const [ordItems, setOrdItems] = useState<string>("");
-	const [ordOrder, setOrdOrder] = useState<string>(""); // comma-separated indices
+	const [ordOrder, setOrdOrder] = useState<string>("");
 
 	const [fuMaxSize, setFuMaxSize] = useState<number>(10);
 
 	const [ctfdTaskId, setCtfdTaskId] = useState<number>(0);
 
-	// Derived state for SingleChoice validation
 	const scOptionsCount = scOptions
 		.split("\n")
 		.map((s) => s.trim())
@@ -122,7 +119,7 @@ export default function CreateTaskDialog({
 						correct,
 						partial_score: mcPartial === "true",
 						shuffle: mcShuffle === "true",
-					} as any;
+					};
 					break;
 				}
 				case "ShortText": {
@@ -135,14 +132,14 @@ export default function CreateTaskDialog({
 						answers,
 						auto_grade: stAuto === "true",
 						max_chars_count: stMaxChars,
-					} as any;
+					};
 					break;
 				}
 				case "LongText": {
 					config = {
 						name: "long_text",
 						max_chars_count: ltMaxChars,
-					} as any;
+					};
 					break;
 				}
 				case "Ordering": {
@@ -160,21 +157,21 @@ export default function CreateTaskDialog({
 						name: "ordering",
 						items,
 						answers: [order],
-					} as any;
+					};
 					break;
 				}
 				case "FileUpload": {
 					config = {
 						name: "file_upload",
 						max_size: fuMaxSize,
-					} as any;
+					};
 					break;
 				}
 				case "CTFd": {
 					config = {
 						name: "c_t_fd",
 						task_id: ctfdTaskId,
-					} as any;
+					};
 					break;
 				}
 			}
@@ -195,7 +192,6 @@ export default function CreateTaskDialog({
 				configuration: config,
 			});
 			setOpen(false);
-			// reset minimal
 			setTitle("");
 			setDescription("");
 			setPoints(1);
@@ -444,7 +440,7 @@ export default function CreateTaskDialog({
 									</Label>
 									<Select
 										value={stAuto}
-										onValueChange={(v) => setStAuto(v as any)}
+										onValueChange={(v: "true" | "false") => setStAuto(v)}
 									>
 										<SelectTrigger className="mt-1 border-slate-700 bg-slate-800 text-white">
 											<SelectValue placeholder={t("select") || "Select"} />

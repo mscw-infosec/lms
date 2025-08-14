@@ -8,6 +8,7 @@ export type CreateExamResponseDTO =
 export type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
 export type ExamDTO = components["schemas"]["Exam"]; // base exam shape returned by exam endpoints
 export type ExamAttempt = components["schemas"]["ExamAttemptSchema"];
+export type ExamAttemptsListDTO = components["schemas"]["ExamAttemptsListDTO"];
 
 export async function createExam(
 	data: UpsertExamRequestDTO,
@@ -70,6 +71,15 @@ export async function getTopicExams(topic_id: number): Promise<ExamDTO[]> {
 }
 
 // Attempts
+// GET /exam/{exam_id}/attempt/list
+export async function getUserExamAttempts(
+	exam_id: string,
+): Promise<ExamAttemptsListDTO> {
+	return http<ExamAttemptsListDTO>(`/api/exam/${exam_id}/attempt/list`, {
+		withAuth: true,
+	});
+}
+
 // GET /exam/{exam_id}/attempt/last
 export async function getLastAttempt(exam_id: string): Promise<ExamAttempt> {
 	return http<ExamAttempt>(`/api/exam/${exam_id}/attempt/last`, {

@@ -2,7 +2,7 @@
 
 import { updateExamTasks } from "@/api/exam";
 import type { TaskDTO, TaskType } from "@/api/tasks";
-import { deleteTask as deleteTaskApi } from "@/api/tasks";
+import { deleteTask as deleteTaskApi, listTasks } from "@/api/tasks";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
 import CreateTaskDialog from "@/components/tasks/create-task-dialog";
@@ -44,7 +44,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-// Map task types to icons
 function getTaskIcon(type: TaskType) {
 	const common = "mr-3 h-4 w-4 text-purple-400";
 	switch (type) {
@@ -84,12 +83,53 @@ export default function TasksPage() {
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [examId, setExamId] = useState("");
 	const [busy, setBusy] = useState<null | "link" | "delete">(null);
+	const [loading, setLoading] = useState(false);
+	const [hasMore, setHasMore] = useState(false);
+	const [offset, setOffset] = useState(0);
+	const PAGE_SIZE = 20;
 
 	useEffect(() => {
 		if (!authorized) return;
+		let cancelled = false;
+
+		setTasks([]);
+		setOffset(0);
+		setHasMore(false);
+		const loadFirst = async () => {
+			try {
+				setLoading(true);
+				const data = await listTasks(PAGE_SIZE, 0);
+				if (cancelled) return;
+				setTasks(data as TaskDTO[]);
+				setOffset(data.length);
+				setHasMore(data.length === PAGE_SIZE);
+			} catch (e) {
+				console.error(e);
+			} finally {
+				if (!cancelled) setLoading(false);
+			}
+		};
+		void loadFirst();
+		return () => {
+			cancelled = true;
+		};
 	}, [authorized]);
 
-	// Initialize query from URL and keep in sync
+	const loadMore = async () => {
+		if (loading || !hasMore) return;
+		setLoading(true);
+		try {
+			const data = await listTasks(PAGE_SIZE, offset);
+			setTasks((prev) => [...prev, ...(data as TaskDTO[])]);
+			setOffset((prev) => prev + data.length);
+			setHasMore(data.length === PAGE_SIZE);
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	useEffect(() => {
 		const q = searchParams.get("q") || "";
 		setQuery(q);
@@ -145,7 +185,7 @@ export default function TasksPage() {
 			const succeeded = new Set<number>();
 			results.forEach((r, idx) => {
 				if (r.status === "fulfilled") {
-					const idVal = ids[idx]!; // ids and results are same length
+					const idVal = ids[idx];
 					if (typeof idVal === "number") succeeded.add(idVal);
 				}
 			});
@@ -207,11 +247,15 @@ export default function TasksPage() {
 						<Card className="mb-6 border-slate-800 bg-slate-900">
 							<CardContent className="flex flex-col gap-3 pt-4 md:flex-row md:items-end">
 								<div className="flex-1">
-									<label className="mb-1 block text-slate-400 text-sm">
+									<label
+										htmlFor="task-search"
+										className="mb-1 block text-slate-400 text-sm"
+									>
 										{t("search")}
 									</label>
 									<div className="flex gap-2">
 										<Input
+											id="task-search"
 											value={query}
 											onChange={(e) => {
 												const next = e.target.value;
@@ -233,12 +277,12 @@ export default function TasksPage() {
 								</div>
 
 								<div className="w-full md:w-64">
-									<label className="mb-1 block text-slate-400 text-sm">
+									<span className="mb-1 block text-slate-400 text-sm">
 										{t("filter_type")}
-									</label>
+									</span>
 									<Select
 										value={filterType}
-										onValueChange={(v) => setFilterType(v as any)}
+										onValueChange={(v: TaskType | "all") => setFilterType(v)}
 									>
 										<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
 											<SelectValue placeholder={t("select_type")} />
@@ -360,6 +404,24 @@ export default function TasksPage() {
 										</div>
 									))
 								)}
+								{/* Pagination */}
+								<div className="pt-2">
+									{hasMore ? (
+										<Button
+											onClick={loadMore}
+											disabled={loading}
+											className="bg-red-600 text-white hover:bg-red-700"
+										>
+											{loading
+												? (t("loading") ?? "Loading...")
+												: (t("load_more") ?? "Load more")}
+										</Button>
+									) : filtered.length > 0 ? (
+										<div className="text-slate-500 text-xs">
+											{t("no_more_results") ?? "No more results"}
+										</div>
+									) : null}
+								</div>
 							</CardContent>
 						</Card>
 
@@ -380,10 +442,14 @@ export default function TasksPage() {
 								</DialogHeader>
 								<div className="space-y-3">
 									<div>
-										<label className="mb-1 block text-slate-400 text-sm">
+										<label
+											htmlFor="exam-id-input"
+											className="mb-1 block text-slate-400 text-sm"
+										>
 											{t("exam_id")}
 										</label>
 										<Input
+											id="exam-id-input"
 											value={examId}
 											onChange={(e) => setExamId(e.target.value)}
 											placeholder={t("exam_id") ?? "Exam ID"}
