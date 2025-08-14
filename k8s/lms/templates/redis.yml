@@ -5,7 +5,7 @@ metadata:
   name: redis
 spec:
   kubernetesConfig:
-    image: quay.io/opstree/redis:v8.0.3
+    image: redis:8.0.0-alpine3.21
     imagePullPolicy: IfNotPresent
   storage:
     volumeClaimTemplate:
