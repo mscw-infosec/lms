@@ -13,9 +13,9 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useToast } from "@/components/ui/use-toast";
-import { buildTaskAnswer } from "@/features/exams/answers";
-import type { UiAnswerPayload } from "@/features/exams/answers";
-import { useAttempt } from "@/features/exams/useAttempt";
+import { useAttempt } from "@/hooks/use-attempt";
+import { buildTaskAnswer } from "@/lib/answers";
+import type { UiAnswerPayload } from "@/lib/answers";
 import { useUserStore } from "@/store/user";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -74,7 +74,6 @@ export default function LearnPage() {
 		ranOut,
 	} = useAttempt(selectedExam?.id ?? null, isStaff, selectedExam?.tries_count);
 
-	// Buffer latest answer DTOs per task; submit on navigation or stop
 	const latestAnswersRef = useRef<
 		Record<number, ReturnType<typeof buildTaskAnswer> | null>
 	>({});
@@ -121,14 +120,12 @@ export default function LearnPage() {
 		retry: false,
 	});
 
-	// Derived stats
 	const topicsCount = (topicsQuery.data ?? []).length;
 	const examsCount = Object.values(examsByTopicQuery.data ?? {}).reduce(
 		(acc, arr) => acc + arr.length,
 		0,
 	);
 
-	// Course info (name, description)
 	const courseQuery = useQuery({
 		queryKey: ["course", courseId],
 		queryFn: () => getCourseById(courseId),
@@ -469,7 +466,7 @@ export default function LearnPage() {
 				// ignore mapping errors
 			}
 		};
-		// Derive initial value from saved answers so inputs are hydrated after reload
+
 		let initial: unknown = undefined;
 		try {
 			const cfg = (task as { configuration?: TaskConfig }).configuration ?? {};

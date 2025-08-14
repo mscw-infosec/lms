@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import type { UiAnswerPayload } from "@/features/exams/answers";
+import type { UiAnswerPayload } from "@/lib/answers";
 import {
 	CheckSquare,
 	CircleDot,
