@@ -1,8 +1,8 @@
 image:
   backend_img: ghcr.io/mscw-infosec/lms
-  backend_tag: 0.0.7
+  backend_tag: 0.0.11
   frontend_img: ghcr.io/mscw-infosec/lms-frontend
-  frontend_tag: 0.0.1
+  frontend_tag: 0.0.2
   pullPolicy: IfNotPresent
 
 BACKEND_PORT: 8080
