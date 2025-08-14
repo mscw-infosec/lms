@@ -1,5 +1,5 @@
 image:
-  backend_img: ghcr.io/mscw-infosec/lms
+  backend_img: ghcr.io/mscw-infosec/lms-backend
   backend_tag: 0.0.11
   frontend_img: ghcr.io/mscw-infosec/lms-frontend
   frontend_tag: 0.0.2
