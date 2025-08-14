@@ -74,6 +74,11 @@ export async function http<T>(
 			const token = getAccessToken();
 			if (token) headers.set("Authorization", `Bearer ${token}`);
 			res = await doRequest();
+		} else {
+			setAccessToken(null);
+			if (typeof window !== "undefined") {
+				window.location.reload();
+			}
 		}
 	}
 

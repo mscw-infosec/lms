@@ -182,7 +182,6 @@ pub async fn list_tasks(
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't list tasks".to_string()));
     }
-
     let task = state
         .task_service
         .get_tasks(query.limit, query.offset)

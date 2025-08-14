@@ -33,7 +33,7 @@ services:
       timeout: 5s
       retries: 5
   backend:
-    image: lms-backend:latest
+    image: ghcr.io/mscw-infosec/lms-backend:0.0.10
     ports:
       - 8000:8000
     env_file:

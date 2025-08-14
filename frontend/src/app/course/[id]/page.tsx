@@ -3,11 +3,25 @@
 import {
 	type TopicResponseDTO,
 	type UpsertCourseResponseDTO,
+	deleteCourse,
+	editCourse,
 	getCourseById,
 	getCourseTopics,
 } from "@/api/courses";
+import {
+	deleteExam,
+	getExamTasks,
+	getTopicExams,
+	updateExamTasks,
+} from "@/api/exam";
+import type { components } from "@/api/schema/schema";
+import { createTopic, deleteTopic, updateTopic } from "@/api/topics";
 import { AuthModal } from "@/components/auth-modal";
+import ConfirmDialog from "@/components/common/confirm-dialog";
+import CourseHeaderActions from "@/components/course/course-header-actions";
 import { Header } from "@/components/header";
+import CreateTopicItemDialog from "@/components/topic/create-topic-item-dialog";
+import TopicCreateForm from "@/components/topic/topic-create-form";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -21,27 +35,37 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { useUserStore } from "@/store/user";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	BookOpen,
-	CheckCircle2,
 	ChevronDown,
 	Clock,
+	Edit,
 	HelpCircle,
 	Home,
 	Loader2,
 	Play,
+	Save,
 	Shield,
+	Trash2,
+	X,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export default function CoursePage() {
 	const { t } = useTranslation("common");
+	const { user } = useUserStore();
+	const { toast } = useToast();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const params = useParams<{ id: string }>();
+	const router = useRouter();
 	const courseId = Number.parseInt(String(params.id));
 
 	const courseQuery = useQuery<UpsertCourseResponseDTO, Error>({
@@ -49,6 +73,18 @@ export default function CoursePage() {
 		queryFn: () => getCourseById(courseId),
 		enabled: Number.isFinite(courseId),
 		retry: false,
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: async () => deleteCourse(courseId),
+		onSuccess: () => {
+			toast({ description: t("deleted_successfully") || "Deleted" });
+
+			router.push("/");
+		},
+		onError: () => {
+			toast({ description: t("delete_failed") || "Failed to delete" });
+		},
 	});
 
 	const topicsQuery = useQuery<TopicResponseDTO[], Error>({
@@ -60,19 +96,6 @@ export default function CoursePage() {
 		enabled: courseQuery.isSuccess,
 		retry: false,
 	});
-
-	type LectureItem = {
-		id: number;
-		title: string;
-		type: "lecture" | "task";
-		completed: boolean;
-	};
-
-	type ModuleItem = {
-		id: number;
-		title: string;
-		lectures: LectureItem[];
-	};
 
 	const gradients = useMemo(
 		() => [
@@ -88,23 +111,168 @@ export default function CoursePage() {
 
 	const courseImageClass = gradients[courseId % gradients.length];
 
-	const structure = useMemo<ModuleItem[]>(
-		() => [
-			{
-				id: 1,
-				title: "Topics",
-				lectures: (topicsQuery.data ?? []).map(
-					(t: TopicResponseDTO): LectureItem => ({
-						id: t.id,
-						title: t.title,
-						type: "lecture",
-						completed: false,
-					}),
-				),
-			},
-		],
-		[topicsQuery.data],
+	const canEdit = user?.role === "Teacher" || user?.role === "Admin";
+
+	const [isEditing, setIsEditing] = useState(false);
+	const [name, setName] = useState("");
+	const [description, setDescription] = useState<string | null>("");
+
+	const nextOrderIndex = useMemo(() => {
+		const list = topicsQuery.data ?? [];
+		return list.length ? Math.max(...list.map((t) => t.order_index)) + 1 : 1;
+	}, [topicsQuery.data]);
+	const [newTopicTitle, setNewTopicTitle] = useState("");
+	const [newTopicOrderIndex, setNewTopicOrderIndex] = useState<number>(1);
+	useEffect(() => {
+		setNewTopicOrderIndex(nextOrderIndex);
+	}, [nextOrderIndex]);
+
+	const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
+	const [editTopicTitle, setEditTopicTitle] = useState("");
+	const [editTopicOrderIndex, setEditTopicOrderIndex] = useState<number>(1);
+
+	type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
+	type ExamLite = {
+		id: string;
+		type: components["schemas"]["UpsertExamRequestDTO"]["type"];
+		duration: number;
+		tries_count: number;
+		tasks?: PublicTaskDTO[];
+	};
+	const [topicExams, setTopicExams] = useState<Record<number, ExamLite[]>>({});
+	const [deletingExamIds, setDeletingExamIds] = useState<Set<string>>(
+		new Set(),
 	);
+
+	useEffect(() => {
+		async function loadExams() {
+			if (!topicsQuery.isSuccess || !topicsQuery.data) return;
+			try {
+				const entries = await Promise.all(
+					topicsQuery.data.map(async (topic) => {
+						try {
+							const exams = await getTopicExams(topic.id);
+							const simplified = await Promise.all(
+								exams.map(async (e) => ({
+									id: e.id,
+									type: e.type,
+									duration: e.duration,
+									tries_count: e.tries_count,
+									tasks: await getExamTasks(e.id).catch(() => []),
+								})),
+							);
+							return [topic.id, simplified] as const;
+						} catch (_) {
+							return [topic.id, []] as const;
+						}
+					}),
+				);
+				setTopicExams(Object.fromEntries(entries));
+			} catch (_) {
+				// noop; UI will show empty state
+			}
+		}
+		loadExams();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [topicsQuery.isSuccess, topicsQuery.data]);
+
+	const attachTaskToExam = async (examId: string, newTaskId: number) => {
+		try {
+			const current = await getExamTasks(examId);
+			const ids = [
+				...new Set([...(current?.map((t) => t.id) ?? []), newTaskId]),
+			];
+			await updateExamTasks(examId, ids);
+			const updated = await getExamTasks(examId);
+			setTopicExams((prev) => {
+				const copy: typeof prev = { ...prev };
+				for (const [topicIdKey, exams] of Object.entries(copy)) {
+					const idx = exams.findIndex((e) => e.id === examId);
+					if (idx !== -1) {
+						const next = [...exams];
+						next[idx] = { ...next[idx], tasks: updated } as ExamLite;
+						copy[Number(topicIdKey)] = next;
+					}
+				}
+				return copy;
+			});
+		} catch (e) {
+			// best-effort; toast already available at component level if needed
+		}
+	};
+
+	useEffect(() => {
+		if (courseQuery.data && !isEditing) {
+			setName(courseQuery.data.name ?? "");
+			setDescription(courseQuery.data.description ?? "");
+		}
+	}, [courseQuery.data, isEditing]);
+
+	const saveMutation = useMutation({
+		mutationFn: async () =>
+			editCourse(courseId, {
+				name: name.trim(),
+				description: description?.trim() || undefined,
+			}),
+		onSuccess: async () => {
+			toast({ description: t("saved_successfully") || "Saved" });
+			await courseQuery.refetch();
+			setIsEditing(false);
+		},
+		onError: (err: unknown) => {
+			toast({ description: t("save_failed") || "Failed to save" });
+			// keep editing state
+		},
+	});
+
+	const createTopicMutation = useMutation({
+		mutationFn: async () =>
+			createTopic({
+				course_id: courseId,
+				order_index: Number(newTopicOrderIndex) || nextOrderIndex,
+				title: newTopicTitle.trim(),
+			}),
+		onSuccess: async () => {
+			setNewTopicTitle("");
+			setNewTopicOrderIndex(nextOrderIndex + 1);
+			await topicsQuery.refetch();
+			toast({ description: t("saved_successfully") || "Saved" });
+		},
+		onError: () => {
+			toast({ description: t("save_failed") || "Failed to save" });
+		},
+	});
+
+	const updateTopicMutation = useMutation({
+		mutationFn: async () => {
+			if (editingTopicId == null) return;
+			return updateTopic(editingTopicId, {
+				course_id: courseId,
+				order_index: Number(editTopicOrderIndex) || 1,
+				title: editTopicTitle.trim(),
+			});
+		},
+		onSuccess: async () => {
+			setEditingTopicId(null);
+			setEditTopicTitle("");
+			await topicsQuery.refetch();
+			toast({ description: t("saved_successfully") || "Saved" });
+		},
+		onError: () => {
+			toast({ description: t("save_failed") || "Failed to save" });
+		},
+	});
+
+	const deleteTopicMutation = useMutation({
+		mutationFn: async (id: number) => deleteTopic(id),
+		onSuccess: async () => {
+			await topicsQuery.refetch();
+			toast({ description: t("deleted_successfully") || "Deleted" });
+		},
+		onError: () => {
+			toast({ description: t("delete_failed") || "Failed to delete" });
+		},
+	});
 
 	if (courseQuery.isLoading) {
 		return (
@@ -157,9 +325,37 @@ export default function CoursePage() {
 								>
 									<Shield className="h-12 w-12 text-white opacity-80" />
 								</div>
-								<h1 className="mb-3 font-bold text-2xl text-white">
-									{courseQuery.data.name}
-								</h1>
+								{isEditing ? (
+									<Input
+										value={name}
+										onChange={(e) => setName(e.target.value)}
+										placeholder={t("course_name_placeholder") ?? "Course name"}
+										className="mb-3 border-slate-700 bg-slate-800 text-white"
+									/>
+								) : (
+									<h1 className="mb-3 font-bold text-2xl text-white">
+										{courseQuery.data.name}
+									</h1>
+								)}
+								{canEdit && (
+									<div className="mb-3">
+										<CourseHeaderActions
+											isEditing={isEditing}
+											canEdit={canEdit}
+											onEdit={() => setIsEditing(true)}
+											onSave={() => saveMutation.mutate()}
+											savePending={saveMutation.isPending}
+											canSave={!!name.trim()}
+											onCancel={() => {
+												setIsEditing(false);
+												setName(courseQuery.data?.name ?? "");
+												setDescription(courseQuery.data?.description ?? "");
+											}}
+											onDelete={() => deleteMutation.mutate()}
+											deletePending={deleteMutation.isPending}
+										/>
+									</div>
+								)}
 								<div className="mb-4 flex items-center gap-4 text-slate-400 text-sm">
 									<div className="flex items-center">
 										<Clock className="mr-1 h-3 w-3" />
@@ -186,10 +382,40 @@ export default function CoursePage() {
 								</div>
 
 								<div className="flex-1">
-									<h1 className="mb-4 font-bold text-3xl text-white">
-										{courseQuery.data.name}
-									</h1>
-
+									<div className="mb-4 flex items-start justify-between gap-3">
+										{isEditing ? (
+											<Input
+												value={name}
+												onChange={(e) => setName(e.target.value)}
+												placeholder={
+													t("course_name_placeholder") ?? "Course name"
+												}
+												className="max-w-xl border-slate-700 bg-slate-800 text-white"
+											/>
+										) : (
+											<h1 className="font-bold text-3xl text-white">
+												{courseQuery.data.name}
+											</h1>
+										)}
+										{canEdit && (
+											<CourseHeaderActions
+												isEditing={isEditing}
+												canEdit={canEdit}
+												onEdit={() => setIsEditing(true)}
+												onSave={() => saveMutation.mutate()}
+												savePending={saveMutation.isPending}
+												canSave={!!name.trim()}
+												onCancel={() => {
+													setIsEditing(false);
+													setName(courseQuery.data?.name ?? "");
+													setDescription(courseQuery.data?.description ?? "");
+												}}
+												onDelete={() => deleteMutation.mutate()}
+												deletePending={deleteMutation.isPending}
+												className=""
+											/>
+										)}
+									</div>
 									<div className="mb-6 flex items-center gap-6 text-slate-400">
 										<div className="flex items-center">
 											<Clock className="mr-2 h-4 w-4" />
@@ -219,9 +445,20 @@ export default function CoursePage() {
 							<CardTitle className="text-white">{t("about_course")}</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<div className="whitespace-pre-line text-slate-300">
-								{courseQuery.data.description ?? t("no_description")}
-							</div>
+							{isEditing ? (
+								<Textarea
+									value={description ?? ""}
+									onChange={(e) => setDescription(e.target.value)}
+									placeholder={
+										t("course_description_placeholder") ?? "Description"
+									}
+									className="min-h-32 border-slate-700 bg-slate-800 text-white"
+								/>
+							) : (
+								<div className="whitespace-pre-line text-slate-300">
+									{courseQuery.data.description ?? t("no_description")}
+								</div>
+							)}
 						</CardContent>
 					</Card>
 
@@ -233,46 +470,217 @@ export default function CoursePage() {
 							</CardTitle>
 							<CardDescription className="text-slate-400">
 								{t("course_structure_modules_lessons", {
-									modules: structure.length,
-									lessons: structure.reduce(
-										(acc, m) => acc + m.lectures.length,
-										0,
-									),
+									modules: (topicsQuery.data ?? []).length,
+									lessons: 0,
 								})}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							{structure.map((module) => (
-								<Collapsible key={module.id} defaultOpen>
-									<CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
-										<div className="flex items-center">
-											<BookOpen className="mr-3 h-5 w-5 text-slate-400" />
-											<span className="font-medium text-white">
-												{t("topics")}
-											</span>
+							{canEdit && (
+								<TopicCreateForm
+									title={newTopicTitle}
+									orderIndex={newTopicOrderIndex}
+									onTitleChange={setNewTopicTitle}
+									onOrderIndexChange={setNewTopicOrderIndex}
+									onAdd={() => createTopicMutation.mutate()}
+									pending={createTopicMutation.isPending}
+								/>
+							)}
+
+							{(topicsQuery.data ?? []).map((topic) => (
+								<Collapsible key={topic.id} defaultOpen>
+									<CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
+										<div className="flex items-center gap-3">
+											<BookOpen className="h-5 w-5 text-slate-400" />
+											{editingTopicId === topic.id ? (
+												<>
+													<Input
+														value={editTopicTitle}
+														onChange={(e) => setEditTopicTitle(e.target.value)}
+														className="max-w-xs border-slate-700 bg-slate-900 text-white"
+													/>
+													<Input
+														type="number"
+														value={editTopicOrderIndex}
+														onChange={(e) =>
+															setEditTopicOrderIndex(Number(e.target.value))
+														}
+														className="w-24 border-slate-700 bg-slate-900 text-white"
+													/>
+												</>
+											) : (
+												<span className="font-medium text-white">
+													{topic.title}
+												</span>
+											)}
 										</div>
-										<ChevronDown className="h-5 w-5 text-slate-400" />
+										<div className="flex items-center gap-2">
+											{canEdit &&
+												(editingTopicId === topic.id ? (
+													<>
+														<Button
+															size="icon"
+															title={t("save") ?? "Save"}
+															aria-label={t("save") ?? "Save"}
+															onClick={() => updateTopicMutation.mutate()}
+															disabled={
+																updateTopicMutation.isPending ||
+																!editTopicTitle.trim()
+															}
+															className="bg-red-600 text-white hover:bg-red-700"
+														>
+															{updateTopicMutation.isPending ? (
+																<Loader2 className="h-4 w-4 animate-spin" />
+															) : (
+																<Save className="h-4 w-4" />
+															)}
+														</Button>
+														<Button
+															variant="ghost"
+															size="icon"
+															title={t("cancel") ?? "Cancel"}
+															aria-label={t("cancel") ?? "Cancel"}
+															onClick={() => {
+																setEditingTopicId(null);
+																setEditTopicTitle("");
+															}}
+															className="text-slate-300 hover:bg-slate-800"
+														>
+															<X className="h-4 w-4" />
+														</Button>
+													</>
+												) : (
+													<>
+														<Button
+															variant="ghost"
+															size="icon"
+															title={t("edit") ?? "Edit"}
+															aria-label={t("edit") ?? "Edit"}
+															onClick={() => {
+																setEditingTopicId(topic.id);
+																setEditTopicTitle(topic.title);
+																setEditTopicOrderIndex(topic.order_index);
+															}}
+															className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
+														>
+															<Edit className="h-4 w-4" />
+														</Button>
+														<CreateTopicItemDialog
+															topicId={topic.id}
+															onCreatedExam={(exam) => {
+																setTopicExams((prev) => ({
+																	...prev,
+																	[topic.id]: [
+																		...(prev[topic.id] ?? []),
+																		{ ...exam },
+																	],
+																}));
+															}}
+														/>
+														<ConfirmDialog
+															title={t("delete") || "Delete"}
+															description={
+																t("confirm_delete_item") ||
+																"Are you sure you want to delete this item?"
+															}
+															confirmText={t("delete") || "Delete"}
+															cancelText={t("cancel") || "Cancel"}
+															onConfirm={() =>
+																deleteTopicMutation.mutate(topic.id)
+															}
+														>
+															<Button
+																variant="ghost"
+																size="icon"
+																title={t("delete") ?? "Delete"}
+																aria-label={t("delete") ?? "Delete"}
+																disabled={deleteTopicMutation.isPending}
+																className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+															>
+																<Trash2 className="h-4 w-4" />
+															</Button>
+														</ConfirmDialog>
+													</>
+												))}
+											<ChevronDown className="h-5 w-5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+										</div>
 									</CollapsibleTrigger>
 									<CollapsibleContent className="mt-2 ml-8 space-y-2">
-										{module.lectures.map((lecture) => (
-											<div
-												key={lecture.id}
-												className="flex items-center rounded-lg bg-slate-800/50 p-3"
-											>
-												<div className="flex flex-1 items-center">
-													{lecture.completed ? (
-														<CheckCircle2 className="mr-3 h-4 w-4 text-green-500" />
-													) : (
+										{(topicExams[topic.id] ?? []).map((exam) => (
+											<div key={exam.id} className="space-y-2">
+												<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
+													<div className="flex items-center">
 														<div className="mr-3 h-4 w-4 rounded-full border-2 border-slate-600" />
-													)}
-													{lecture.type === "lecture" ? (
-														<Play className="mr-3 h-4 w-4 text-blue-400" />
-													) : (
 														<HelpCircle className="mr-3 h-4 w-4 text-orange-400" />
-													)}
-													<span className="text-slate-300">
-														{lecture.title}
-													</span>
+														<span className="text-slate-300 text-sm">
+															{t("exam_card", {
+																type: t(
+																	exam.type === "Instant"
+																		? "exam_type_instant"
+																		: "exam_type_delayed",
+																),
+																duration: exam.duration,
+																tries: exam.tries_count,
+															})}
+														</span>
+													</div>
+													<div className="flex items-center gap-3">
+														{user &&
+														(user.role === "Teacher" ||
+															user.role === "Admin") ? (
+															<div className="text-slate-400 text-xs">
+																ID: {exam.id}
+															</div>
+														) : null}
+														{user &&
+														(user.role === "Teacher" ||
+															user.role === "Admin") ? (
+															<ConfirmDialog
+																title={t("delete") || "Delete"}
+																description={
+																	t("confirm_delete_exam") ||
+																	"Are you sure you want to delete this exam?"
+																}
+																confirmText={t("delete") || "Delete"}
+																cancelText={t("cancel") || "Cancel"}
+																onConfirm={async () => {
+																	setDeletingExamIds((prev) =>
+																		new Set(prev).add(exam.id),
+																	);
+																	try {
+																		await deleteExam(exam.id);
+																		setTopicExams((prev) => ({
+																			...prev,
+																			[topic.id]: (prev[topic.id] ?? []).filter(
+																				(e) => e.id !== exam.id,
+																			),
+																		}));
+																	} finally {
+																		setDeletingExamIds((prev) => {
+																			const next = new Set(prev);
+																			next.delete(exam.id);
+																			return next;
+																		});
+																	}
+																}}
+															>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	title={t("delete") ?? "Delete"}
+																	aria-label={t("delete") ?? "Delete"}
+																	disabled={deletingExamIds.has(exam.id)}
+																	className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																>
+																	{deletingExamIds.has(exam.id) ? (
+																		<Loader2 className="h-4 w-4 animate-spin" />
+																	) : (
+																		<Trash2 className="h-4 w-4" />
+																	)}
+																</Button>
+															</ConfirmDialog>
+														) : null}
+													</div>
 												</div>
 											</div>
 										))}
@@ -284,7 +692,9 @@ export default function CoursePage() {
 				</div>
 			</main>
 
-			<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
+			{authModal ? (
+				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
+			) : null}
 		</div>
 	);
 }
