@@ -64,6 +64,13 @@ pub struct ExamAttemptSchema {
     pub scoring_data: Option<ScoringData>,
 }
 
+#[derive(Serialize, Deserialize, FromRow, ToSchema)]
+pub struct ExamAttemptsListDTO {
+    pub ran_out_of_attempts: bool,
+    pub attempts_left: usize,
+    pub attempts: Vec<ExamAttemptSchema>,
+}
+
 impl From<ExamAttempt> for ExamAttemptSchema {
     fn from(value: ExamAttempt) -> Self {
         Self {

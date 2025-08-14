@@ -1,3 +1,4 @@
+use crate::domain::exam::model::Exam;
 use crate::{
     domain::topics::{model::TopicModel, repository::TopicRepository},
     dto::topics::UpsertTopicRequestDTO,
@@ -5,7 +6,6 @@ use crate::{
     repo,
 };
 use std::sync::Arc;
-use crate::domain::exam::model::Exam;
 
 #[derive(Clone)]
 pub struct TopicService {

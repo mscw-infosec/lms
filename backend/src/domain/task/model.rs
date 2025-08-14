@@ -25,6 +25,7 @@ pub enum TaskType {
     LongText,
     Ordering,
     FileUpload,
+    #[sqlx(rename = "CTFd")]
     CTFd,
 }
 

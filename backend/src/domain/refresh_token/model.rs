@@ -16,6 +16,7 @@ pub struct RefreshTokenData {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct SessionInfo {
     pub jti: Uuid,
+    pub is_current: bool,
     pub device_id: String,
     pub last_used: DateTime<Utc>,
     pub issued_at: DateTime<Utc>,

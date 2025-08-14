@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
 };
 
+use crate::domain::exam::model::Exam;
 use crate::{
     api::topics::TopicsState,
     domain::account::model::UserRole,
@@ -12,7 +13,6 @@ use crate::{
     infrastructure::jwt::AccessTokenClaim,
     utils::ValidatedJson,
 };
-use crate::domain::exam::model::Exam;
 
 /// Retrieves a specific topic by its ID.
 #[utoipa::path(

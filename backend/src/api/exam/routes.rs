@@ -2,7 +2,8 @@ use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::Exam;
 use crate::dto::exam::{
-    CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, TaskAnswerDTO, UpsertExamRequestDTO,
+    CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO,
+    UpsertExamRequestDTO,
 };
 use crate::dto::task::PublicTaskDTO;
 use crate::errors::LMSError;
@@ -11,6 +12,7 @@ use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use std::cmp::max;
 use uuid::Uuid;
 
 /// Create new exam
@@ -296,6 +298,54 @@ pub async fn get_last_attempt(
     }
 
     Ok(Json(attempt))
+}
+
+/// Get user attempts for exam
+#[utoipa::path(
+    get,
+    tag = "Exam",
+    path = "/{exam_id}/attempt/list",
+    params(
+        ("exam_id" = Uuid, Path)
+    ),
+    responses(
+        (status = 200, body = ExamAttemptsListDTO, description = "Successfully got attempts list"),
+        (status = 400, description = "Wrong data format"),
+        (status = 401, description = "No auth data found"),
+        (status = 404, description = "Exam not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+#[allow(clippy::cast_sign_loss)]
+pub async fn get_user_exam_attempts(
+    claims: AccessTokenClaim,
+    Path(exam_id): Path<Uuid>,
+    State(state): State<ExamState>,
+) -> Result<Json<ExamAttemptsListDTO>, LMSError> {
+    let exam: Exam = state.exam_service.get_exam(exam_id).await?;
+    let exam_attempts: Vec<ExamAttempt> = state
+        .exam_service
+        .get_user_attempts(exam_id, claims.sub)
+        .await?;
+    let mut attempts: Vec<ExamAttemptSchema> = exam_attempts
+        .iter()
+        .map(|x| ExamAttemptSchema::from(x.clone()))
+        .collect();
+    for attempt in &mut attempts {
+        if let Some(scoring_data) = attempt.scoring_data.as_mut()
+            && !scoring_data.show_results
+        {
+            attempt.scoring_data = None;
+        }
+    }
+
+    Ok(Json(ExamAttemptsListDTO {
+        attempts_left: max(exam.tries_count as usize - attempts.len(), 0),
+        ran_out_of_attempts: exam.tries_count != 0 && attempts.len() >= exam.tries_count as usize,
+        attempts,
+    }))
 }
 
 /// Get exam tasks (only with active attempt or if exam scores are available or if admin)

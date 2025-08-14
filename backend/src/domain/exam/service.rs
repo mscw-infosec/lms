@@ -66,7 +66,13 @@ impl ExamService {
     }
 
     pub async fn get_user_last_attempt(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        self.repo.get_user_last_attempt(exam_id, user_id).await
+        let exam = self.get_exam(exam_id).await?;
+        let mut attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
+        let () = self
+            .update_attempt_status(i64::from(exam.duration), &mut attempt)
+            .await?;
+
+        Ok(attempt)
     }
 
     pub async fn update_attempts_status(
@@ -75,11 +81,23 @@ impl ExamService {
         attempts: &mut Vec<ExamAttempt>,
     ) -> Result<()> {
         for attempt in attempts {
-            if attempt.active && attempt.started_at + Duration::seconds(exam_duration) < Utc::now()
-            {
-                attempt.active = false;
-                self.repo.stop_attempt(attempt.id).await?;
-            }
+            let () = self.update_attempt_status(exam_duration, attempt).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn update_attempt_status(
+        &self,
+        exam_duration: i64,
+        attempt: &mut ExamAttempt,
+    ) -> Result<()> {
+        if attempt.active
+            && exam_duration != 0
+            && attempt.started_at + Duration::seconds(exam_duration) < Utc::now()
+        {
+            attempt.active = false;
+            let () = self.repo.stop_attempt(attempt.id).await?;
+            let _ = self.score_attempt(attempt.clone()).await?;
         }
         Ok(())
     }
