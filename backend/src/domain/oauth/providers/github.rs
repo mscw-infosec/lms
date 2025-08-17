@@ -43,8 +43,9 @@ impl OAuthProvider for GithubProvider {
     fn url(&self, state: String, code_challenge: String) -> Url {
         let mut url = Url::parse(GITHUB_AUTH_URL).expect("Wrong URL");
         url.query_pairs_mut()
-            .append_pair("response_type", "code")
             .append_pair("client_id", &self.client_id)
+            .append_pair("redirect_uri", &self.callback_url)
+            .append_pair("response_type", "code")
             .append_pair("scope", "read:user user:email")
             .append_pair("state", &state)
             .append_pair("code_challenge", &code_challenge)
