@@ -37,8 +37,9 @@ impl OAuthProvider for YandexProvider {
     fn url(&self, state: String, code_challenge: String) -> Url {
         let mut url = Url::parse(YANDEX_AUTH_URL).expect("Wrong URL");
         url.query_pairs_mut()
-            .append_pair("response_type", "code")
             .append_pair("client_id", &self.client_id)
+            .append_pair("redirect_uri", &self.callback_url)
+            .append_pair("response_type", "code")
             .append_pair("scope", "login:email login:info login:avatar")
             .append_pair("state", &state)
             .append_pair("code_challenge", &code_challenge)
