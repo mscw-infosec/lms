@@ -14,7 +14,7 @@ spec:
         app: lms-frontend
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: yandex-cr-auth
       containers:
         - name: lms-frontend
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"

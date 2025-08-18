@@ -15,7 +15,7 @@ spec:
         app: lms-backend
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: yandex-cr-auth
 
       containers:
         - name: lms-backend
