@@ -38,7 +38,7 @@ spec:
       volumes:
         - name: iam-key
           secret:
-            secretName: lms-backend
+            secretName: lms-backend-iam-key
             items:
                 - key: iam-key
                   path: iam-key
