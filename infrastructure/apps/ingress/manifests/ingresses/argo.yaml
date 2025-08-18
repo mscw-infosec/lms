@@ -4,7 +4,6 @@ metadata:
   name: argocd-ingress
   namespace: argocd
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   rules:
@@ -21,4 +20,4 @@ spec:
   tls:
     - hosts:
         - argocd.infosec.moscow
-      secretName: argocd-server-tls
+      secretName: tls-argocd-infosec-moscow
