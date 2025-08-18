@@ -20,4 +20,4 @@ spec:
   tls:
     - hosts:
         - argocd.infosec.moscow
-      secretName: tls-argocd-infosec-moscow
+      secretName: argocd-server-tls
