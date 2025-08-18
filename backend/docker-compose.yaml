@@ -18,20 +18,6 @@ services:
       timeout: 5s
       retries: 5
 
-  s3:
-    image: quay.io/minio/minio
-    command: server /data --console-address ":9001"
-    ports:
-      - 9000:9000
-      - 9001:9001
-    environment:
-      - MINIO_ROOT_USER=miniouser
-      - MINIO_ROOT_PASSWORD=miniopassword
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
   backend:
     image: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend:0.0.10
     ports:
