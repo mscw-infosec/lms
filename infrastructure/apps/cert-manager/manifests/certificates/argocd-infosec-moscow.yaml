@@ -4,7 +4,7 @@ metadata:
   name: argocd-infosec-moscow
   namespace: argocd
 spec:
-  secretName: tls-argocd-infosec-moscow
+  secretName: argocd-server-tls
 
   commonName: argocd.infosec.moscow
   dnsNames:
