@@ -14,7 +14,7 @@ spec:
         app: lms-landing
     spec:
       imagePullSecrets:
-        - name: ghcr-secret
+        - name: yandex-cr-auth
       containers:
         - name: lms-landing
           image: "{{ .Values.landing.image.repository }}:{{ .Values.landing.image.tag }}"

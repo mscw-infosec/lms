@@ -2,7 +2,7 @@ backend:
   port: 8080
   replicas: 2
   image:
-    repository: ghcr.io/mscw-infosec/lms-backend
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend
     tag: 0.0.11
     pullPolicy: IfNotPresent
 
@@ -10,7 +10,7 @@ frontend:
   port: 3000
   replicas: 4
   image:
-    repository: ghcr.io/mscw-infosec/lms-frontend
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-frontend
     tag: 0.0.2
     pullPolicy: IfNotPresent
 
@@ -18,6 +18,6 @@ landing:
   port: 3000
   replicas: 4
   image:
-    repository: ghcr.io/mscw-infosec/lms-landing
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-landing
     tag: 0.0.1
     pullPolicy: IfNotPresent
