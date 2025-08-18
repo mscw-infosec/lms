@@ -69,22 +69,11 @@ export default function InfoSecAnnualProgram() {
 
 					<div className="ml-auto flex items-center gap-1.5 md:gap-2">
 						<Button
-							variant="outline"
-							size="sm"
-							className="whitespace-nowrap bg-transparent"
-							asChild
-						>
-							<Link href="/login">Вход</Link>
-						</Button>
-						<Button
 							size="sm"
 							className="whitespace-nowrap bg-red-600 hover:bg-red-700"
 							asChild
 						>
-							<Link href="/register">
-								<span className="md:hidden">Рег-я</span>
-								<span className="hidden md:inline">Регистрация</span>
-							</Link>
+							<Link href="https://reg.olimpiada.ru">Вход</Link>
 						</Button>
 					</div>
 				</div>
@@ -108,7 +97,7 @@ export default function InfoSecAnnualProgram() {
 									className="bg-red-600 hover:bg-red-700"
 									asChild
 								>
-									<a href="#apply">Поступить в набор осени 2025</a>
+									<a href="https://reg.olimpiada.ru">Поступить в набор осени 2025</a>
 								</Button>
 								<Button variant="outline" size="lg" asChild>
 									<a href="#admissions">Даты и сроки</a>
@@ -502,10 +491,10 @@ export default function InfoSecAnnualProgram() {
 							className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
 						>
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="/register">Подать заявку</Link>
+								<Link href="https://reg.olimpiada.ru">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
-								<Link href="/login">Уже подали? Входите!</Link>
+								<Link href="https://reg.olimpiada.ru">Уже подали? Входите!</Link>
 							</Button>
 						</div>
 					</div>
@@ -574,7 +563,7 @@ export default function InfoSecAnnualProgram() {
 						</h2>
 						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="/register">Подать заявку</Link>
+								<Link href="https://reg.olimpiada.ru">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
 								<Link href="#curriculum">Программа</Link>

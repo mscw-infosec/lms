@@ -4,9 +4,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-	title: "v0 App",
-	description: "Created with v0",
-	generator: "v0.app",
+	title: "infosec.moscow",
+	description: "Занятия по информационной безопасности для школьников",
 };
 
 export default function RootLayout({
@@ -17,6 +16,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<head>
+				<script defer src="https://umami.justmarfix.ru/script.js" data-website-id="7551edd5-225b-4490-a0b0-6cfb1a6a13d8"></script>
 				<style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};
