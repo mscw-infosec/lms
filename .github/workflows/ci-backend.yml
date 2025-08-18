@@ -2,7 +2,7 @@ name: Run Clippy
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
       - "backend/**"
 
@@ -35,4 +35,3 @@ jobs:
       - name: Run cargo clippy
         working-directory: backend
         run: cargo clippy --no-deps
-
