@@ -6,10 +6,9 @@ metadata:
 spec:
   project: default
   sources:
-    - repoURL: git@github.com:mscw-infosec/lms.git
+    - repoURL: ssh://git@github.com/mscw-infosec/lms.git
       targetRevision: HEAD
-      chart: lms
-      path: infrastructure/charts
+      path: infrastructure/charts/lms
       helm:
         releaseName: lms
 
