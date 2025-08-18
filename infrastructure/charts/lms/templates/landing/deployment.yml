@@ -4,7 +4,7 @@ metadata:
   name: lms-landing
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 4
+  replicas: {{ .Values.landing.replicas }}
   selector:
     matchLabels:
       app: lms-landing

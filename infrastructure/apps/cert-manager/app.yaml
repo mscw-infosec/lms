@@ -11,12 +11,12 @@ spec:
       targetRevision: v1.18.2
       helm:
         releaseName: cert-manager
-        values: |
+        valuesObject:
           crds:
             enabled: true
           extraArgs:
-            - '--dns01-recursive-nameservers-only'
-            - '--dns01-recursive-nameservers=kube-dns.kube-system.svc.cluster.local:53'
+            - "--dns01-recursive-nameservers-only"
+            - "--dns01-recursive-nameservers=kube-dns.kube-system.svc.cluster.local:53"
 
     - repoURL: git@github.com:mscw-infosec/lms.git
       targetRevision: HEAD

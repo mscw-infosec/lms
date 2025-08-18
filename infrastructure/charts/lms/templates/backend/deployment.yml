@@ -4,7 +4,7 @@ metadata:
   name: lms-backend
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 2
+  replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
       app: lms-backend
