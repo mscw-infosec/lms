@@ -10,3 +10,4 @@ data:
   S3_REGION: ru-central1
   S3_BUCKET_NAME: lms-infosec-moscow
   FRONTEND_REDIRECT_URL: https://lms.infosec.moscow/callback
+  IAM_KEY_FILE: /iam/iam-key.json
