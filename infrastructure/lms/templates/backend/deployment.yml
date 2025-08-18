@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lms-backend
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lms-backend
+
+  template:
+    metadata:
+      labels:
+        app: lms-backend
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+
+      containers:
+        - name: lms-backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.backend.port }}"
+          envFrom:
+            - configMapRef:
+                name: lms-backend
+            - secretRef:
+                name: lms-backend
+          volumeMounts:
+            - name: iam-key
+              mountPath: /iam
+              readOnly: true
+
+      volumes:
+        - name: iam-key
+          secret:
+            secretName: lms-backend
+            items:
+                - key: iam-key
+                  path: iam-key

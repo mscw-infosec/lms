@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-infosec-moscow
+  namespace: argocd
+spec:
+  secretName: tls-argocd-infosec-moscow
+
+  commonName: argocd.infosec.moscow
+  dnsNames:
+    - argocd.infosec.moscow
+
+  duration: 2160h
+  renewBefore: 360h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io

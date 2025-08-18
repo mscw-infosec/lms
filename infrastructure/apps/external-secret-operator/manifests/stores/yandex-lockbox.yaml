@@ -1,0 +1,12 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: yandex-lockbox
+spec:
+  provider:
+    yandexlockbox:
+      auth:
+        authorizedKeySecretRef:
+          key: authorized-key
+          name: yc-auth
+          namespace: external-secrets

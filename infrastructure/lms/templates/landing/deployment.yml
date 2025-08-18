@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lms-landing
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: lms-landing
+  template:
+    metadata:
+      labels:
+        app: lms-landing
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: lms-landing
+          image: "{{ .Values.landing.image.repository }}:{{ .Values.landing.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.landing.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.landing.port }}"
