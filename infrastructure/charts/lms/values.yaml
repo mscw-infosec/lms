@@ -1,0 +1,23 @@
+backend:
+  port: 8080
+  replicas: 2
+  image:
+    repository: ghcr.io/mscw-infosec/lms-backend
+    tag: 0.0.11
+    pullPolicy: IfNotPresent
+
+frontend:
+  port: 3000
+  replicas: 4
+  image:
+    repository: ghcr.io/mscw-infosec/lms-frontend
+    tag: 0.0.2
+    pullPolicy: IfNotPresent
+
+landing:
+  port: 3000
+  replicas: 4
+  image:
+    repository: ghcr.io/mscw-infosec/lms-landing
+    tag: 0.0.1
+    pullPolicy: IfNotPresent
