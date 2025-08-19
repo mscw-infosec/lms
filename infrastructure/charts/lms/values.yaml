@@ -11,7 +11,7 @@ frontend:
   replicas: 4
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-frontend
-    tag: 0.0.3
+    tag: 0.0.4
     pullPolicy: IfNotPresent
 
 landing:
