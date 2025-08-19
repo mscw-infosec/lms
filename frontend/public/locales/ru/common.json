@@ -202,5 +202,7 @@
 	"select_attempt": "Выберите попытку",
 	"time_left": "Осталось времени",
 	"no_timer": "Без таймера",
-	"infty_attempts": "бесконечности"
-}
+	"infty_attempts": "бесконечности",
+	"exam_name": "Название экзамена",
+	"exam_description": "Описание"
+ }
