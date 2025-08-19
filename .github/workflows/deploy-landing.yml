@@ -1,18 +1,17 @@
-name: Deploy backend
+name: Deploy landing
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
     paths:
-      - "backend/**"
+      - "landing/**"
 
 jobs:
   deploy:
     runs-on: blacksmith-8vcpu-ubuntu-2404
     env:
-      CARGO_TERM_COLOR: always
-      RUST_VERSION: stable
-      IMAGE_NAME: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend
+      IMAGE_NAME: cr.yandex/crpi7be6fcnum9d5jo38/lms-landing
 
     steps:
       - name: Checkout repository
@@ -33,7 +32,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: backend
+          context: landing
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}

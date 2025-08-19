@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: ingress-nginx
+spec:
+  project: default
+  sources:
+    - repoURL: https://kubernetes.github.io/ingress-nginx
+      chart: ingress-nginx
+      helm:
+        releaseName: ingress-nginx
+        valuesObject:
+          controller:
+            ingressClassResource:
+              default: true
+
+    - repoURL: git@github.com:mscw-infosec/lms.git
+      targetRevision: HEAD
+      path: infrastructure/apps/ingress/manifests
+      directory:
+        recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lms
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

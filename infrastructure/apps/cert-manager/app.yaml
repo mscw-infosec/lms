@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.18.2
+      helm:
+        releaseName: cert-manager
+        valuesObject:
+          crds:
+            enabled: true
+          extraArgs:
+            - "--dns01-recursive-nameservers-only"
+            - "--dns01-recursive-nameservers=kube-dns.kube-system.svc.cluster.local:53"
+
+    - repoURL: git@github.com:mscw-infosec/lms.git
+      targetRevision: HEAD
+      path: infrastructure/apps/cert-manager/manifests
+      directory:
+        recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

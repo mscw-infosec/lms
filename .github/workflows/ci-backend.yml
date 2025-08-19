@@ -1,0 +1,37 @@
+name: Run Clippy
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+
+jobs:
+  clippy:
+    runs-on: blacksmith-8vcpu-ubuntu-2404
+    env:
+      CARGO_TERM_COLOR: always
+      RUST_VERSION: stable
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Restore Cargo cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            backend/target
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-${{ hashFiles('backend/Cargo.lock') }}
+          restore-keys: rust-
+
+      - name: Run cargo clippy
+        working-directory: backend
+        run: cargo clippy --no-deps

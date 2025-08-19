@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: lms-backend
+    namespace: {{ .Release.Namespace }}
+data:
+  GITHUB_CALLBACK_URL: https://lms.infosec.moscow/api/oauth/github/callback
+  YANDEX_CALLBACK_URL: https://lms.infosec.moscow/api/oauth/yandex/callback
+  S3_ENDPOINT: https://storage.yandexcloud.net
+  S3_REGION: ru-central1
+  S3_BUCKET_NAME: lms-infosec-moscow
+  FRONTEND_REDIRECT_URL: https://lms.infosec.moscow/callback
+  IAM_KEY_FILE: /iam/iam-key.json

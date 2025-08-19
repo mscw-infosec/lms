@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lms
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: ssh://git@github.com/mscw-infosec/lms.git
+      targetRevision: HEAD
+      path: infrastructure/charts/lms
+      helm:
+        releaseName: lms
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: lms
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

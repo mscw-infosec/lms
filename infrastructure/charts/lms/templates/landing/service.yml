@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms-landing
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: lms-landing
+  ports:
+    - port: 80
+      targetPort: {{ .Values.landing.port }}
