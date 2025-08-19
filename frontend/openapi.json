@@ -1599,8 +1599,18 @@
 			},
 			"Exam": {
 				"type": "object",
-				"required": ["id", "topic_id", "tries_count", "duration", "type"],
+				"required": [
+					"id",
+					"topic_id",
+					"tries_count",
+					"duration",
+					"name",
+					"type"
+				],
 				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
 					"duration": {
 						"type": "integer",
 						"format": "int32"
@@ -1608,6 +1618,9 @@
 					"id": {
 						"type": "string",
 						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
 					},
 					"topic_id": {
 						"type": "integer",
@@ -2308,11 +2321,17 @@
 			},
 			"UpsertExamRequestDTO": {
 				"type": "object",
-				"required": ["topic_id", "tries_count", "duration", "type"],
+				"required": ["topic_id", "name", "tries_count", "duration", "type"],
 				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
 					"duration": {
 						"type": "integer",
 						"format": "int32"
+					},
+					"name": {
+						"type": "string"
 					},
 					"topic_id": {
 						"type": "integer",

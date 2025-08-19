@@ -606,10 +606,12 @@ export interface components {
             url: string;
         };
         Exam: {
+            description?: string | null;
             /** Format: int32 */
             duration: number;
             /** Format: uuid */
             id: string;
+            name: string;
             /** Format: int32 */
             topic_id: number;
             /** Format: int32 */
@@ -819,8 +821,10 @@ export interface components {
             name: string;
         };
         UpsertExamRequestDTO: {
+            description?: string | null;
             /** Format: int32 */
             duration: number;
+            name: string;
             /** Format: int32 */
             topic_id: number;
             /** Format: int32 */

@@ -357,7 +357,7 @@ export default function TasksPage() {
 													onCheckedChange={(checked) =>
 														toggleSelected(task.id, checked)
 													}
-													className="mr-3 border-slate-600 data-[state=checked]:bg-red-600"
+													className="mr-3 border-slate-200 hover:cursor-pointer data-[state=checked]:bg-red-600"
 												/>
 												{getTaskIcon(task.task_type)}
 												<div>

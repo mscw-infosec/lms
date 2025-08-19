@@ -20,6 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
@@ -34,6 +35,8 @@ type Props = {
 	triggerClassName?: string;
 	onCreatedExam?: (exam: {
 		id: string;
+		name: string;
+		description?: string | null;
 		type: UpsertExamRequestDTO["type"];
 		duration: number;
 		tries_count: number;
@@ -54,6 +57,8 @@ export default function CreateTopicItemDialog({
 	const reset = () => {
 		setKind("lecture");
 		setExamState({
+			name: "",
+			description: "",
 			type: "Instant",
 			duration: 30,
 			tries_count: 1,
@@ -62,6 +67,8 @@ export default function CreateTopicItemDialog({
 	};
 
 	const [examState, setExamState] = useState<UpsertExamRequestDTO>({
+		name: "",
+		description: "",
 		type: "Instant",
 		duration: 30,
 		tries_count: 1,
@@ -69,7 +76,13 @@ export default function CreateTopicItemDialog({
 	});
 
 	const examMutation = useMutation({
-		mutationFn: async () => createExam({ ...examState, topic_id: topicId }),
+		mutationFn: async () =>
+			createExam({
+				...examState,
+				topic_id: topicId,
+
+				duration: Number(examState.duration) * 60,
+			}),
 		onSuccess: (res) => {
 			if (!res?.id) {
 				toast({ description: t("save_failed") || "Failed to save" });
@@ -78,8 +91,11 @@ export default function CreateTopicItemDialog({
 			toast({ description: t("saved_successfully") || "Saved" });
 			onCreatedExam?.({
 				id: String(res.id),
+				name: examState.name,
+				description: examState.description ?? undefined,
 				type: examState.type,
-				duration: examState.duration,
+				// Keep UI list consistent with backend (seconds)
+				duration: Number(examState.duration) * 60,
 				tries_count: examState.tries_count,
 			});
 			setOpen(false);
@@ -90,7 +106,11 @@ export default function CreateTopicItemDialog({
 
 	const canSubmit = () => {
 		if (kind === "exam")
-			return examState.duration >= 0 && examState.tries_count > 0;
+			return (
+				!!String(examState.name ?? "").trim() &&
+				examState.duration >= 0 &&
+				examState.tries_count >= 0
+			);
 		return false;
 	};
 
@@ -145,6 +165,34 @@ export default function CreateTopicItemDialog({
 
 					{kind === "exam" ? (
 						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label className="text-slate-300">
+									{t("exam_name") || "Exam name"}
+								</Label>
+								<Input
+									value={examState.name ?? ""}
+									onChange={(e) =>
+										setExamState((s) => ({ ...s, name: e.target.value }))
+									}
+									placeholder={t("exam_name_placeholder") || "Enter exam name"}
+									className="border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label className="text-slate-300">
+									{t("exam_description") || "Description"}
+								</Label>
+								<Textarea
+									value={(examState.description as string | undefined) ?? ""}
+									onChange={(e) =>
+										setExamState((s) => ({ ...s, description: e.target.value }))
+									}
+									placeholder={
+										t("exam_description_placeholder") || "Optional description"
+									}
+									className="min-h-24 border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 								<div>
 									<Label className="text-slate-300">
@@ -160,8 +208,12 @@ export default function CreateTopicItemDialog({
 											<SelectValue />
 										</SelectTrigger>
 										<SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
-											<SelectItem value="Instant">Instant</SelectItem>
-											<SelectItem value="Delayed">Delayed</SelectItem>
+											<SelectItem value="Instant">
+												{t("exam_type_instant") || "Instant"}
+											</SelectItem>
+											<SelectItem value="Delayed">
+												{t("exam_type_delayed") || "Delayed"}
+											</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -188,6 +240,7 @@ export default function CreateTopicItemDialog({
 									</Label>
 									<Input
 										type="number"
+										min={0}
 										value={examState.tries_count}
 										onChange={(e) =>
 											setExamState((s) => ({

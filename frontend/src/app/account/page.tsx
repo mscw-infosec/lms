@@ -50,7 +50,7 @@ export default function AccountPage() {
 	const sessionsQuery = useQuery<SessionInfo[], Error>({
 		queryKey: ["sessions"],
 		queryFn: getSessions,
-		enabled: !!meQuery.data, // only fetch sessions if user is loaded
+		enabled: !!meQuery.data,
 	});
 
 	const user = meQuery.data ?? null;
@@ -333,7 +333,14 @@ export default function AccountPage() {
 									</div>
 									<div className="text-slate-400 text-sm">{user.email}</div>
 									<div className="mt-1 text-slate-400 text-xs">
-										Role: <span className="text-slate-300">{user.role}</span>
+										{t("role")}:{" "}
+										<span className="text-slate-300">
+											{user.role === "Student"
+												? t("role_student") || "Student"
+												: user.role === "Teacher"
+													? t("role_teacher") || "Teacher"
+													: t("role_admin") || "Admin"}
+										</span>
 									</div>
 								</div>
 							</div>

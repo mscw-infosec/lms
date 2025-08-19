@@ -69,7 +69,12 @@ interface TaskPlayerProps {
 	initial?: number | number[] | string | Record<number, number>;
 }
 
-type AnswerValue = number | number[] | string | Record<number, number>;
+type AnswerValue =
+	| number
+	| number[]
+	| string
+	| string[]
+	| Record<number, number>;
 
 export function TaskPlayer({
 	task,
@@ -83,13 +88,14 @@ export function TaskPlayer({
 	initial,
 }: TaskPlayerProps) {
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
-	const [submitted, setSubmitted] = useState(false);
+	const [canSubmit, setCanSubmit] = useState(true);
 
 	const taskId = hasId(task) ? task.id : undefined;
-	const interactionsLocked = disabled || submitted;
+	const interactionsLocked = disabled;
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: reset when taskId changes intentionally */
 	useEffect(() => {
-		setSubmitted(false);
+		// Reset submit availability when task changes
+		setCanSubmit(true);
 	}, [taskId]);
 
 	useEffect(() => {
@@ -158,25 +164,27 @@ export function TaskPlayer({
 	const handleRadio = (value: string) => {
 		if (interactionsLocked) return;
 		setAnswers((prev) => ({ ...prev, [taskId]: value }));
+		setCanSubmit(true);
 		onProgress?.(taskId, !!value);
-		const idx = Number(value);
-		if (!Number.isNaN(idx)) onAnswer?.({ name: "single_choice", answer: idx });
+		onAnswer?.({ name: "single_choice", answer: value });
 	};
-	const handleCheck = (idx: number, checked: boolean) => {
+	const handleCheck = (opt: string, checked: boolean) => {
 		if (interactionsLocked) return;
 		const currentAnswers = Array.isArray(answers[taskId])
-			? (answers[taskId] as number[])
+			? (answers[taskId] as string[])
 			: [];
 		const nextAnswers = checked
-			? [...currentAnswers, idx]
-			: currentAnswers.filter((i) => i !== idx);
+			? [...currentAnswers, opt]
+			: currentAnswers.filter((i) => i !== opt);
 		setAnswers((prev) => ({ ...prev, [taskId]: nextAnswers }));
+		setCanSubmit(true);
 		onProgress?.(taskId, nextAnswers.length > 0);
 		onAnswer?.({ name: "multiple_choice", answers: nextAnswers });
 	};
 	const handleText = (val: string) => {
 		if (interactionsLocked) return;
 		setAnswers((prev) => ({ ...prev, [taskId]: val }));
+		setCanSubmit(true);
 		onProgress?.(taskId, val.trim().length > 0);
 
 		if (cfgName === "short_text")
@@ -211,7 +219,7 @@ export function TaskPlayer({
 									{cfg.options.map((opt: string, idx: number) => (
 										<div key={opt} className="flex items-center space-x-2">
 											<RadioGroupItem
-												value={String(idx)}
+												value={opt}
 												id={`preview-sc-${idx}`}
 												className="border-slate-600 text-red-600"
 											/>
@@ -327,7 +335,10 @@ export function TaskPlayer({
 							value={
 								typeof answers[taskId] === "string"
 									? (answers[taskId] as string)
-									: undefined
+									: typeof answers[taskId] === "number" &&
+											Array.isArray(cfg?.options)
+										? (cfg?.options?.[answers[taskId] as number] ?? undefined)
+										: undefined
 							}
 							onValueChange={handleRadio}
 						>
@@ -335,7 +346,7 @@ export function TaskPlayer({
 								{cfg.options.map((opt: string, idx: number) => (
 									<div key={opt} className="flex items-center space-x-2">
 										<RadioGroupItem
-											value={String(idx)}
+											value={opt}
 											id={`live-sc-${idx}`}
 											className="border-slate-600 text-red-600"
 										/>
@@ -353,16 +364,30 @@ export function TaskPlayer({
 					{cfgName === "multiple_choice" && Array.isArray(cfg?.options) && (
 						<div className="space-y-3">
 							{cfg.options.map((opt: string, idx: number) => {
-								const selected: number[] = Array.isArray(answers[taskId])
-									? (answers[taskId] as number[])
-									: [];
-								const checked = selected.includes(idx);
+								let selected: string[] = [];
+								const ans = answers[taskId];
+								if (Array.isArray(ans)) {
+									if ((ans as unknown[]).every((v) => typeof v === "string")) {
+										selected = ans as string[];
+									} else if (
+										(ans as unknown[]).every((v) => typeof v === "number")
+									) {
+										selected = (ans as number[])
+											.map((i) =>
+												Array.isArray(cfg?.options)
+													? cfg.options[i]
+													: undefined,
+											)
+											.filter((v): v is string => typeof v === "string");
+									}
+								}
+								const checked = selected.includes(opt);
 								return (
 									<div key={opt} className="flex items-center space-x-2">
 										<Checkbox
 											id={`live-mc-${idx}`}
 											checked={checked}
-											onCheckedChange={(v) => handleCheck(idx, Boolean(v))}
+											onCheckedChange={(v) => handleCheck(opt, Boolean(v))}
 											disabled={interactionsLocked}
 											className="border-slate-600 data-[state=checked]:bg-red-600"
 										/>
@@ -432,26 +457,16 @@ export function TaskPlayer({
 						</div>
 					)}
 					<div className="flex justify-end">
-						{!submitted ? (
-							<Button
-								className="bg-red-600 text-white hover:bg-red-700"
-								onClick={() => {
-									onComplete();
-									setSubmitted(true);
-								}}
-								disabled={disabled}
-							>
-								Submit
-							</Button>
-						) : (
-							<Button
-								variant="outline"
-								disabled
-								className="border-slate-800 text-slate-500"
-							>
-								Submitted
-							</Button>
-						)}
+						<Button
+							className="bg-red-600 text-white hover:bg-red-700"
+							onClick={() => {
+								onComplete();
+								setCanSubmit(false);
+							}}
+							disabled={disabled || !canSubmit}
+						>
+							Submit
+						</Button>
 					</div>
 				</CardContent>
 			</Card>

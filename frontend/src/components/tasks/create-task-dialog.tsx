@@ -93,7 +93,27 @@ export default function CreateTaskDialog({
 						.split("\n")
 						.map((s) => s.trim())
 						.filter(Boolean);
+					if (options.length < 2) {
+						// eslint-disable-next-line no-alert
+						alert(
+							(t("please_provide_at_least_two_options") as string) ||
+								"Please provide at least two options",
+						);
+						return;
+					}
 					const correct = Number(scCorrectInput);
+					if (
+						!Number.isFinite(correct) ||
+						correct < 0 ||
+						correct >= options.length
+					) {
+						// eslint-disable-next-line no-alert
+						alert(
+							(t("correct_index_out_of_range") as string) ||
+								"Correct index is out of range",
+						);
+						return;
+					}
 					config = {
 						name: "single_choice",
 						options,
@@ -107,12 +127,31 @@ export default function CreateTaskDialog({
 						.split("\n")
 						.map((s) => s.trim())
 						.filter(Boolean);
+					if (options.length < 2) {
+						// eslint-disable-next-line no-alert
+						alert(
+							(t("please_provide_at_least_two_options") as string) ||
+								"Please provide at least two options",
+						);
+						return;
+					}
 					const correct = mcCorrect
 						.split(",")
 						.map((s) => s.trim())
 						.filter((s) => s.length > 0)
 						.map((s) => Number(s))
 						.filter((n) => Number.isFinite(n));
+					if (
+						correct.length === 0 ||
+						correct.some((idx) => idx < 0 || idx >= options.length)
+					) {
+						// eslint-disable-next-line no-alert
+						alert(
+							(t("correct_indices_invalid") as string) ||
+								"Correct indices are empty or out of range",
+						);
+						return;
+					}
 					config = {
 						name: "multiple_choice",
 						options,
