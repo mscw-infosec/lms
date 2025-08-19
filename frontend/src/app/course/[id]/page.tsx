@@ -12,6 +12,7 @@ import {
 	deleteExam,
 	getExamTasks,
 	getTopicExams,
+	updateExam,
 	updateExamTasks,
 } from "@/api/exam";
 import type { components } from "@/api/schema/schema";
@@ -134,15 +135,21 @@ export default function CoursePage() {
 	type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
 	type ExamLite = {
 		id: string;
+		name: string;
+		description?: string | null;
 		type: components["schemas"]["UpsertExamRequestDTO"]["type"];
 		duration: number;
 		tries_count: number;
+		topic_id: number;
 		tasks?: PublicTaskDTO[];
 	};
 	const [topicExams, setTopicExams] = useState<Record<number, ExamLite[]>>({});
 	const [deletingExamIds, setDeletingExamIds] = useState<Set<string>>(
 		new Set(),
 	);
+	const [editingExamId, setEditingExamId] = useState<string | null>(null);
+	const [editExamName, setEditExamName] = useState<string>("");
+	const [editExamDescription, setEditExamDescription] = useState<string>("");
 
 	useEffect(() => {
 		async function loadExams() {
@@ -155,9 +162,12 @@ export default function CoursePage() {
 							const simplified = await Promise.all(
 								exams.map(async (e) => ({
 									id: e.id,
+									name: e.name,
+									description: e.description ?? null,
 									type: e.type,
 									duration: e.duration,
 									tries_count: e.tries_count,
+									topic_id: e.topic_id,
 									tasks: await getExamTasks(e.id).catch(() => []),
 								})),
 							);
@@ -196,9 +206,7 @@ export default function CoursePage() {
 				}
 				return copy;
 			});
-		} catch (e) {
-			// best-effort; toast already available at component level if needed
-		}
+		} catch (e) {}
 	};
 
 	useEffect(() => {
@@ -568,13 +576,22 @@ export default function CoursePage() {
 														<CreateTopicItemDialog
 															topicId={topic.id}
 															onCreatedExam={(exam) => {
-																setTopicExams((prev) => ({
-																	...prev,
-																	[topic.id]: [
-																		...(prev[topic.id] ?? []),
-																		{ ...exam },
-																	],
-																}));
+																setTopicExams((prev) => {
+																	const list = prev[topic.id] ?? [];
+																	const nextExam = {
+																		id: exam.id,
+																		name: exam.name,
+																		description: exam.description ?? null,
+																		type: exam.type,
+																		duration: exam.duration,
+																		tries_count: exam.tries_count,
+																		topic_id: topic.id,
+																	} as ExamLite;
+																	return {
+																		...prev,
+																		[topic.id]: [...list, nextExam],
+																	};
+																});
 															}}
 														/>
 														<ConfirmDialog
@@ -609,20 +626,55 @@ export default function CoursePage() {
 										{(topicExams[topic.id] ?? []).map((exam) => (
 											<div key={exam.id} className="space-y-2">
 												<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
-													<div className="flex items-center">
-														<div className="mr-3 h-4 w-4 rounded-full border-2 border-slate-600" />
-														<HelpCircle className="mr-3 h-4 w-4 text-orange-400" />
-														<span className="text-slate-300 text-sm">
-															{t("exam_card", {
-																type: t(
-																	exam.type === "Instant"
-																		? "exam_type_instant"
-																		: "exam_type_delayed",
-																),
-																duration: exam.duration,
-																tries: exam.tries_count,
-															})}
-														</span>
+													<div className="flex items-center gap-3">
+														<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
+														<div>
+															{editingExamId === exam.id ? (
+																<>
+																	<Input
+																		value={editExamName}
+																		onChange={(e) =>
+																			setEditExamName(e.target.value)
+																		}
+																		placeholder={t("exam_name") || "Exam name"}
+																		className="mb-2 max-w-md border-slate-700 bg-slate-900 text-white"
+																	/>
+																	<Textarea
+																		value={editExamDescription}
+																		onChange={(e) =>
+																			setEditExamDescription(e.target.value)
+																		}
+																		placeholder={
+																			t("exam_description") || "Description"
+																		}
+																		className="min-h-20 max-w-2xl border-slate-700 bg-slate-900 text-white"
+																	/>
+																</>
+															) : (
+																<>
+																	<div className="font-medium text-slate-200">
+																		{exam.name || t("exam")}
+																	</div>
+																	<div className="text-slate-400 text-sm">
+																		{exam.description || t("no_description")}
+																	</div>
+																	<div className="mt-1 text-slate-500 text-xs">
+																		{t("exam_card", {
+																			type: t(
+																				exam.type === "Instant"
+																					? "exam_type_instant"
+																					: "exam_type_delayed",
+																			),
+																			duration:
+																				(exam.duration ?? 0) === 0
+																					? t("no_timer") || "No timer"
+																					: `${exam.duration}m`,
+																			tries: exam.tries_count,
+																		})}
+																	</div>
+																</>
+															)}
+														</div>
 													</div>
 													<div className="flex items-center gap-3">
 														{user &&
@@ -635,51 +687,152 @@ export default function CoursePage() {
 														{user &&
 														(user.role === "Teacher" ||
 															user.role === "Admin") ? (
-															<ConfirmDialog
-																title={t("delete") || "Delete"}
-																description={
-																	t("confirm_delete_exam") ||
-																	"Are you sure you want to delete this exam?"
-																}
-																confirmText={t("delete") || "Delete"}
-																cancelText={t("cancel") || "Cancel"}
-																onConfirm={async () => {
-																	setDeletingExamIds((prev) =>
-																		new Set(prev).add(exam.id),
-																	);
-																	try {
-																		await deleteExam(exam.id);
-																		setTopicExams((prev) => ({
-																			...prev,
-																			[topic.id]: (prev[topic.id] ?? []).filter(
-																				(e) => e.id !== exam.id,
-																			),
-																		}));
-																	} finally {
-																		setDeletingExamIds((prev) => {
-																			const next = new Set(prev);
-																			next.delete(exam.id);
-																			return next;
-																		});
-																	}
-																}}
-															>
-																<Button
-																	variant="ghost"
-																	size="icon"
-																	title={t("delete") ?? "Delete"}
-																	aria-label={t("delete") ?? "Delete"}
-																	disabled={deletingExamIds.has(exam.id)}
-																	className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
-																>
-																	{deletingExamIds.has(exam.id) ? (
-																		<Loader2 className="h-4 w-4 animate-spin" />
-																	) : (
-																		<Trash2 className="h-4 w-4" />
-																	)}
-																</Button>
-															</ConfirmDialog>
+															editingExamId === exam.id ? (
+																<>
+																	<Button
+																		size="icon"
+																		title={t("save") ?? "Save"}
+																		aria-label={t("save") ?? "Save"}
+																		onClick={async () => {
+																			const payload = {
+																				name: editExamName.trim(),
+																				description: editExamDescription.trim()
+																					? editExamDescription.trim()
+																					: undefined,
+																				type: exam.type,
+																				duration: exam.duration,
+																				tries_count: exam.tries_count,
+																				topic_id: exam.topic_id,
+																			} as components["schemas"]["UpsertExamRequestDTO"];
+																			try {
+																				await updateExam(exam.id, payload);
+																				setTopicExams((prev) => {
+																					const copy: typeof prev = { ...prev };
+																					const list = copy[topic.id] ?? [];
+																					const idx = list.findIndex(
+																						(e) => e.id === exam.id,
+																					);
+																					if (idx !== -1) {
+																						const next = [...list];
+																						const prev = next[idx];
+																						if (!prev) {
+																							return copy;
+																						}
+																						const updatedExam: ExamLite = {
+																							id: prev.id,
+																							name: payload.name,
+																							description:
+																								payload.description ?? null,
+																							type: prev.type,
+																							duration: prev.duration,
+																							tries_count: prev.tries_count,
+																							topic_id: prev.topic_id,
+																							tasks: prev.tasks,
+																						};
+																						next[idx] = updatedExam;
+																						copy[topic.id] = next;
+																					}
+																					return copy;
+																				});
+																				toast({
+																					description:
+																						t("saved_successfully") || "Saved",
+																				});
+																				setEditingExamId(null);
+																				setEditExamName("");
+																				setEditExamDescription("");
+																			} catch (_) {
+																				toast({
+																					description:
+																						t("save_failed") ||
+																						"Failed to save",
+																				});
+																			}
+																		}}
+																		className="bg-red-600 text-white hover:bg-red-700"
+																	>
+																		<Save className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		variant="ghost"
+																		size="icon"
+																		title={t("cancel") ?? "Cancel"}
+																		aria-label={t("cancel") ?? "Cancel"}
+																		onClick={() => {
+																			setEditingExamId(null);
+																			setEditExamName("");
+																			setEditExamDescription("");
+																		}}
+																		className="text-slate-300 hover:bg-slate-800"
+																	>
+																		<X className="h-4 w-4" />
+																	</Button>
+																</>
+															) : (
+																<>
+																	<Button
+																		variant="ghost"
+																		size="icon"
+																		title={t("edit") ?? "Edit"}
+																		aria-label={t("edit") ?? "Edit"}
+																		onClick={() => {
+																			setEditingExamId(exam.id);
+																			setEditExamName(exam.name ?? "");
+																			setEditExamDescription(
+																				exam.description ?? "",
+																			);
+																		}}
+																		className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
+																	>
+																		<Edit className="h-4 w-4" />
+																	</Button>
+																</>
+															)
 														) : null}
+														<ConfirmDialog
+															title={t("delete") || "Delete"}
+															description={
+																t("confirm_delete_exam") ||
+																"Are you sure you want to delete this exam?"
+															}
+															confirmText={t("delete") || "Delete"}
+															cancelText={t("cancel") || "Cancel"}
+															onConfirm={async () => {
+																setDeletingExamIds((prev) =>
+																	new Set(prev).add(exam.id),
+																);
+																try {
+																	await deleteExam(exam.id);
+																	setTopicExams((prev) => ({
+																		...prev,
+																		[topic.id]: (prev[topic.id] ?? []).filter(
+																			(e) => e.id !== exam.id,
+																		),
+																	}));
+																} finally {
+																	setDeletingExamIds((prev) => {
+																		const next = new Set(prev);
+																		next.delete(exam.id);
+																		return next;
+																	});
+																}
+															}}
+														>
+															<Button
+																variant="ghost"
+																size="icon"
+																title={t("delete") ?? "Delete"}
+																aria-label={t("delete") ?? "Delete"}
+																disabled={deletingExamIds.has(exam.id)}
+																className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+															>
+																{deletingExamIds.has(exam.id) ? (
+																	<Loader2 className="h-4 w-4 animate-spin" />
+																) : (
+																	<Trash2 className="h-4 w-4" />
+																)}
+															</Button>
+														</ConfirmDialog>
 													</div>
 												</div>
 											</div>

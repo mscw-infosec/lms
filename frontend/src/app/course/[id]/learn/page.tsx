@@ -1,7 +1,13 @@
 "use client";
 
 import { getCourseById, getCourseTopics } from "@/api/courses";
-import { type ExamDTO, type PublicTaskDTO, getTopicExams } from "@/api/exam";
+import {
+	type ExamAttempt,
+	type ExamDTO,
+	type PublicTaskDTO,
+	getTopicExams,
+	getUserExamAttempts,
+} from "@/api/exam";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
 import { TaskPlayer } from "@/components/task-player";
@@ -32,7 +38,7 @@ import {
 import { Info } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 type TaskConfig = {
@@ -52,7 +58,11 @@ export default function LearnPage() {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const [selectedExam, setSelectedExam] = useState<ExamDTO | null>(null);
+	const [pendingExam, setPendingExam] = useState<ExamDTO | null>(null);
 	const [reviewMode, setReviewMode] = useState(false);
+	const [selectedReviewAttemptId, setSelectedReviewAttemptId] = useState<
+		string | null
+	>(null);
 
 	const {
 		attempt,
@@ -74,6 +84,9 @@ export default function LearnPage() {
 		ranOut,
 	} = useAttempt(selectedExam?.id ?? null, isStaff, selectedExam?.tries_count);
 
+	const unlimitedAttempts = (selectedExam?.tries_count ?? -1) === 0;
+	const noMoreAttemptsEffective = !unlimitedAttempts && noMoreAttempts;
+
 	const latestAnswersRef = useRef<
 		Record<number, ReturnType<typeof buildTaskAnswer> | null>
 	>({});
@@ -86,12 +99,94 @@ export default function LearnPage() {
 		}
 	};
 
-	const submitAllBuffered = () => {
+	const submitAllBuffered = useCallback(() => {
 		if (!attempt || !attempt.active) return;
 		const entries = Object.entries(latestAnswersRef.current);
 		for (const [key, dto] of entries) {
 			if (dto) patchProgress(dto);
 		}
+	}, [attempt, patchProgress]);
+
+	// ----- Attempt countdown timer and periodic sync -----
+	const [remainingSec, setRemainingSec] = useState<number | null>(null);
+	const finishTriggeredRef = useRef(false);
+
+	const computeRemaining = useMemo(() => {
+		return () => {
+			if (!attempt?.active || !selectedExam?.duration) return null;
+			try {
+				const started = new Date(attempt.started_at).getTime();
+				const endAt = started + Number(selectedExam.duration) * 60_000;
+				const secs = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+				return secs;
+			} catch {
+				return null;
+			}
+		};
+	}, [attempt?.active, attempt?.started_at, selectedExam?.duration]);
+
+	useEffect(() => {
+		finishTriggeredRef.current = false;
+		if (!attempt?.active || !selectedExam?.duration) {
+			setRemainingSec(null);
+			return;
+		}
+		setRemainingSec(computeRemaining());
+		const tick = window.setInterval(() => {
+			setRemainingSec(computeRemaining());
+		}, 1000);
+		return () => {
+			window.clearInterval(tick);
+		};
+	}, [attempt?.active, selectedExam?.duration, computeRemaining]);
+
+	useEffect(() => {
+		if (!attempt?.active) return;
+		const iv = window.setInterval(() => {
+			refresh();
+		}, 60_000);
+		return () => window.clearInterval(iv);
+	}, [attempt?.active, refresh]);
+
+	useEffect(() => {
+		if (!attempt?.active) return;
+		if (
+			typeof remainingSec === "number" &&
+			remainingSec <= 0 &&
+			!finishTriggeredRef.current
+		) {
+			finishTriggeredRef.current = true;
+			(async () => {
+				try {
+					submitAllBuffered();
+					await flushNow();
+				} finally {
+					stop();
+					setTimeout(() => {
+						refresh();
+					}, 300);
+				}
+			})();
+		}
+	}, [
+		attempt?.active,
+		remainingSec,
+		flushNow,
+		stop,
+		refresh,
+		submitAllBuffered,
+	]);
+
+	const formatTime = (secs: number) => {
+		if (!Number.isFinite(secs)) return "--:--";
+		const s = Math.max(0, Math.floor(secs));
+		const h = Math.floor(s / 3600);
+		const m = Math.floor((s % 3600) / 60);
+		const r = s % 60;
+		if (h > 0) {
+			return `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+		}
+		return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
 	};
 
 	const topicsQuery = useQuery({
@@ -101,6 +196,20 @@ export default function LearnPage() {
 			return data.sort((a, b) => a.order_index - b.order_index);
 		},
 		enabled: Number.isFinite(courseId),
+		retry: false,
+	});
+
+	const attemptsListQuery = useQuery({
+		queryKey: [
+			"exam",
+			selectedExam ? String(selectedExam.id) : null,
+			"attempts-list",
+		],
+		queryFn: async () => {
+			if (!selectedExam) throw new Error("no examId");
+			return await getUserExamAttempts(String(selectedExam.id));
+		},
+		enabled: !!selectedExam,
 		retry: false,
 	});
 
@@ -145,6 +254,7 @@ export default function LearnPage() {
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally re-run when selected exam changes */
 	useEffect(() => {
 		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
 	}, [selectedExam?.id]);
 
 	useEffect(() => {
@@ -158,8 +268,32 @@ export default function LearnPage() {
 		}
 	}, [isStaff, attempt?.active]);
 
+	const sortedAttempts: ExamAttempt[] = useMemo(() => {
+		const list = attemptsListQuery.data?.attempts ?? [];
+		return [...list].sort(
+			(a, b) =>
+				new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+		);
+	}, [attemptsListQuery.data?.attempts]);
+
+	useEffect(() => {
+		if (!reviewMode) return;
+		if (!selectedReviewAttemptId && sortedAttempts[0]) {
+			setSelectedReviewAttemptId(String(sortedAttempts[0].id));
+		}
+	}, [reviewMode, selectedReviewAttemptId, sortedAttempts]);
+
+	const reviewAttempt: ExamAttempt | null = useMemo(() => {
+		if (!reviewMode) return null;
+		if (!selectedReviewAttemptId) return null;
+		return (
+			sortedAttempts.find((a) => String(a.id) === selectedReviewAttemptId) ??
+			null
+		);
+	}, [reviewMode, selectedReviewAttemptId, sortedAttempts]);
+
 	const answersByTaskId: Record<number, unknown> = (() => {
-		const a = attempt?.answer_data?.answers;
+		const a = (reviewAttempt ?? attempt)?.answer_data?.answers;
 		if (!a) return {};
 		const out: Record<number, unknown> = {};
 		for (const [k, v] of Object.entries(a)) {
@@ -170,7 +304,7 @@ export default function LearnPage() {
 	})();
 
 	const verdictsByTaskId: Record<number, string | undefined> = (() => {
-		const r = attempt?.scoring_data?.results;
+		const r = (reviewAttempt ?? attempt)?.scoring_data?.results;
 		if (!r) return {};
 		const out: Record<number, string> = {};
 		for (const [k, v] of Object.entries(r)) {
@@ -462,9 +596,7 @@ export default function LearnPage() {
 			try {
 				const dto = buildTaskAnswer(task, payload);
 				latestAnswersRef.current[task.id] = dto;
-			} catch {
-				// ignore mapping errors
-			}
+			} catch {}
 		};
 
 		let initial: unknown = undefined;
@@ -516,6 +648,14 @@ export default function LearnPage() {
 		);
 	}
 
+	useEffect(() => {
+		if ((pendingExam?.id ?? null) === (selectedExam?.id ?? null)) return;
+		const t = window.setTimeout(() => {
+			setSelectedExam(pendingExam ?? null);
+		}, 200);
+		return () => window.clearTimeout(t);
+	}, [pendingExam, selectedExam?.id]);
+
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-200">
 			<Header
@@ -564,9 +704,9 @@ export default function LearnPage() {
 						{/* Button to show course info in main content */}
 						<button
 							type="button"
-							onClick={() => setSelectedExam(null)}
+							onClick={() => setPendingExam(null)}
 							className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-								!selectedExam
+								!(pendingExam ?? selectedExam)
 									? "bg-red-600 text-white"
 									: "text-slate-300 hover:bg-slate-700"
 							}`}
@@ -595,32 +735,48 @@ export default function LearnPage() {
 											type="button"
 											key={exam.id}
 											onClick={() => {
-												setSelectedExam(exam);
+												setPendingExam(exam);
 												if (
 													typeof window !== "undefined" &&
 													window.innerWidth < 640
 												)
 													setSidebarOpen(false);
 											}}
-											className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-												selectedExam?.id === exam.id
+											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
+												(pendingExam ?? selectedExam)?.id === exam.id
 													? "bg-red-600 text-white"
 													: "text-slate-300 hover:bg-slate-700"
 											}`}
 										>
 											<div className="flex flex-1 items-center">
-												<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
-												<span className="truncate text-sm">
-													{t("exam_card", {
-														type: t(
-															exam.type === "Instant"
-																? "exam_type_instant"
-																: "exam_type_delayed",
-														),
-														duration: exam.duration,
-														tries: exam.tries_count,
-													})}
-												</span>
+												<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
+												<div className="min-w-0 overflow-hidden">
+													<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
+														{exam.name}
+													</div>
+													{exam.description ? (
+														<div className="w-full truncate text-ellipsis whitespace-nowrap text-slate-400 text-xs hover:truncate">
+															{exam.description}
+														</div>
+													) : null}
+													<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
+														{t("exam_card", {
+															type: t(
+																exam.type === "Instant"
+																	? "exam_type_instant"
+																	: "exam_type_delayed",
+															),
+															duration:
+																(exam.duration ?? 0) === 0
+																	? t("no_timer") || "No timer"
+																	: `${exam.duration}m`,
+															tries:
+																(exam.tries_count ?? 0) === 0
+																	? t("infty_attempts") || "Infinite attempts"
+																	: `${exam.tries_count}`,
+														})}
+													</div>
+												</div>
 											</div>
 										</button>
 									))}
@@ -658,7 +814,7 @@ export default function LearnPage() {
 							</Link>
 							<h1 className="truncate font-semibold text-sm text-white lg:text-base">
 								{selectedExam
-									? t("exam")
+									? selectedExam.name || t("exam")
 									: (courseQuery.data?.name ?? t("course_structure"))}
 							</h1>
 						</div>
@@ -668,6 +824,37 @@ export default function LearnPage() {
 						(isPreview || attempt?.active) &&
 						!reviewMode ? (
 							<div className="flex flex-shrink-0 items-center space-x-1 lg:space-x-2">
+								{attempt?.active &&
+								remainingSec !== null &&
+								(selectedExam?.duration ?? 0) > 0 ? (
+									<div
+										className={`hidden items-center rounded-md border px-2 py-1 text-xs sm:flex lg:text-sm ${
+											remainingSec <= 30
+												? "border-red-600 text-red-400"
+												: remainingSec <= 120
+													? "border-amber-600 text-amber-400"
+													: "border-slate-700 text-slate-300"
+										}`}
+										title={t("time_left") || "Time left"}
+									>
+										<span className="mr-1 opacity-80">
+											{t("time_left") || "Time left"}:
+										</span>
+										<span className="font-mono">
+											{formatTime(remainingSec)}
+										</span>
+									</div>
+								) : null}
+								{attempt?.active && (selectedExam?.duration ?? 0) === 0 ? (
+									<div
+										className="hidden items-center rounded-md border border-slate-700 px-2 py-1 text-slate-300 text-xs sm:flex lg:text-sm"
+										title={t("no_timer") || "No timer"}
+									>
+										<span className="font-mono">
+											{t("no_timer") || "No timer"}
+										</span>
+									</div>
+								) : null}
 								<Button
 									variant="outline"
 									size="sm"
@@ -684,7 +871,6 @@ export default function LearnPage() {
 									size="sm"
 									disabled={!canNext}
 									onClick={() => {
-										// Submit current task before navigating via header Next
 										const cur = tasks[taskIndex];
 										if (cur) submitBufferedForTask(cur.id);
 										setTaskIndex(Math.min(tasks.length - 1, taskIndex + 1));
@@ -762,10 +948,44 @@ export default function LearnPage() {
 									{t("select_exam") ?? "Select an exam from the left"}
 								</div>
 							</div>
-						) : !isStaff && noMoreAttempts && !reviewMode ? (
+						) : !isStaff && !reviewMode && loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">
+									<div className="h-5 w-40 animate-pulse rounded bg-slate-800" />
+									<div className="h-4 w-72 animate-pulse rounded bg-slate-800" />
+								</CardContent>
+							</Card>
+						) : !isStaff && noMoreAttemptsEffective && !reviewMode ? (
+							<Card className="border-slate-800 bg-slate-900">
+								<CardContent className="space-y-3 p-6">
+									<div className="mb-2">
+										<h2 className="font-semibold text-lg text-white">
+											{selectedExam.name}
+										</h2>
+										{selectedExam.description ? (
+											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
+												{selectedExam.description}
+											</p>
+										) : null}
+									</div>
 									<div className="text-slate-300">
+										{t("exam_card", {
+											type: t(
+												selectedExam.type === "Instant"
+													? "exam_type_instant"
+													: "exam_type_delayed",
+											),
+											duration:
+												(selectedExam.duration ?? 0) === 0
+													? t("no_timer") || "No timer"
+													: `${selectedExam.duration}m`,
+											tries:
+												(selectedExam.tries_count ?? 0) === 0
+													? t("infty_attempts") || "Infinite attempts"
+													: `${selectedExam.tries_count}`,
+										})}
+									</div>
+									<div className="text-slate-400 text-sm">
 										{t("no_attempts_left") ||
 											"You have no attempts left for this exam."}
 									</div>
@@ -776,7 +996,7 @@ export default function LearnPage() {
 												onClick={() => setReviewMode(true)}
 												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 											>
-												{t("watch_last_attempt") ?? "Watch last attempt"}
+												{t("watch_attempts") ?? "Watch attempts"}
 											</Button>
 										</div>
 									) : null}
@@ -784,10 +1004,21 @@ export default function LearnPage() {
 							</Card>
 						) : !isStaff &&
 							(!attempt || !attempt.active) &&
-							!noMoreAttempts &&
-							!reviewMode ? (
+							!noMoreAttemptsEffective &&
+							!reviewMode &&
+							!loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="p-6">
+									<div className="mb-3">
+										<h2 className="font-semibold text-lg text-white">
+											{selectedExam.name}
+										</h2>
+										{selectedExam.description ? (
+											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
+												{selectedExam.description}
+											</p>
+										) : null}
+									</div>
 									<div className="mb-3 text-slate-300">
 										{t("exam_card", {
 											type: t(
@@ -795,12 +1026,18 @@ export default function LearnPage() {
 													? "exam_type_instant"
 													: "exam_type_delayed",
 											),
-											duration: selectedExam.duration,
-											tries: selectedExam.tries_count,
+											duration:
+												(selectedExam.duration ?? 0) === 0
+													? t("no_timer") || "No timer"
+													: `${selectedExam.duration}m`,
+											tries:
+												(selectedExam.tries_count ?? 0) === 0
+													? t("infty_attempts") || "Infinite attempts"
+													: `${selectedExam.tries_count}`,
 										})}
 									</div>
 									<div className="flex items-center gap-2">
-										{noMoreAttempts ? (
+										{noMoreAttemptsEffective ? (
 											<div className="text-slate-400 text-sm">
 												{t("no_attempts_left") ||
 													"You have no attempts left for this exam."}
@@ -808,8 +1045,8 @@ export default function LearnPage() {
 										) : (
 											<Button
 												onClick={handleStart}
-												disabled={starting}
-												className="bg-red-600 text-white hover:bg-red-700"
+												disabled={starting || loading}
+												className="!transition-none !duration-0 bg-red-600 text-white hover:bg-red-700"
 											>
 												<Play className="mr-2 h-4 w-4" />
 												{t("start_exam") ?? "Start attempt"}
@@ -824,7 +1061,7 @@ export default function LearnPage() {
 												onClick={() => setReviewMode(true)}
 												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 											>
-												{t("watch_last_attempt") ?? "Watch last attempt"}
+												{t("watch_attempts") ?? "Watch attempts"}
 											</Button>
 										) : null}
 									</div>
@@ -854,7 +1091,7 @@ export default function LearnPage() {
 												onClick={() => setReviewMode(true)}
 												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 											>
-												{t("watch_last_attempt") ?? "Watch last attempt"}
+												{t("watch_attempts") ?? "Watch attempts"}
 											</Button>
 										) : null}
 									</div>
@@ -862,6 +1099,45 @@ export default function LearnPage() {
 
 								{reviewMode ? (
 									<div className="space-y-4">
+										<div className="flex items-center gap-2">
+											<Button
+												variant="outline"
+												onClick={() => setReviewMode(false)}
+												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+											>
+												{t("back") ?? "Back"}
+											</Button>
+										</div>
+										{/* Attempt selector for review mode */}
+										{sortedAttempts.length > 0 ? (
+											<div className="flex flex-wrap items-center gap-2 text-sm">
+												<label
+													className="text-slate-300"
+													htmlFor="reviewAttemptSelect"
+												>
+													{t("select_attempt") ?? "Select attempt"}:
+												</label>
+												<select
+													id="reviewAttemptSelect"
+													className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200"
+													value={
+														selectedReviewAttemptId ??
+														(sortedAttempts[0]
+															? String(sortedAttempts[0].id)
+															: "")
+													}
+													onChange={(e) =>
+														setSelectedReviewAttemptId(e.target.value)
+													}
+												>
+													{sortedAttempts.map((a) => (
+														<option key={a.id} value={String(a.id)}>
+															{new Date(a.started_at).toLocaleString()}
+														</option>
+													))}
+												</select>
+											</div>
+										) : null}
 										{tasks.length === 0 ? (
 											<div className="text-slate-400 text-sm">
 												{t("no_tasks_attached") ?? "No tasks attached yet."}

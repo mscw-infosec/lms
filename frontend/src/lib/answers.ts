@@ -4,8 +4,8 @@ import type { components } from "@/api/schema/schema";
 export type TaskAnswerDTO = components["schemas"]["TaskAnswerDTO"];
 
 export type UiAnswerPayload =
-	| { name: "single_choice"; answer: number }
-	| { name: "multiple_choice"; answers: number[] }
+	| { name: "single_choice"; answer: string }
+	| { name: "multiple_choice"; answers: string[] }
 	| { name: "short_text"; answer: string }
 	| { name: "long_text"; answer: string }
 	| { name: "ordering"; answer: number[] }
