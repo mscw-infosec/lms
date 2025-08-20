@@ -189,9 +189,7 @@ export default function CoursePage() {
 					}),
 				);
 				setTopicExams(Object.fromEntries(entries));
-			} catch (_) {
-				// noop; UI will show empty state
-			}
+			} catch (_) {}
 		}
 		loadExams();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -240,7 +238,6 @@ export default function CoursePage() {
 		},
 		onError: (err: unknown) => {
 			toast({ description: t("save_failed") || "Failed to save" });
-			// keep editing state
 		},
 	});
 

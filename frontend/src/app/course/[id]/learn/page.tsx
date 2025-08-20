@@ -91,13 +91,10 @@ export default function LearnPage() {
 		Record<number, ReturnType<typeof buildTaskAnswer> | null>
 	>({});
 
-	// Track tasks explicitly submitted by the user in the current running attempt
 	const [submittedIds, setSubmittedIds] = useState<Set<number>>(new Set());
 
-	// Reset submitted markers based on current attempt answers
 	useEffect(() => {
 		const next = new Set<number>();
-		// Pre-fill from existing answers in the currently visible (active) attempt
 		try {
 			const answers = attempt?.answer_data?.answers;
 			if (answers && typeof answers === "object") {
@@ -109,9 +106,6 @@ export default function LearnPage() {
 		} catch {}
 		setSubmittedIds(next);
 	}, [attempt?.answer_data?.answers]);
-
-	// Clear local buffered answers whenever exam changes
-	// moved into the selectedExam change effect below
 
 	const submitBufferedForTask = (taskId: number) => {
 		if (!attempt || !attempt.active) return;
@@ -278,7 +272,6 @@ export default function LearnPage() {
 	useEffect(() => {
 		setReviewMode(false);
 		setSelectedReviewAttemptId(null);
-		// Also clear local buffer when exam changes
 		latestAnswersRef.current = {};
 	}, [selectedExam?.id]);
 
@@ -420,8 +413,7 @@ export default function LearnPage() {
 									}
 								}
 							}
-							// If server didn't provide correct index but verdict is full_score,
-							// treat the selected option as the correct one for highlighting
+
 							const effectiveCorrectIdx: number | undefined =
 								typeof correctIdx === "number"
 									? correctIdx
@@ -689,7 +681,6 @@ export default function LearnPage() {
 				| undefined;
 			if (cfgName === "single_choice") {
 				const v = src?.answer;
-				// Keep numeric indices as numbers; keep label strings as strings
 				if (typeof v === "number") {
 					initial = v;
 				} else if (typeof v === "string") {
@@ -702,7 +693,7 @@ export default function LearnPage() {
 					) {
 						initial = maybeNum;
 					} else {
-						initial = v; // treat as label
+						initial = v;
 					}
 				}
 			} else if (cfgName === "multiple_choice") {
@@ -724,12 +715,11 @@ export default function LearnPage() {
 						) {
 							numIndices.push(maybeNum);
 						} else if (x && (!Array.isArray(opts) || opts.includes(x))) {
-							// Keep as label if it's non-empty and either options are not defined or label exists in options
 							strLabels.push(x);
 						}
 					}
 				}
-				// Prefer labels if provided; otherwise use numeric indices
+
 				if (strLabels.length > 0) initial = strLabels;
 				else if (numIndices.length > 0) initial = numIndices;
 			} else if (cfgName === "short_text" || cfgName === "long_text") {
@@ -970,11 +960,9 @@ export default function LearnPage() {
 										variant="ghost"
 										size="sm"
 										onClick={async () => {
-											// Best-effort submit all buffered answers, then stop attempt
 											submitAllBuffered();
 											await flushNow();
 											stop();
-											// Nudge data to refresh shortly after stop kicks off
 											setTimeout(() => {
 												refresh();
 											}, 300);
