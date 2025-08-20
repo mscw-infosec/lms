@@ -240,6 +240,8 @@ export function TaskPlayer({
 									<div key={opt} className="flex items-center space-x-2">
 										<Checkbox
 											id={`preview-mc-${idx}`}
+											disabled
+											checked={false}
 											className="border-slate-600 data-[state=checked]:bg-red-600"
 										/>
 										<Label

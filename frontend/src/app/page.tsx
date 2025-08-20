@@ -63,9 +63,7 @@ export default function HomePage() {
 			<main className="container mx-auto px-4 py-8">
 				<div className="mb-8">
 					<div className="mb-4 flex items-center justify-between">
-						<h1 className="font-bold text-4xl text-white">
-							{t("main_heading")}
-						</h1>
+						<h1 className="font-bold text-4xl text-white">Курсы</h1>
 						{canCreateCourse && (
 							<Link href="/courses/new">
 								<Button className="bg-red-600 text-white hover:bg-red-700">
@@ -75,9 +73,7 @@ export default function HomePage() {
 							</Link>
 						)}
 					</div>
-					<p className="max-w-2xl text-slate-300 text-xl">
-						{t("main_subheading")}
-					</p>
+					{/* Removed subheading to get rid of the old "освойте ИБ" text */}
 				</div>
 
 				{/* Auth loading state */}

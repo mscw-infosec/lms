@@ -36,6 +36,13 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -44,7 +51,6 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	BookOpen,
 	ChevronDown,
-	Clock,
 	Edit,
 	HelpCircle,
 	Home,
@@ -148,8 +154,13 @@ export default function CoursePage() {
 		new Set(),
 	);
 	const [editingExamId, setEditingExamId] = useState<string | null>(null);
+	const [editingExamTopicId, setEditingExamTopicId] = useState<number | null>(
+		null,
+	);
 	const [editExamName, setEditExamName] = useState<string>("");
 	const [editExamDescription, setEditExamDescription] = useState<string>("");
+	const [editExamDuration, setEditExamDuration] = useState<number>(0);
+	const [editExamTries, setEditExamTries] = useState<number>(1);
 
 	useEffect(() => {
 		async function loadExams() {
@@ -364,12 +375,6 @@ export default function CoursePage() {
 										/>
 									</div>
 								)}
-								<div className="mb-4 flex items-center gap-4 text-slate-400 text-sm">
-									<div className="flex items-center">
-										<Clock className="mr-1 h-3 w-3" />
-										{new Date(courseQuery.data.created_at).toLocaleDateString()}
-									</div>
-								</div>
 								<Link href={`/course/${courseId}/learn`}>
 									<Button
 										size="default"
@@ -424,15 +429,6 @@ export default function CoursePage() {
 											/>
 										)}
 									</div>
-									<div className="mb-6 flex items-center gap-6 text-slate-400">
-										<div className="flex items-center">
-											<Clock className="mr-2 h-4 w-4" />
-											{new Date(
-												courseQuery.data.created_at,
-											).toLocaleDateString()}
-										</div>
-									</div>
-
 									<Link href={`/course/${courseId}/learn`}>
 										<Button
 											size="lg"
@@ -629,51 +625,28 @@ export default function CoursePage() {
 													<div className="flex items-center gap-3">
 														<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
 														<div>
-															{editingExamId === exam.id ? (
-																<>
-																	<Input
-																		value={editExamName}
-																		onChange={(e) =>
-																			setEditExamName(e.target.value)
-																		}
-																		placeholder={t("exam_name") || "Exam name"}
-																		className="mb-2 max-w-md border-slate-700 bg-slate-900 text-white"
-																	/>
-																	<Textarea
-																		value={editExamDescription}
-																		onChange={(e) =>
-																			setEditExamDescription(e.target.value)
-																		}
-																		placeholder={
-																			t("exam_description") || "Description"
-																		}
-																		className="min-h-20 max-w-2xl border-slate-700 bg-slate-900 text-white"
-																	/>
-																</>
-															) : (
-																<>
-																	<div className="font-medium text-slate-200">
-																		{exam.name || t("exam")}
-																	</div>
-																	<div className="text-slate-400 text-sm">
-																		{exam.description || t("no_description")}
-																	</div>
-																	<div className="mt-1 text-slate-500 text-xs">
-																		{t("exam_card", {
-																			type: t(
-																				exam.type === "Instant"
-																					? "exam_type_instant"
-																					: "exam_type_delayed",
-																			),
-																			duration:
-																				(exam.duration ?? 0) === 0
-																					? t("no_timer") || "No timer"
-																					: `${exam.duration}m`,
-																			tries: exam.tries_count,
-																		})}
-																	</div>
-																</>
-															)}
+															<>
+																<div className="font-medium text-slate-200">
+																	{exam.name || t("exam")}
+																</div>
+																<div className="text-slate-400 text-sm">
+																	{exam.description || t("no_description")}
+																</div>
+																<div className="mt-1 text-slate-500 text-xs">
+																	{t("exam_card", {
+																		type: t(
+																			exam.type === "Instant"
+																				? "exam_type_instant"
+																				: "exam_type_delayed",
+																		),
+																		duration:
+																			(exam.duration ?? 0) === 0
+																				? t("no_timer") || "No timer"
+																				: `${exam.duration}m`,
+																		tries: exam.tries_count,
+																	})}
+																</div>
+															</>
 														</div>
 													</div>
 													<div className="flex items-center gap-3">
@@ -687,88 +660,7 @@ export default function CoursePage() {
 														{user &&
 														(user.role === "Teacher" ||
 															user.role === "Admin") ? (
-															editingExamId === exam.id ? (
-																<>
-																	<Button
-																		size="icon"
-																		title={t("save") ?? "Save"}
-																		aria-label={t("save") ?? "Save"}
-																		onClick={async () => {
-																			const payload = {
-																				name: editExamName.trim(),
-																				description: editExamDescription.trim()
-																					? editExamDescription.trim()
-																					: undefined,
-																				type: exam.type,
-																				duration: exam.duration,
-																				tries_count: exam.tries_count,
-																				topic_id: exam.topic_id,
-																			} as components["schemas"]["UpsertExamRequestDTO"];
-																			try {
-																				await updateExam(exam.id, payload);
-																				setTopicExams((prev) => {
-																					const copy: typeof prev = { ...prev };
-																					const list = copy[topic.id] ?? [];
-																					const idx = list.findIndex(
-																						(e) => e.id === exam.id,
-																					);
-																					if (idx !== -1) {
-																						const next = [...list];
-																						const prev = next[idx];
-																						if (!prev) {
-																							return copy;
-																						}
-																						const updatedExam: ExamLite = {
-																							id: prev.id,
-																							name: payload.name,
-																							description:
-																								payload.description ?? null,
-																							type: prev.type,
-																							duration: prev.duration,
-																							tries_count: prev.tries_count,
-																							topic_id: prev.topic_id,
-																							tasks: prev.tasks,
-																						};
-																						next[idx] = updatedExam;
-																						copy[topic.id] = next;
-																					}
-																					return copy;
-																				});
-																				toast({
-																					description:
-																						t("saved_successfully") || "Saved",
-																				});
-																				setEditingExamId(null);
-																				setEditExamName("");
-																				setEditExamDescription("");
-																			} catch (_) {
-																				toast({
-																					description:
-																						t("save_failed") ||
-																						"Failed to save",
-																				});
-																			}
-																		}}
-																		className="bg-red-600 text-white hover:bg-red-700"
-																	>
-																		<Save className="h-4 w-4" />
-																	</Button>
-																	<Button
-																		variant="ghost"
-																		size="icon"
-																		title={t("cancel") ?? "Cancel"}
-																		aria-label={t("cancel") ?? "Cancel"}
-																		onClick={() => {
-																			setEditingExamId(null);
-																			setEditExamName("");
-																			setEditExamDescription("");
-																		}}
-																		className="text-slate-300 hover:bg-slate-800"
-																	>
-																		<X className="h-4 w-4" />
-																	</Button>
-																</>
-															) : (
+															editingExamId === exam.id ? null : (
 																<>
 																	<Button
 																		variant="ghost"
@@ -777,10 +669,13 @@ export default function CoursePage() {
 																		aria-label={t("edit") ?? "Edit"}
 																		onClick={() => {
 																			setEditingExamId(exam.id);
+																			setEditingExamTopicId(topic.id);
 																			setEditExamName(exam.name ?? "");
 																			setEditExamDescription(
 																				exam.description ?? "",
 																			);
+																			setEditExamDuration(exam.duration ?? 0);
+																			setEditExamTries(exam.tries_count ?? 1);
 																		}}
 																		className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
 																	>
@@ -789,50 +684,52 @@ export default function CoursePage() {
 																</>
 															)
 														) : null}
-														<ConfirmDialog
-															title={t("delete") || "Delete"}
-															description={
-																t("confirm_delete_exam") ||
-																"Are you sure you want to delete this exam?"
-															}
-															confirmText={t("delete") || "Delete"}
-															cancelText={t("cancel") || "Cancel"}
-															onConfirm={async () => {
-																setDeletingExamIds((prev) =>
-																	new Set(prev).add(exam.id),
-																);
-																try {
-																	await deleteExam(exam.id);
-																	setTopicExams((prev) => ({
-																		...prev,
-																		[topic.id]: (prev[topic.id] ?? []).filter(
-																			(e) => e.id !== exam.id,
-																		),
-																	}));
-																} finally {
-																	setDeletingExamIds((prev) => {
-																		const next = new Set(prev);
-																		next.delete(exam.id);
-																		return next;
-																	});
+														{canEdit ? (
+															<ConfirmDialog
+																title={t("delete") || "Delete"}
+																description={
+																	t("confirm_delete_exam") ||
+																	"Are you sure you want to delete this exam?"
 																}
-															}}
-														>
-															<Button
-																variant="ghost"
-																size="icon"
-																title={t("delete") ?? "Delete"}
-																aria-label={t("delete") ?? "Delete"}
-																disabled={deletingExamIds.has(exam.id)}
-																className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																confirmText={t("delete") || "Delete"}
+																cancelText={t("cancel") || "Cancel"}
+																onConfirm={async () => {
+																	setDeletingExamIds((prev) =>
+																		new Set(prev).add(exam.id),
+																	);
+																	try {
+																		await deleteExam(exam.id);
+																		setTopicExams((prev) => ({
+																			...prev,
+																			[topic.id]: (prev[topic.id] ?? []).filter(
+																				(e) => e.id !== exam.id,
+																			),
+																		}));
+																	} finally {
+																		setDeletingExamIds((prev) => {
+																			const next = new Set(prev);
+																			next.delete(exam.id);
+																			return next;
+																		});
+																	}
+																}}
 															>
-																{deletingExamIds.has(exam.id) ? (
-																	<Loader2 className="h-4 w-4 animate-spin" />
-																) : (
-																	<Trash2 className="h-4 w-4" />
-																)}
-															</Button>
-														</ConfirmDialog>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	title={t("delete") ?? "Delete"}
+																	aria-label={t("delete") ?? "Delete"}
+																	disabled={deletingExamIds.has(exam.id)}
+																	className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																>
+																	{deletingExamIds.has(exam.id) ? (
+																		<Loader2 className="h-4 w-4 animate-spin" />
+																	) : (
+																		<Trash2 className="h-4 w-4" />
+																	)}
+																</Button>
+															</ConfirmDialog>
+														) : null}
 													</div>
 												</div>
 											</div>
@@ -844,6 +741,152 @@ export default function CoursePage() {
 					</Card>
 				</div>
 			</main>
+
+			{/* Centralized Exam Edit Dialog */}
+			<Dialog
+				open={!!editingExamId}
+				onOpenChange={(open) => {
+					if (!open) {
+						setEditingExamId(null);
+						setEditingExamTopicId(null);
+						setEditExamName("");
+						setEditExamDescription("");
+						setEditExamDuration(0);
+						setEditExamTries(1);
+					}
+				}}
+			>
+				<DialogContent className="border-slate-800 bg-slate-900">
+					<DialogHeader>
+						<DialogTitle>{t("edit_exam") || "Edit exam"}</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-3 text-slate-200">
+						<Input
+							value={editExamName}
+							onChange={(e) => setEditExamName(e.target.value)}
+							placeholder={t("exam_name") || "Exam name"}
+							className="border-slate-700 bg-slate-800 text-white"
+						/>
+						<Textarea
+							value={editExamDescription}
+							onChange={(e) => setEditExamDescription(e.target.value)}
+							placeholder={t("exam_description") || "Description"}
+							className="min-h-20 border-slate-700 bg-slate-800 text-white"
+						/>
+						<div className="mt-2 flex flex-wrap gap-3 text-slate-300">
+							<div className="flex items-center gap-2">
+								<label
+									htmlFor="edit-exam-duration"
+									className="text-sm opacity-80"
+								>
+									{t("exam_duration") || "Duration (seconds)"}
+								</label>
+								<Input
+									id="edit-exam-duration"
+									type="number"
+									min={0}
+									value={
+										Number.isFinite(editExamDuration) ? editExamDuration : 0
+									}
+									onChange={(e) => setEditExamDuration(Number(e.target.value))}
+									className="w-32 border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+							<div className="flex items-center gap-2">
+								<label htmlFor="edit-exam-tries" className="text-sm opacity-80">
+									{t("exam_tries") || "Attempts"}
+								</label>
+								<Input
+									id="edit-exam-tries"
+									type="number"
+									min={1}
+									value={Number.isFinite(editExamTries) ? editExamTries : 1}
+									onChange={(e) => setEditExamTries(Number(e.target.value))}
+									className="w-28 border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+						</div>
+						<DialogFooter>
+							<div className="flex w-full justify-end gap-2 pt-2">
+								<Button
+									variant="ghost"
+									onClick={() => {
+										setEditingExamId(null);
+										setEditingExamTopicId(null);
+										setEditExamName("");
+										setEditExamDescription("");
+										setEditExamDuration(0);
+										setEditExamTries(1);
+									}}
+									className="text-slate-300 hover:bg-slate-800"
+								>
+									{t("cancel") ?? "Cancel"}
+								</Button>
+								<Button
+									onClick={async () => {
+										if (!editingExamId || editingExamTopicId == null) return;
+										const list = topicExams[editingExamTopicId] ?? [];
+										const prevExam = list.find((e) => e.id === editingExamId);
+										if (!prevExam) return;
+										const payload = {
+											name: editExamName.trim(),
+											description: editExamDescription.trim()
+												? editExamDescription.trim()
+												: undefined,
+											type: prevExam.type,
+											duration: Number(editExamDuration) || 0,
+											tries_count: Number(editExamTries) || 1,
+											topic_id: prevExam.topic_id,
+										} as components["schemas"]["UpsertExamRequestDTO"];
+										try {
+											await updateExam(editingExamId, payload);
+											setTopicExams((prev) => {
+												const copy: typeof prev = { ...prev };
+												const tl = copy[editingExamTopicId] ?? [];
+												const idx = tl.findIndex((e) => e.id === editingExamId);
+												if (idx !== -1) {
+													const next = [...tl];
+													const curr = next[idx];
+													if (!curr) return copy;
+													const updatedExam: ExamLite = {
+														id: curr.id,
+														name: payload.name,
+														description: payload.description ?? null,
+														type: curr.type,
+														duration: payload.duration,
+														tries_count: payload.tries_count,
+														topic_id: curr.topic_id,
+														tasks: curr.tasks,
+													};
+													next[idx] = updatedExam;
+													copy[editingExamTopicId] = next;
+												}
+												return copy;
+											});
+											toast({
+												description: t("saved_successfully") || "Saved",
+											});
+											setEditingExamId(null);
+											setEditingExamTopicId(null);
+											setEditExamName("");
+											setEditExamDescription("");
+											setEditExamDuration(0);
+											setEditExamTries(1);
+										} catch (_) {
+											toast({
+												description: t("save_failed") || "Failed to save",
+											});
+										}
+									}}
+									className="bg-red-600 text-white hover:bg-red-700"
+								>
+									{t("save") ?? "Save"}
+								</Button>
+							</div>
+						</DialogFooter>
+					</div>
+				</DialogContent>
+			</Dialog>
 
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
