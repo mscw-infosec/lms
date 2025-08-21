@@ -64,7 +64,7 @@ pub async fn get_by_id(
     claims: AccessTokenClaim,
     State(state): State<TaskState>,
     Path(task_id): Path<i32>,
-) -> Result<Json<Task>, LMSError> {
+) -> Result<Json<PublicTaskDTO>, LMSError> {
     // TODO: ACL for tasks (owners + hidden tasks)
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
@@ -83,6 +83,38 @@ pub async fn get_by_id(
         }
         _ => {}
     }
+    Ok(Json(task.into()))
+}
+
+/// Get task by id (admin view)
+#[utoipa::path(
+    get,
+    tag = "Task",
+    path = "/{task_id}/admin",
+    params(
+        ("task_id" = i32, Path)
+    ),
+    responses(
+        (status = 200, body = Task, description = "Found task"),
+        (status = 401, description = "No auth data found"),
+        (status = 404, description = "Task not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn get_by_id_admin(
+    claims: AccessTokenClaim,
+    State(state): State<TaskState>,
+    Path(task_id): Path<i32>,
+) -> Result<Json<Task>, LMSError> {
+    // TODO: ACL for tasks (owners + hidden tasks)
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden(
+            "Students can't access task from catalogue".to_string(),
+        ));
+    }
+    let task = state.task_service.get_task(task_id).await?;
     Ok(Json(task))
 }
 

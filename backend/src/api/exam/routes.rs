@@ -13,7 +13,10 @@ use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use std::cmp::max;
+use rand::prelude::SliceRandom;
+use rand::rng;
 use uuid::Uuid;
+use crate::domain::task::model::TaskConfig;
 
 /// Create new exam
 #[utoipa::path(
@@ -382,7 +385,18 @@ pub async fn get_tasks(
     {
         let mut public_tasks: Vec<PublicTaskDTO> = Vec::new();
         let tasks = state.exam_service.get_tasks(exam_id).await?;
-        for task in tasks {
+        for mut task in tasks {
+            match &mut task.configuration {
+                TaskConfig::SingleChoice {
+                    options, shuffle, ..
+                }
+                | TaskConfig::MultipleChoice {
+                    options, shuffle, ..
+                } if *shuffle => {
+                    options.shuffle(&mut rng());
+                }
+                _ => {}
+            }
             public_tasks.push(task.into());
         }
         return Ok(Json(public_tasks));
