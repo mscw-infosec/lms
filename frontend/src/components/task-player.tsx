@@ -12,6 +12,7 @@ import {
 	CircleDot,
 	FileText,
 	Flag,
+	GripVertical,
 	ListChecks,
 	ListOrdered,
 	Type as TypeIcon,
@@ -94,7 +95,6 @@ export function TaskPlayer({
 	const interactionsLocked = disabled;
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: reset when taskId changes intentionally */
 	useEffect(() => {
-		// Reset submit availability when task changes
 		setCanSubmit(true);
 	}, [taskId]);
 
@@ -114,6 +114,18 @@ export function TaskPlayer({
 		| undefined;
 	const cfgName: string | undefined =
 		typeof cfg?.name === "string" ? cfg.name : undefined;
+
+	useEffect(() => {
+		if (typeof taskId !== "number") return;
+		if (cfgName !== "ordering" || !Array.isArray(cfg?.items)) return;
+
+		if (answers[taskId] === undefined) {
+			const defaultOrder = cfg.items.map((_, index) => index);
+			setAnswers((prev) => ({ ...prev, [taskId]: defaultOrder }));
+			onProgress?.(taskId, true);
+			onAnswer?.({ name: "ordering", answer: defaultOrder });
+		}
+	}, [taskId, cfgName, cfg?.items, answers, onProgress, onAnswer]);
 
 	const getMappedTaskType = (): string | undefined => {
 		const t = getDtoTaskType(dto);
@@ -193,6 +205,63 @@ export function TaskPlayer({
 			onAnswer?.({ name: "long_text", answer: val });
 	};
 
+	const handleOrdering = (newOrder: string[]) => {
+		if (interactionsLocked) return;
+		const originalItems = cfg?.items || [];
+		const orderIndices = newOrder
+			.map((item) => originalItems.indexOf(item))
+			.filter((idx) => idx !== -1);
+		setAnswers((prev) => ({ ...prev, [taskId]: orderIndices }));
+		setCanSubmit(true);
+		onProgress?.(taskId, true);
+		onAnswer?.({ name: "ordering", answer: orderIndices });
+	};
+
+	const moveItem = (
+		fromIndex: number,
+		toIndex: number,
+		items: string[],
+	): string[] => {
+		const newItems = [...items];
+		const movedItem = newItems.splice(fromIndex, 1)[0];
+		if (movedItem) {
+			newItems.splice(toIndex, 0, movedItem);
+		}
+		return newItems;
+	};
+
+	const getOrderedItems = (): string[] => {
+		if (!Array.isArray(cfg?.items)) return [];
+
+		if (Array.isArray(answers[taskId])) {
+			const orderIndices = answers[taskId] as number[];
+			if (orderIndices.length === cfg.items.length) {
+				return orderIndices
+					.map((idx) => cfg.items?.[idx])
+					.filter((item): item is string => typeof item === "string");
+			}
+		}
+
+		if (
+			typeof answers[taskId] === "object" &&
+			answers[taskId] !== null &&
+			!Array.isArray(answers[taskId])
+		) {
+			const orderMap = answers[taskId] as Record<number, number>;
+			const sortedEntries = Object.entries(orderMap)
+				.map(([itemIdx, position]) => ({
+					itemIdx: Number.parseInt(itemIdx),
+					position,
+				}))
+				.sort((a, b) => a.position - b.position);
+			return sortedEntries
+				.map((entry) => cfg.items?.[entry.itemIdx])
+				.filter((item): item is string => typeof item === "string");
+		}
+
+		return [...cfg.items];
+	};
+
 	// Preview mode
 	if (previewMode) {
 		return (
@@ -240,6 +309,8 @@ export function TaskPlayer({
 									<div key={opt} className="flex items-center space-x-2">
 										<Checkbox
 											id={`preview-mc-${idx}`}
+											disabled
+											checked={false}
 											className="border-slate-600 data-[state=checked]:bg-red-600"
 										/>
 										<Label
@@ -434,17 +505,63 @@ export function TaskPlayer({
 					)}
 					{cfgName === "ordering" && Array.isArray(cfg?.items) && (
 						<div className="space-y-2">
-							{cfg.items.map((it: string, idx: number) => (
-								<div
-									key={it}
-									className="rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300"
-								>
-									{idx + 1}. {it}
-								</div>
-							))}
-							<div className="text-slate-500 text-xs">
-								Ordering interaction is not yet implemented.
+							<div className="mb-3 text-slate-400 text-sm">
+								Drag and drop to reorder the items:
 							</div>
+							{getOrderedItems().map((item: string, idx: number) => {
+								const originalItems = cfg?.items || [];
+								const originalIndex = originalItems.indexOf(item);
+								return (
+									<div
+										key={`${item}-${originalIndex}`}
+										className="group flex cursor-move items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300 transition-colors hover:border-slate-600"
+										draggable={!interactionsLocked}
+										onDragStart={(e) => {
+											if (interactionsLocked) {
+												e.preventDefault();
+												return;
+											}
+											e.dataTransfer.setData("text/plain", idx.toString());
+											e.currentTarget.style.opacity = "0.5";
+										}}
+										onDragEnd={(e) => {
+											e.currentTarget.style.opacity = "1";
+										}}
+										onDragOver={(e) => {
+											if (!interactionsLocked) {
+												e.preventDefault();
+											}
+										}}
+										onDrop={(e) => {
+											if (interactionsLocked) return;
+											e.preventDefault();
+											const fromIndex = Number.parseInt(
+												e.dataTransfer.getData("text/plain"),
+											);
+											const toIndex = idx;
+											if (fromIndex !== toIndex) {
+												const currentItems = getOrderedItems();
+												const newOrder = moveItem(
+													fromIndex,
+													toIndex,
+													currentItems,
+												);
+												handleOrdering(newOrder);
+											}
+										}}
+									>
+										<GripVertical
+											className={`h-4 w-4 text-slate-500 ${!interactionsLocked ? "group-hover:text-slate-400" : ""}`}
+										/>
+										<span className="flex-1">{item}</span>
+									</div>
+								);
+							})}
+							{interactionsLocked && (
+								<div className="text-slate-500 text-xs">
+									Interactions are locked.
+								</div>
+							)}
 						</div>
 					)}
 					{cfgName === "file_upload" && (

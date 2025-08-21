@@ -218,18 +218,10 @@ export function useAttempt(
 			setNoMoreAttempts(false);
 			return;
 		}
-		const ranOut = attemptsListQuery.data?.ran_out_of_attempts ?? false;
-		const left = attemptsListQuery.data?.attempts_left;
-		if (ranOut || (typeof left === "number" && left <= 0)) {
-			setNoMoreAttempts(true);
-		} else {
-			setNoMoreAttempts(false);
-		}
-	}, [
-		isStaff,
-		attemptsListQuery.data?.ran_out_of_attempts,
-		attemptsListQuery.data?.attempts_left,
-	]);
+		const ranOut = attemptsListQuery.data?.ran_out_of_attempts === true;
+		// Allow starting attempts until API explicitly reports ran_out_of_attempts: true
+		setNoMoreAttempts(ranOut);
+	}, [isStaff, attemptsListQuery.data?.ran_out_of_attempts]);
 
 	return useMemo(
 		() => ({

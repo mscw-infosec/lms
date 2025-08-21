@@ -91,11 +91,28 @@ export default function LearnPage() {
 		Record<number, ReturnType<typeof buildTaskAnswer> | null>
 	>({});
 
+	const [submittedIds, setSubmittedIds] = useState<Set<number>>(new Set());
+
+	useEffect(() => {
+		const next = new Set<number>();
+		try {
+			const answers = attempt?.answer_data?.answers;
+			if (answers && typeof answers === "object") {
+				for (const k of Object.keys(answers)) {
+					const id = Number(k);
+					if (Number.isFinite(id)) next.add(id);
+				}
+			}
+		} catch {}
+		setSubmittedIds(next);
+	}, [attempt?.answer_data?.answers]);
+
 	const submitBufferedForTask = (taskId: number) => {
 		if (!attempt || !attempt.active) return;
 		const dto = latestAnswersRef.current[taskId];
 		if (dto) {
 			patchProgress(dto);
+			setSubmittedIds((prev) => new Set(prev).add(taskId));
 		}
 	};
 
@@ -245,6 +262,8 @@ export default function LearnPage() {
 	const canPrev = taskIndex > 0;
 	const canNext = taskIndex < (tasks.length || 0) - 1;
 
+	const switching = (pendingExam?.id ?? null) !== (selectedExam?.id ?? null);
+
 	const handleStart = () => {
 		if (!selectedExam) return;
 		setReviewMode(false);
@@ -255,6 +274,7 @@ export default function LearnPage() {
 	useEffect(() => {
 		setReviewMode(false);
 		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
 	}, [selectedExam?.id]);
 
 	useEffect(() => {
@@ -358,57 +378,87 @@ export default function LearnPage() {
 					{cfgName === "single_choice" &&
 						Array.isArray((cfg as TaskConfig)?.options) &&
 						(() => {
-							const ansIdxStr = (ans as { answer?: unknown })?.answer;
-							const hasAns = typeof ansIdxStr === "string" && ansIdxStr !== "";
+							const ansRaw = (ans as { answer?: unknown })?.answer;
 							const correctIdxRaw = (
 								task.configuration as { correct?: unknown }
 							)?.correct;
 							const correctIdx =
 								typeof correctIdxRaw === "number" ? correctIdxRaw : undefined;
-							if (!hasAns) {
-								return (
-									<div className="text-red-400 text-sm">
-										{t("no_answer") ?? "No answer"}
-									</div>
-								);
+							let selectedIdx: number | undefined = undefined;
+							let selectedLabel: string | undefined = undefined;
+							if (typeof ansRaw === "number") {
+								if (
+									Number.isFinite(ansRaw) &&
+									Array.isArray((cfg as TaskConfig).options)
+								) {
+									selectedIdx = ansRaw;
+									selectedLabel =
+										(cfg as TaskConfig).options?.[ansRaw] ?? String(ansRaw);
+								}
+							} else if (typeof ansRaw === "string") {
+								const maybeNum = Number(ansRaw);
+								if (
+									Number.isFinite(maybeNum) &&
+									Array.isArray((cfg as TaskConfig).options) &&
+									(cfg as TaskConfig).options?.[maybeNum] !== undefined
+								) {
+									selectedIdx = maybeNum;
+									selectedLabel =
+										(cfg as TaskConfig).options?.[maybeNum] ?? String(ansRaw);
+								} else {
+									selectedLabel = ansRaw;
+									if (Array.isArray((cfg as TaskConfig).options)) {
+										const i = ((cfg as TaskConfig).options as string[]).indexOf(
+											ansRaw,
+										);
+										if (i >= 0) selectedIdx = i;
+									}
+								}
 							}
-							const idx = Number(ansIdxStr);
-							const selectedLabel =
-								(cfg as TaskConfig).options?.[idx] ?? String(idx);
-							const isCorrect =
-								typeof correctIdx === "number" && idx === correctIdx;
+
+							const effectiveCorrectIdx: number | undefined =
+								typeof correctIdx === "number"
+									? correctIdx
+									: verdict === "full_score" && typeof selectedIdx === "number"
+										? selectedIdx
+										: undefined;
 							return (
 								<div className="space-y-2">
-									<div className="flex items-center space-x-2 opacity-90">
-										<label
-											className={`flex items-center gap-2 ${isCorrect ? "text-green-400" : "text-red-400"}`}
-										>
-											<input
-												type="radio"
-												disabled
-												checked
-												className={
-													isCorrect ? "accent-green-500" : "accent-red-500"
-												}
-											/>
-											<span>{selectedLabel}</span>
-										</label>
-									</div>
-									{!isCorrect && typeof correctIdx === "number" ? (
-										<div className="flex items-center space-x-2 opacity-70">
-											<label className="flex items-center gap-2 text-green-400">
-												<input
-													type="radio"
-													disabled
-													className="accent-green-500"
-												/>
-												<span>
-													{(cfg as TaskConfig).options?.[correctIdx] ??
-														String(correctIdx)}
-												</span>
-											</label>
-										</div>
-									) : null}
+									{((cfg as TaskConfig).options as string[]).map(
+										(label, idx) => {
+											const isSelected =
+												typeof selectedIdx === "number" && selectedIdx === idx;
+											const isCorrect =
+												typeof effectiveCorrectIdx === "number" &&
+												effectiveCorrectIdx === idx;
+											const color = isCorrect
+												? "text-green-400"
+												: isSelected
+													? "text-red-400"
+													: "text-slate-400";
+											const accent = isCorrect
+												? "accent-green-500"
+												: isSelected
+													? "accent-red-500"
+													: "accent-slate-500";
+											return (
+												<div
+													key={`${task.id}-opt-${idx}`}
+													className="flex items-center space-x-2 opacity-90"
+												>
+													<label className={`flex items-center gap-2 ${color}`}>
+														<input
+															type="radio"
+															disabled
+															checked={isSelected}
+															className={accent}
+														/>
+														<span>{label}</span>
+													</label>
+												</div>
+											);
+										},
+									)}
 								</div>
 							);
 						})()}
@@ -498,56 +548,78 @@ export default function LearnPage() {
 						Array.isArray((cfg as TaskConfig)?.options) &&
 						(() => {
 							const raw = (ans as { answers?: unknown[] })?.answers;
-							const selected = Array.isArray(raw)
-								? raw.map((v) => Number(String(v)))
-								: [];
-							const correctRaw = (task.configuration as { correct?: unknown })
-								?.correct;
-							const correct = Array.isArray(correctRaw)
-								? (correctRaw.filter((x) => typeof x === "number") as number[])
-								: [];
-							if (selected.length === 0) {
-								return (
-									<div className="text-red-400 text-sm">
-										{t("no_answer") ?? "No answer"}
-									</div>
-								);
+							const selectedIdxs: number[] = [];
+							if (Array.isArray(raw)) {
+								for (const v of raw as unknown[]) {
+									if (typeof v === "number" && Number.isFinite(v)) {
+										selectedIdxs.push(v);
+									} else if (typeof v === "string") {
+										const maybeNum = Number(v);
+										if (
+											Number.isFinite(maybeNum) &&
+											Array.isArray((cfg as TaskConfig).options) &&
+											(cfg as TaskConfig).options?.[maybeNum] !== undefined
+										) {
+											selectedIdxs.push(maybeNum);
+										} else if (Array.isArray((cfg as TaskConfig).options)) {
+											const i = (
+												(cfg as TaskConfig).options as string[]
+											).indexOf(v);
+											if (i >= 0) selectedIdxs.push(i);
+										}
+									}
+								}
 							}
-							const union = Array.from(new Set([...selected, ...correct]));
 							return (
 								<div className="space-y-2">
-									{union.map((idx, pos) => {
-										const label =
-											(cfg as TaskConfig).options?.[idx] ?? String(idx);
-										const isSelected = selected.includes(idx);
-										const isCorrect = correct.includes(idx);
-										const color = isCorrect
-											? "text-green-400"
-											: isSelected
-												? "text-red-400"
+									{((cfg as TaskConfig).options as string[]).map(
+										(label, idx) => {
+											const isSelected = selectedIdxs.includes(idx);
+											const tone =
+												verdict === "full_score"
+													? "green"
+													: verdict === "incorrect"
+														? "red"
+														: verdict === "on_review" ||
+																verdict === "partial_score"
+															? "amber"
+															: "slate";
+											const color = isSelected
+												? tone === "green"
+													? "text-green-400"
+													: tone === "red"
+														? "text-red-400"
+														: tone === "amber"
+															? "text-amber-400"
+															: "text-slate-400"
 												: "text-slate-400";
-										const accent = isCorrect
-											? "accent-green-500"
-											: isSelected
-												? "accent-red-500"
+											const accent = isSelected
+												? tone === "green"
+													? "accent-green-500"
+													: tone === "red"
+														? "accent-red-500"
+														: tone === "amber"
+															? "accent-amber-500"
+															: "accent-slate-500"
 												: "accent-slate-500";
-										return (
-											<div
-												key={`${pos}-${idx}`}
-												className="flex items-center space-x-2 opacity-90"
-											>
-												<label className={`flex items-center gap-2 ${color}`}>
-													<input
-														type="checkbox"
-														disabled
-														checked={isSelected}
-														className={accent}
-													/>
-													<span>{label}</span>
-												</label>
-											</div>
-										);
-									})}
+											return (
+												<div
+													key={`${task.id}-mc-${idx}`}
+													className="flex items-center space-x-2 opacity-90"
+												>
+													<label className={`flex items-center gap-2 ${color}`}>
+														<input
+															type="checkbox"
+															disabled
+															checked={isSelected}
+															className={accent}
+														/>
+														<span>{label}</span>
+													</label>
+												</div>
+											);
+										},
+									)}
 								</div>
 							);
 						})()}
@@ -611,12 +683,47 @@ export default function LearnPage() {
 				| undefined;
 			if (cfgName === "single_choice") {
 				const v = src?.answer;
-				if (typeof v === "string" || typeof v === "number") initial = String(v);
+				if (typeof v === "number") {
+					initial = v;
+				} else if (typeof v === "string") {
+					const maybeNum = Number(v);
+					const opts = (cfg as TaskConfig).options;
+					if (
+						Number.isFinite(maybeNum) &&
+						Array.isArray(opts) &&
+						opts[maybeNum] !== undefined
+					) {
+						initial = maybeNum;
+					} else {
+						initial = v;
+					}
+				}
 			} else if (cfgName === "multiple_choice") {
-				const arr = Array.isArray(src?.answers)
-					? (src?.answers as unknown[]).map((x) => Number(String(x)))
+				const raw = Array.isArray(src?.answers)
+					? (src?.answers as unknown[])
 					: [];
-				if (arr.length > 0) initial = arr;
+				const opts = (cfg as TaskConfig).options;
+				const numIndices: number[] = [];
+				const strLabels: string[] = [];
+				for (const x of raw) {
+					if (typeof x === "number" && Number.isFinite(x)) {
+						numIndices.push(x);
+					} else if (typeof x === "string") {
+						const maybeNum = Number(x);
+						if (
+							Number.isFinite(maybeNum) &&
+							Array.isArray(opts) &&
+							opts[maybeNum] !== undefined
+						) {
+							numIndices.push(maybeNum);
+						} else if (x && (!Array.isArray(opts) || opts.includes(x))) {
+							strLabels.push(x);
+						}
+					}
+				}
+
+				if (strLabels.length > 0) initial = strLabels;
+				else if (numIndices.length > 0) initial = numIndices;
 			} else if (cfgName === "short_text" || cfgName === "long_text") {
 				const v = src?.answer;
 				if (typeof v === "string") initial = v;
@@ -655,6 +762,13 @@ export default function LearnPage() {
 		}, 200);
 		return () => window.clearTimeout(t);
 	}, [pendingExam, selectedExam?.id]);
+
+	/* biome-ignore lint/correctness/useExhaustiveDependencies: We intentionally reset review state whenever the pending exam changes */
+	useEffect(() => {
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+	}, [pendingExam?.id]);
 
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-200">
@@ -735,6 +849,10 @@ export default function LearnPage() {
 											type="button"
 											key={exam.id}
 											onClick={() => {
+												// Reset review state immediately to avoid flashing review UI
+												setReviewMode(false);
+												setSelectedReviewAttemptId(null);
+												latestAnswersRef.current = {};
 												setPendingExam(exam);
 												if (
 													typeof window !== "undefined" &&
@@ -769,7 +887,7 @@ export default function LearnPage() {
 															duration:
 																(exam.duration ?? 0) === 0
 																	? t("no_timer") || "No timer"
-																	: `${exam.duration}m`,
+																	: `${exam.duration}s`,
 															tries:
 																(exam.tries_count ?? 0) === 0
 																	? t("infty_attempts") || "Infinite attempts"
@@ -824,37 +942,6 @@ export default function LearnPage() {
 						(isPreview || attempt?.active) &&
 						!reviewMode ? (
 							<div className="flex flex-shrink-0 items-center space-x-1 lg:space-x-2">
-								{attempt?.active &&
-								remainingSec !== null &&
-								(selectedExam?.duration ?? 0) > 0 ? (
-									<div
-										className={`hidden items-center rounded-md border px-2 py-1 text-xs sm:flex lg:text-sm ${
-											remainingSec <= 30
-												? "border-red-600 text-red-400"
-												: remainingSec <= 120
-													? "border-amber-600 text-amber-400"
-													: "border-slate-700 text-slate-300"
-										}`}
-										title={t("time_left") || "Time left"}
-									>
-										<span className="mr-1 opacity-80">
-											{t("time_left") || "Time left"}:
-										</span>
-										<span className="font-mono">
-											{formatTime(remainingSec)}
-										</span>
-									</div>
-								) : null}
-								{attempt?.active && (selectedExam?.duration ?? 0) === 0 ? (
-									<div
-										className="hidden items-center rounded-md border border-slate-700 px-2 py-1 text-slate-300 text-xs sm:flex lg:text-sm"
-										title={t("no_timer") || "No timer"}
-									>
-										<span className="font-mono">
-											{t("no_timer") || "No timer"}
-										</span>
-									</div>
-								) : null}
 								<Button
 									variant="outline"
 									size="sm"
@@ -886,11 +973,9 @@ export default function LearnPage() {
 										variant="ghost"
 										size="sm"
 										onClick={async () => {
-											// Best-effort submit all buffered answers, then stop attempt
 											submitAllBuffered();
 											await flushNow();
 											stop();
-											// Nudge data to refresh shortly after stop kicks off
 											setTimeout(() => {
 												refresh();
 											}, 300);
@@ -948,6 +1033,13 @@ export default function LearnPage() {
 									{t("select_exam") ?? "Select an exam from the left"}
 								</div>
 							</div>
+						) : switching ? (
+							<Card className="border-slate-800 bg-slate-900">
+								<CardContent className="space-y-3 p-6">
+									<div className="h-5 w-40 animate-pulse rounded bg-slate-800" />
+									<div className="h-4 w-72 animate-pulse rounded bg-slate-800" />
+								</CardContent>
+							</Card>
 						) : !isStaff && !reviewMode && loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">
@@ -978,7 +1070,7 @@ export default function LearnPage() {
 											duration:
 												(selectedExam.duration ?? 0) === 0
 													? t("no_timer") || "No timer"
-													: `${selectedExam.duration}m`,
+													: `${selectedExam.duration}s`,
 											tries:
 												(selectedExam.tries_count ?? 0) === 0
 													? t("infty_attempts") || "Infinite attempts"
@@ -1029,7 +1121,7 @@ export default function LearnPage() {
 											duration:
 												(selectedExam.duration ?? 0) === 0
 													? t("no_timer") || "No timer"
-													: `${selectedExam.duration}m`,
+													: `${selectedExam.duration}s`,
 											tries:
 												(selectedExam.tries_count ?? 0) === 0
 													? t("infty_attempts") || "Infinite attempts"
@@ -1169,6 +1261,68 @@ export default function LearnPage() {
 						)}
 					</div>
 				</div>
+
+				{/* Right Sidebar: timer + progress (only during active attempt) */}
+				{attempt?.active && tasks.length > 0 && !reviewMode ? (
+					<div className="hidden w-56 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
+						{/* Timer moved here */}
+						{(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
+							<div
+								className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
+									remainingSec <= 30
+										? "border-red-600 text-red-400"
+										: remainingSec <= 120
+											? "border-amber-600 text-amber-400"
+											: "border-slate-700 text-slate-300"
+								}`}
+								title={t("time_left") || "Time left"}
+							>
+								<span className="mr-2 opacity-80">
+									{t("time_left") || "Time left"}:
+								</span>
+								<span className="font-mono text-base">
+									{formatTime(remainingSec)}
+								</span>
+							</div>
+						) : (
+							(selectedExam?.duration ?? 0) === 0 && (
+								<div
+									className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
+									title={t("no_timer") || "No timer"}
+								>
+									<span className="font-mono">
+										{t("no_timer") || "No timer"}
+									</span>
+								</div>
+							)
+						)}
+
+						<div className="mb-2 text-center font-medium text-slate-300 text-xs">
+							{t("progress") || "Progress"}
+						</div>
+						<div className="grid grid-cols-4 gap-2">
+							{tasks.map((tTask, idx) => {
+								const id = tTask.id;
+								const isSubmitted = submittedIds.has(id);
+								return (
+									<button
+										key={id}
+										type="button"
+										onClick={() => setTaskIndex(idx)}
+										className={`flex h-8 w-8 items-center justify-center rounded ${
+											isSubmitted
+												? "bg-red-600 text-white"
+												: "bg-slate-700 text-slate-300"
+										} ${idx === taskIndex ? "ring-2 ring-red-400" : ""}`}
+										title={`${t("task") || "Task"} #${idx + 1}`}
+									>
+										<span className="font-semibold text-[11px]">{idx + 1}</span>
+									</button>
+								);
+							})}
+						</div>
+					</div>
+				) : null}
 			</div>
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />

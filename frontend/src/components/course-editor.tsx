@@ -193,7 +193,7 @@ export function CourseEditor({
 						<Button
 							onClick={addModule}
 							size="sm"
-							className="bg-red-600 hover:bg-red-700"
+							className="bg-red-600 text-white hover:bg-red-700"
 						>
 							<Plus className="h-3 w-3" />
 						</Button>
@@ -263,7 +263,7 @@ export function CourseEditor({
 								<Button
 									onClick={() => addLecture(module.id)}
 									size="sm"
-									className="bg-blue-600 hover:bg-blue-700"
+									className="bg-red-600 text-white hover:bg-red-700"
 								>
 									<Plus className="h-3 w-3" />
 								</Button>
@@ -334,7 +334,7 @@ export function CourseEditor({
 									if (!editingModule) return;
 									updateModule(editingModule.id, editModuleTitle);
 								}}
-								className="bg-red-600 hover:bg-red-700"
+								className="bg-red-600 text-white hover:bg-red-700"
 							>
 								<Save className="mr-2 h-4 w-4" />
 								Save Changes
@@ -406,7 +406,7 @@ export function CourseEditor({
 										editLectureContent,
 									);
 								}}
-								className="bg-red-600 hover:bg-red-700"
+								className="bg-red-600 text-white hover:bg-red-700"
 							>
 								<Save className="mr-2 h-4 w-4" />
 								Save Changes
