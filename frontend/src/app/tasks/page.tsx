@@ -28,14 +28,17 @@ import {
 } from "@/components/ui/select";
 import { useUserStore } from "@/store/user";
 import {
+	ArrowLeft,
 	CheckSquare,
 	CircleDot,
 	Edit,
 	FileText,
 	Flag,
+	Link2,
 	ListChecks,
 	ListOrdered,
 	Plus,
+	Trash2,
 	Type as TypeIcon,
 	Upload,
 } from "lucide-react";
@@ -243,16 +246,24 @@ export default function TasksPage() {
 										setTasks((prev) => [created, ...prev]);
 									}}
 								>
-									<Button className="bg-red-600 text-white hover:bg-red-700">
-										<Plus className="mr-2 h-4 w-4" /> {t("create_task")}
+									<Button
+										size="sm"
+										className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
+										title={t("create_task")}
+									>
+										<Plus className="h-4 w-4 sm:mr-2" />
+										<span className="hidden sm:inline">{t("create_task")}</span>
 									</Button>
 								</CreateTaskDialog>
 								<Link href="/">
 									<Button
 										variant="outline"
-										className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+										size="sm"
+										className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
+										title={t("back")}
 									>
-										{t("back")}
+										<ArrowLeft className="h-4 w-4 sm:mr-2" />
+										<span className="hidden sm:inline">{t("back")}</span>
 									</Button>
 								</Link>
 							</div>
@@ -337,26 +348,34 @@ export default function TasksPage() {
 											? t("selected_count", { count: selectedIds.size })
 											: (t("no_tasks_selected") ?? "No tasks selected")}
 									</div>
-									<div className="flex gap-2">
+									<div className="flex gap-1 sm:gap-2">
 										<Button
 											size="sm"
-											className="bg-red-600 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+											className="bg-red-600 px-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400 sm:px-3"
 											disabled={selectedIds.size === 0}
 											onClick={() => {
 												setShowLinkModal(true);
 												loadExams();
 											}}
+											title={t("link_to_exam")}
 										>
-											{t("link_to_exam")}
+											<Link2 className="h-4 w-4 sm:mr-2" />
+											<span className="hidden sm:inline">
+												{t("link_to_exam")}
+											</span>
 										</Button>
 										<Button
 											size="sm"
 											variant="ghost"
-											className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:text-slate-500"
+											className="bg-transparent px-2 text-red-400 hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:text-slate-500 sm:px-3"
 											disabled={selectedIds.size === 0}
 											onClick={() => setShowDeleteModal(true)}
+											title={t("delete_selected")}
 										>
-											{t("delete_selected")}
+											<Trash2 className="h-4 w-4 sm:mr-2" />
+											<span className="hidden sm:inline">
+												{t("delete_selected")}
+											</span>
 										</Button>
 									</div>
 								</div>

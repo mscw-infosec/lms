@@ -68,11 +68,11 @@ export default function CourseHeaderActions({
 				<Button
 					variant="secondary"
 					size="sm"
-					className="bg-transparent text-slate-300 transition-none hover:bg-transparent hover:text-white focus:bg-transparent active:bg-transparent"
+					className="bg-transparent px-2 text-slate-300 transition-none hover:bg-transparent hover:text-white focus:bg-transparent active:bg-transparent sm:px-3"
 					onClick={onEdit}
 				>
-					<Edit className="mr-2 h-4 w-4" />
-					{t("edit")}
+					<Edit className="h-4 w-4 sm:mr-2" />
+					<span className="hidden sm:inline">{t("edit")}</span>
 				</Button>
 			)}
 		</div>

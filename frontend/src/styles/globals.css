@@ -61,6 +61,51 @@
 	--spacing: 0.25rem;
 }
 
+/* Mobile responsiveness fixes */
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	overflow-x: hidden;
+	width: 100%;
+}
+
+/* Prevent modal content from causing horizontal scroll */
+@media (max-width: 640px) {
+	.modal-content {
+		max-width: calc(100vw - 2rem);
+		margin: 1rem;
+	}
+
+	/* Mobile button optimizations */
+	.btn-mobile-compact {
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		font-size: 0.875rem;
+	}
+
+	.btn-mobile-icon-only .btn-text {
+		display: none;
+	}
+
+	.btn-mobile-icon-only .btn-icon {
+		margin-right: 0;
+	}
+}
+
+/* Desktop button styles */
+@media (min-width: 640px) {
+	.btn-mobile-icon-only .btn-text {
+		display: inline;
+	}
+
+	.btn-mobile-icon-only .btn-icon {
+		margin-right: 0.5rem;
+	}
+}
+
 .dark {
 	--background: oklch(0.2244 0.0074 67.437);
 	--foreground: oklch(0.9288 0.0126 255.5078);
