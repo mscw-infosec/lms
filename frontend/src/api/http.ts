@@ -76,9 +76,6 @@ export async function http<T>(
 			res = await doRequest();
 		} else {
 			setAccessToken(null);
-			if (typeof window !== "undefined") {
-				window.location.reload();
-			}
 		}
 	}
 

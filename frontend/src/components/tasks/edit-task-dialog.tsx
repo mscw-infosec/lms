@@ -573,8 +573,9 @@ export default function EditTaskDialog({
 				<DialogFooter>
 					<Button
 						type="button"
+						variant="outline"
 						onClick={() => setOpen(false)}
-						className="border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-800"
+						className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 					>
 						{t("cancel") || "Cancel"}
 					</Button>

@@ -95,7 +95,6 @@ export function TaskPlayer({
 	const interactionsLocked = disabled;
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: reset when taskId changes intentionally */
 	useEffect(() => {
-		// Reset submit availability when task changes
 		setCanSubmit(true);
 	}, [taskId]);
 
@@ -115,6 +114,18 @@ export function TaskPlayer({
 		| undefined;
 	const cfgName: string | undefined =
 		typeof cfg?.name === "string" ? cfg.name : undefined;
+
+	useEffect(() => {
+		if (typeof taskId !== "number") return;
+		if (cfgName !== "ordering" || !Array.isArray(cfg?.items)) return;
+
+		if (answers[taskId] === undefined) {
+			const defaultOrder = cfg.items.map((_, index) => index);
+			setAnswers((prev) => ({ ...prev, [taskId]: defaultOrder }));
+			onProgress?.(taskId, true);
+			onAnswer?.({ name: "ordering", answer: defaultOrder });
+		}
+	}, [taskId, cfgName, cfg?.items, answers, onProgress, onAnswer]);
 
 	const getMappedTaskType = (): string | undefined => {
 		const t = getDtoTaskType(dto);
@@ -497,53 +508,55 @@ export function TaskPlayer({
 							<div className="mb-3 text-slate-400 text-sm">
 								Drag and drop to reorder the items:
 							</div>
-							{getOrderedItems().map((item: string, idx: number) => (
-								<div
-									key={item}
-									className="group flex cursor-move items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300 transition-colors hover:border-slate-600"
-									draggable={!interactionsLocked}
-									onDragStart={(e) => {
-										if (interactionsLocked) {
+							{getOrderedItems().map((item: string, idx: number) => {
+								const originalItems = cfg?.items || [];
+								const originalIndex = originalItems.indexOf(item);
+								return (
+									<div
+										key={`${item}-${originalIndex}`}
+										className="group flex cursor-move items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300 transition-colors hover:border-slate-600"
+										draggable={!interactionsLocked}
+										onDragStart={(e) => {
+											if (interactionsLocked) {
+												e.preventDefault();
+												return;
+											}
+											e.dataTransfer.setData("text/plain", idx.toString());
+											e.currentTarget.style.opacity = "0.5";
+										}}
+										onDragEnd={(e) => {
+											e.currentTarget.style.opacity = "1";
+										}}
+										onDragOver={(e) => {
+											if (!interactionsLocked) {
+												e.preventDefault();
+											}
+										}}
+										onDrop={(e) => {
+											if (interactionsLocked) return;
 											e.preventDefault();
-											return;
-										}
-										e.dataTransfer.setData("text/plain", idx.toString());
-										e.currentTarget.style.opacity = "0.5";
-									}}
-									onDragEnd={(e) => {
-										e.currentTarget.style.opacity = "1";
-									}}
-									onDragOver={(e) => {
-										if (!interactionsLocked) {
-											e.preventDefault();
-										}
-									}}
-									onDrop={(e) => {
-										if (interactionsLocked) return;
-										e.preventDefault();
-										const fromIndex = Number.parseInt(
-											e.dataTransfer.getData("text/plain"),
-										);
-										const toIndex = idx;
-										if (fromIndex !== toIndex) {
-											const currentItems = getOrderedItems();
-											const newOrder = moveItem(
-												fromIndex,
-												toIndex,
-												currentItems,
+											const fromIndex = Number.parseInt(
+												e.dataTransfer.getData("text/plain"),
 											);
-											handleOrdering(newOrder);
-										}
-									}}
-								>
-									<GripVertical
-										className={`h-4 w-4 text-slate-500 ${!interactionsLocked ? "group-hover:text-slate-400" : ""}`}
-									/>
-									<span className="flex-1">
-										{idx + 1}. {item}
-									</span>
-								</div>
-							))}
+											const toIndex = idx;
+											if (fromIndex !== toIndex) {
+												const currentItems = getOrderedItems();
+												const newOrder = moveItem(
+													fromIndex,
+													toIndex,
+													currentItems,
+												);
+												handleOrdering(newOrder);
+											}
+										}}
+									>
+										<GripVertical
+											className={`h-4 w-4 text-slate-500 ${!interactionsLocked ? "group-hover:text-slate-400" : ""}`}
+										/>
+										<span className="flex-1">{item}</span>
+									</div>
+								);
+							})}
 							{interactionsLocked && (
 								<div className="text-slate-500 text-xs">
 									Interactions are locked.

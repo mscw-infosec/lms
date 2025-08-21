@@ -70,6 +70,32 @@ export async function getTopicExams(topic_id: number): Promise<ExamDTO[]> {
 	});
 }
 
+// Get all exams across all courses and topics
+export async function getAllExams(): Promise<ExamDTO[]> {
+	try {
+		const { getAllCourses, getCourseTopics } = await import("./courses");
+
+		const courses = await getAllCourses();
+		const allExams: ExamDTO[] = [];
+
+		for (const course of courses) {
+			try {
+				const topics = await getCourseTopics(course.id);
+				for (const topic of topics) {
+					try {
+						const exams = await getTopicExams(topic.id);
+						allExams.push(...exams);
+					} catch {}
+				}
+			} catch {}
+		}
+
+		return allExams;
+	} catch {
+		return [];
+	}
+}
+
 // Attempts
 // GET /exam/{exam_id}/attempt/list
 export async function getUserExamAttempts(

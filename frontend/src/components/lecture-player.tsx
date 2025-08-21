@@ -164,7 +164,7 @@ export function LecturePlayer({
 					{!completed && (
 						<Button
 							onClick={handleComplete}
-							className="bg-green-600 hover:bg-green-700"
+							className="bg-red-600 text-white hover:bg-red-700"
 						>
 							Mark as Complete
 						</Button>

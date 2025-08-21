@@ -61,22 +61,22 @@ export default function HomePage() {
 			/>
 
 			<main className="container mx-auto px-4 py-8">
-				<div className="mb-8">
-					<div className="mb-4 flex items-center justify-between">
-						<h1 className="font-bold text-4xl text-white">Курсы</h1>
-						{canCreateCourse && (
-							<Link href="/courses/new">
-								<Button className="bg-red-600 text-white hover:bg-red-700">
-									<Plus className="mr-2 h-4 w-4" />
-									{t("new_course")}
-								</Button>
-							</Link>
-						)}
+				{!authLoading && hasToken && (
+					<div className="mb-8">
+						<div className="mb-4 flex items-center justify-between">
+							<h1 className="font-bold text-4xl text-white">Курсы</h1>
+							{canCreateCourse && (
+								<Link href="/courses/new">
+									<Button className="bg-red-600 text-white hover:bg-red-700">
+										<Plus className="mr-2 h-4 w-4" />
+										{t("new_course")}
+									</Button>
+								</Link>
+							)}
+						</div>
 					</div>
-					{/* Removed subheading to get rid of the old "освойте ИБ" text */}
-				</div>
+				)}
 
-				{/* Auth loading state */}
 				{authLoading && (
 					<div className="flex min-h-[40vh] items-center justify-center">
 						<Loader2 className="h-8 w-8 animate-spin text-slate-300" />

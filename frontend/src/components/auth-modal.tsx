@@ -468,7 +468,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 
 					<Button
 						type="submit"
-						className="w-full bg-red-600 hover:bg-red-700"
+						className="w-full bg-red-600 text-white hover:bg-red-700"
 						disabled={!isFormValid()}
 					>
 						{type === "login" ? t("sign_in") : t("create_account_action")}
@@ -503,7 +503,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						<Button
 							type="button"
 							variant="outline"
-							className="border-slate-700 bg-transparent hover:bg-slate-800"
+							className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							onClick={() => handleOAuth("yandex")}
 						>
 							<svg
@@ -528,7 +528,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						<Button
 							type="button"
 							variant="outline"
-							className="border-slate-700 bg-transparent hover:bg-slate-800"
+							className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							onClick={() => handleOAuth("github")}
 						>
 							<svg

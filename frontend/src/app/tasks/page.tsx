@@ -1,6 +1,6 @@
 "use client";
 
-import { updateExamTasks } from "@/api/exam";
+import { type ExamDTO, getAllExams, updateExamTasks } from "@/api/exam";
 import type { TaskDTO, TaskType } from "@/api/tasks";
 import { deleteTask as deleteTaskApi, listTasks } from "@/api/tasks";
 import { AuthModal } from "@/components/auth-modal";
@@ -82,6 +82,8 @@ export default function TasksPage() {
 	const [showLinkModal, setShowLinkModal] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [examId, setExamId] = useState("");
+	const [exams, setExams] = useState<ExamDTO[]>([]);
+	const [loadingExams, setLoadingExams] = useState(false);
 	const [busy, setBusy] = useState<null | "link" | "delete">(null);
 	const [loading, setLoading] = useState(false);
 	const [hasMore, setHasMore] = useState(false);
@@ -156,12 +158,24 @@ export default function TasksPage() {
 
 	const clearSelection = () => setSelectedIds(new Set());
 
+	const loadExams = async () => {
+		setLoadingExams(true);
+		try {
+			const examsList = await getAllExams();
+			setExams(examsList);
+		} catch (e) {
+			console.error("Failed to load exams:", e);
+		} finally {
+			setLoadingExams(false);
+		}
+	};
+
 	const onConfirmLink = async () => {
-		if (!examId || selectedIds.size === 0) return;
+		if (selectedIds.size === 0 || !examId) return;
 		setBusy("link");
 		try {
-			const ids = Array.from(selectedIds);
-			await updateExamTasks(examId, ids);
+			const taskIds = Array.from(selectedIds);
+			await updateExamTasks(examId, taskIds);
 			setShowLinkModal(false);
 			clearSelection();
 			setExamId("");
@@ -317,30 +331,35 @@ export default function TasksPage() {
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-2">
-								{selectedIds.size > 0 ? (
-									<div className="mb-2 flex items-center justify-between rounded-md border border-slate-700 bg-slate-800/70 p-3">
-										<div className="text-slate-300 text-sm">
-											{t("selected_count", { count: selectedIds.size })}
-										</div>
-										<div className="flex gap-2">
-											<Button
-												size="sm"
-												className="bg-red-600 text-white hover:bg-red-700"
-												onClick={() => setShowLinkModal(true)}
-											>
-												{t("link_to_exam")}
-											</Button>
-											<Button
-												size="sm"
-												variant="ghost"
-												className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
-												onClick={() => setShowDeleteModal(true)}
-											>
-												{t("delete_selected")}
-											</Button>
-										</div>
+								<div className="mb-2 flex items-center justify-between rounded-md border border-slate-700 bg-slate-800/70 p-3">
+									<div className="text-slate-300 text-sm">
+										{selectedIds.size > 0
+											? t("selected_count", { count: selectedIds.size })
+											: (t("no_tasks_selected") ?? "No tasks selected")}
 									</div>
-								) : null}
+									<div className="flex gap-2">
+										<Button
+											size="sm"
+											className="bg-red-600 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+											disabled={selectedIds.size === 0}
+											onClick={() => {
+												setShowLinkModal(true);
+												loadExams();
+											}}
+										>
+											{t("link_to_exam")}
+										</Button>
+										<Button
+											size="sm"
+											variant="ghost"
+											className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:text-slate-500"
+											disabled={selectedIds.size === 0}
+											onClick={() => setShowDeleteModal(true)}
+										>
+											{t("delete_selected")}
+										</Button>
+									</div>
+								</div>
 								{filtered.length === 0 ? (
 									<div className="text-slate-400 text-sm">
 										{t("no_results")}
@@ -443,18 +462,50 @@ export default function TasksPage() {
 								<div className="space-y-3">
 									<div>
 										<label
-											htmlFor="exam-id-input"
+											htmlFor="exam-select"
 											className="mb-1 block text-slate-400 text-sm"
 										>
-											{t("exam_id")}
+											{t("select_exam") ?? "Select Exam"}
 										</label>
-										<Input
-											id="exam-id-input"
-											value={examId}
-											onChange={(e) => setExamId(e.target.value)}
-											placeholder={t("exam_id") ?? "Exam ID"}
-											className="border-slate-700 bg-slate-800 text-white"
-										/>
+										<Select value={examId} onValueChange={setExamId}>
+											<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+												<SelectValue
+													placeholder={
+														loadingExams
+															? (t("loading") ?? "Loading...")
+															: (t("select_exam") ?? "Select an exam")
+													}
+												/>
+											</SelectTrigger>
+											<SelectContent className="border-slate-700 bg-slate-800">
+												{loadingExams ? (
+													<SelectItem value="loading" disabled>
+														{t("loading") ?? "Loading..."}
+													</SelectItem>
+												) : exams.length === 0 ? (
+													<SelectItem value="no_exams" disabled>
+														{t("no_exams_found") ?? "No exams found"}
+													</SelectItem>
+												) : (
+													exams.map((exam) => (
+														<SelectItem
+															key={exam.id}
+															value={exam.id}
+															className="text-white hover:bg-slate-700 hover:text-slate-100 focus:bg-slate-700 focus:text-slate-100"
+														>
+															<div className="flex w-full flex-col items-start justify-center">
+																<span className="text-left font-medium">
+																	{exam.name}
+																</span>
+																<span className="text-left text-slate-400 text-xs">
+																	ID: {exam.id}
+																</span>
+															</div>
+														</SelectItem>
+													))
+												)}
+											</SelectContent>
+										</Select>
 									</div>
 								</div>
 								<DialogFooter>

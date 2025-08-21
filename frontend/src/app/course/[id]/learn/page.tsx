@@ -262,6 +262,8 @@ export default function LearnPage() {
 	const canPrev = taskIndex > 0;
 	const canNext = taskIndex < (tasks.length || 0) - 1;
 
+	const switching = (pendingExam?.id ?? null) !== (selectedExam?.id ?? null);
+
 	const handleStart = () => {
 		if (!selectedExam) return;
 		setReviewMode(false);
@@ -761,6 +763,13 @@ export default function LearnPage() {
 		return () => window.clearTimeout(t);
 	}, [pendingExam, selectedExam?.id]);
 
+	/* biome-ignore lint/correctness/useExhaustiveDependencies: We intentionally reset review state whenever the pending exam changes */
+	useEffect(() => {
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+	}, [pendingExam?.id]);
+
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-200">
 			<Header
@@ -840,6 +849,10 @@ export default function LearnPage() {
 											type="button"
 											key={exam.id}
 											onClick={() => {
+												// Reset review state immediately to avoid flashing review UI
+												setReviewMode(false);
+												setSelectedReviewAttemptId(null);
+												latestAnswersRef.current = {};
 												setPendingExam(exam);
 												if (
 													typeof window !== "undefined" &&
@@ -1020,6 +1033,13 @@ export default function LearnPage() {
 									{t("select_exam") ?? "Select an exam from the left"}
 								</div>
 							</div>
+						) : switching ? (
+							<Card className="border-slate-800 bg-slate-900">
+								<CardContent className="space-y-3 p-6">
+									<div className="h-5 w-40 animate-pulse rounded bg-slate-800" />
+									<div className="h-4 w-72 animate-pulse rounded bg-slate-800" />
+								</CardContent>
+							</Card>
 						) : !isStaff && !reviewMode && loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">

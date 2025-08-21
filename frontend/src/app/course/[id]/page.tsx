@@ -755,7 +755,9 @@ export default function CoursePage() {
 			>
 				<DialogContent className="border-slate-800 bg-slate-900">
 					<DialogHeader>
-						<DialogTitle>{t("edit_exam") || "Edit exam"}</DialogTitle>
+						<DialogTitle className="text-white">
+							{t("edit_exam") || "Edit exam"}
+						</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-3 text-slate-200">
 						<Input
