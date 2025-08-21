@@ -8,7 +8,7 @@ export type UiAnswerPayload =
 	| { name: "multiple_choice"; answers: string[] }
 	| { name: "short_text"; answer: string }
 	| { name: "long_text"; answer: string }
-	| { name: "ordering"; answer: number[] }
+	| { name: "ordering"; answer: number[] | string[] }
 	| { name: "file_upload"; file_id: string };
 
 export function buildTaskAnswer(

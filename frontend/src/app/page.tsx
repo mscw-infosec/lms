@@ -90,17 +90,19 @@ export default function HomePage() {
 							<p className="mb-6 text-lg text-slate-300">
 								{t("error_login_prompt")}
 							</p>
-							<div className="flex items-center justify-center gap-3">
+							<div className="flex items-center justify-center gap-2 sm:gap-3">
 								<Button
 									variant="outline"
+									size="sm"
 									onClick={() => setAuthModal("login")}
-									className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+									className="border-slate-700 bg-transparent px-3 text-slate-300 hover:bg-slate-800 sm:px-4"
 								>
 									{t("login")}
 								</Button>
 								<Button
+									size="sm"
 									onClick={() => setAuthModal("register")}
-									className="bg-red-600 text-white hover:bg-red-700"
+									className="bg-red-600 px-3 text-white hover:bg-red-700 sm:px-4"
 								>
 									{t("register")}
 								</Button>

@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
-import { Shield } from "lucide-react";
+import { KeyRound, ListChecks, Shield, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -49,12 +49,15 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 
 				<div className="flex items-center space-x-3">
 					{user && (user.role === "Teacher" || user.role === "Admin") ? (
-						<Link href="/tasks" className="hidden sm:inline-flex">
+						<Link href="/tasks">
 							<Button
 								variant="outline"
-								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+								size="sm"
+								className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
+								title={t("tasks") ?? "Tasks"}
 							>
-								{t("tasks")}
+								<ListChecks className="h-4 w-4 sm:mr-2" />
+								<span className="hidden sm:inline">{t("tasks")}</span>
 							</Button>
 						</Link>
 					) : null}
@@ -144,16 +147,22 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 						<>
 							<Button
 								variant="outline"
+								size="sm"
 								onClick={onLogin}
-								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+								className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
+								title={t("login") ?? "Login"}
 							>
-								{t("login")}
+								<KeyRound className="h-4 w-4 sm:mr-2" />
+								<span className="hidden sm:inline">{t("login")}</span>
 							</Button>
 							<Button
+								size="sm"
 								onClick={onRegister}
-								className="bg-red-600 text-white hover:bg-red-700"
+								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-4"
+								title={t("register") ?? "Register"}
 							>
-								{t("register")}
+								<UserPlus className="h-4 w-4 sm:mr-2" />
+								<span className="hidden sm:inline">{t("register")}</span>
 							</Button>
 						</>
 					) : (

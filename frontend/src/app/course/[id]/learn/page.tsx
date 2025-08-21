@@ -629,15 +629,54 @@ export default function LearnPage() {
 								{Array.isArray((ans as { answer?: unknown })?.answer) &&
 									((ans as { answer?: unknown })?.answer as string[]).map(
 										(idxStr: string, pos: number) => {
-											const idx = Number(idxStr);
-											const label = Array.isArray((cfg as TaskConfig).items)
-												? (((cfg as TaskConfig).items as string[])[idx] ??
-													String(idx))
-												: String(idx);
+											const tone =
+												verdict === "full_score"
+													? "green"
+													: verdict === "incorrect"
+														? "red"
+														: verdict === "on_review" ||
+																verdict === "partial_score"
+															? "amber"
+															: "slate";
+											const border =
+												tone === "green"
+													? "border-green-600"
+													: tone === "red"
+														? "border-red-600"
+														: tone === "amber"
+															? "border-amber-600"
+															: "border-slate-700";
+											const textColor =
+												tone === "green"
+													? "text-green-300"
+													: tone === "red"
+														? "text-red-300"
+														: tone === "amber"
+															? "text-amber-300"
+															: "text-slate-300";
+											const items = Array.isArray((cfg as TaskConfig).items)
+												? ((cfg as TaskConfig).items as string[])
+												: [];
+											const maybeNum = Number(idxStr);
+											let label: string;
+											if (
+												Number.isFinite(maybeNum) &&
+												items[maybeNum] !== undefined
+											) {
+												label = items[maybeNum] as string;
+											} else if (
+												typeof idxStr === "string" &&
+												idxStr.length > 0 &&
+												items.includes(idxStr)
+											) {
+												label = idxStr;
+											} else {
+												label = String(idxStr);
+											}
 											return (
 												<div
-													key={`${pos}-${idx}`}
-													className="rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300"
+													key={`${pos}-${String(idxStr)}`}
+													className={`rounded-lg border bg-slate-800 p-3 ${border} ${textColor}`}
 												>
 													{label}
 												</div>
@@ -998,7 +1037,9 @@ export default function LearnPage() {
 					</div>
 
 					{/* Content */}
-					<div className="flex-1 p-3 lg:p-6">
+					<div
+						className={`flex-1 p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
+					>
 						{!selectedExam ? (
 							<div className="space-y-4">
 								<Card className="border-slate-800 bg-slate-900">
@@ -1128,7 +1169,7 @@ export default function LearnPage() {
 													: `${selectedExam.tries_count}`,
 										})}
 									</div>
-									<div className="flex items-center gap-2">
+									<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
 										{noMoreAttemptsEffective ? (
 											<div className="text-slate-400 text-sm">
 												{t("no_attempts_left") ||
@@ -1138,9 +1179,10 @@ export default function LearnPage() {
 											<Button
 												onClick={handleStart}
 												disabled={starting || loading}
-												className="!transition-none !duration-0 bg-red-600 text-white hover:bg-red-700"
+												size="sm"
+												className="!transition-none !duration-0 w-full bg-red-600 px-2 text-white hover:bg-red-700 sm:w-auto sm:px-3"
 											>
-												<Play className="mr-2 h-4 w-4" />
+												<Play className="h-4 w-4 sm:mr-2" />
 												{t("start_exam") ?? "Start attempt"}
 											</Button>
 										)}
@@ -1150,8 +1192,9 @@ export default function LearnPage() {
 										attempt.scoring_data?.show_results ? (
 											<Button
 												variant="outline"
+												size="sm"
 												onClick={() => setReviewMode(true)}
-												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+												className="w-full border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:w-auto sm:px-3"
 											>
 												{t("watch_attempts") ?? "Watch attempts"}
 											</Button>
@@ -1176,12 +1219,13 @@ export default function LearnPage() {
 								) : null}
 
 								{!attempt?.active && attempt?.scoring_data?.show_results ? (
-									<div className="flex items-center gap-2">
+									<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
 										{!reviewMode ? (
 											<Button
 												variant="outline"
+												size="sm"
 												onClick={() => setReviewMode(true)}
-												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+												className="w-full border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:w-auto sm:px-3"
 											>
 												{t("watch_attempts") ?? "Watch attempts"}
 											</Button>
@@ -1300,7 +1344,7 @@ export default function LearnPage() {
 						<div className="mb-2 text-center font-medium text-slate-300 text-xs">
 							{t("progress") || "Progress"}
 						</div>
-						<div className="grid grid-cols-4 gap-2">
+						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
 							{tasks.map((tTask, idx) => {
 								const id = tTask.id;
 								const isSubmitted = submittedIds.has(id);
@@ -1324,6 +1368,72 @@ export default function LearnPage() {
 					</div>
 				) : null}
 			</div>
+
+			{/* Mobile Footer: timer + progress (only during active attempt) */}
+			{attempt?.active && tasks.length > 0 && !reviewMode ? (
+				<div className="fixed inset-x-0 bottom-0 z-20 border-slate-800 border-t bg-slate-900 p-3 lg:hidden">
+					{/* Timer */}
+					{(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
+						<div
+							className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
+								remainingSec <= 30
+									? "border-red-600 text-red-400"
+									: remainingSec <= 120
+										? "border-amber-600 text-amber-400"
+										: "border-slate-700 text-slate-300"
+							}`}
+							title={t("time_left") || "Time left"}
+						>
+							<span className="mr-2 opacity-80">
+								{t("time_left") || "Time left"}:
+							</span>
+							<span className="font-mono text-base">
+								{formatTime(remainingSec)}
+							</span>
+						</div>
+					) : (
+						(selectedExam?.duration ?? 0) === 0 && (
+							<div
+								className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
+								title={t("no_timer") || "No timer"}
+							>
+								<span className="font-mono">{t("no_timer") || "No timer"}</span>
+							</div>
+						)
+					)}
+
+					<div className="mb-2 text-center font-medium text-slate-300 text-xs">
+						{t("progress") || "Progress"}
+					</div>
+					<div className="flex items-center justify-center">
+						<div className="max-w-full overflow-x-auto">
+							<div className="flex items-center gap-2">
+								{tasks.map((tTask, idx) => {
+									const id = tTask.id;
+									const isSubmitted = submittedIds.has(id);
+									return (
+										<button
+											key={id}
+											type="button"
+											onClick={() => setTaskIndex(idx)}
+											className={`flex h-8 w-8 items-center justify-center rounded ${
+												isSubmitted
+													? "bg-red-600 text-white"
+													: "bg-slate-700 text-slate-300"
+											} ${idx === taskIndex ? "ring-2 ring-red-500 ring-offset-2 ring-offset-slate-900" : ""}`}
+											title={`${t("task") || "Task"} #${idx + 1}`}
+										>
+											<span className="font-semibold text-[11px]">
+												{idx + 1}
+											</span>
+										</button>
+									);
+								})}
+							</div>
+						</div>
+					</div>
+				</div>
+			) : null}
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
 			) : null}

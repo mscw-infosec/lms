@@ -324,7 +324,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 
 	return (
 		<Dialog open={!!type} onOpenChange={() => onClose()}>
-			<DialogContent className="border-slate-800 bg-slate-900 sm:max-w-md">
+			<DialogContent className="max-w-md border-slate-800 bg-slate-900">
 				<DialogHeader>
 					<DialogTitle className="text-center text-white">
 						{type === "login" ? t("welcome_back") : t("create_account_title")}
@@ -489,22 +489,26 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						</span>
 					</div>
 
-					<div className="grid grid-cols-3 gap-2">
+					<div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
 						<Button
 							type="button"
 							variant="outline"
-							className="col-span-1 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+							size="sm"
+							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
 							onClick={handlePasskey}
+							title={t("passkey")}
 						>
-							<Key className="mr-1 h-4 w-4" />
-							<span className="text-xs">{t("passkey")}</span>
+							<Key className="h-4 w-4 sm:mr-1" />
+							<span className="hidden text-xs sm:inline">{t("passkey")}</span>
 						</Button>
 
 						<Button
 							type="button"
 							variant="outline"
-							className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+							size="sm"
+							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
 							onClick={() => handleOAuth("yandex")}
+							title={t("sign_in_with_yandex")}
 						>
 							<svg
 								className="h-4 w-4"
@@ -528,8 +532,10 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						<Button
 							type="button"
 							variant="outline"
-							className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+							size="sm"
+							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
 							onClick={() => handleOAuth("github")}
+							title={t("sign_in_with_github")}
 						>
 							<svg
 								className="h-4 w-4"

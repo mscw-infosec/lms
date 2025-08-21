@@ -619,17 +619,17 @@ export default function CoursePage() {
 										{(topicExams[topic.id] ?? []).map((exam) => (
 											<div key={exam.id} className="space-y-2">
 												<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
-													<div className="flex items-center gap-3">
+													<div className="flex min-w-0 items-center gap-3">
 														<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
-														<div>
+														<div className="min-w-0">
 															<>
-																<div className="font-medium text-slate-200">
+																<div className="truncate font-medium text-slate-200">
 																	{exam.name || t("exam")}
 																</div>
-																<div className="text-slate-400 text-sm">
+																<div className="hidden truncate text-slate-400 text-sm sm:block">
 																	{exam.description || t("no_description")}
 																</div>
-																<div className="mt-1 text-slate-500 text-xs">
+																<div className="mt-1 hidden text-slate-500 text-xs sm:block">
 																	{t("exam_card", {
 																		type: t(
 																			exam.type === "Instant"
@@ -646,11 +646,11 @@ export default function CoursePage() {
 															</>
 														</div>
 													</div>
-													<div className="flex items-center gap-3">
+													<div className="flex flex-shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
 														{user &&
 														(user.role === "Teacher" ||
 															user.role === "Admin") ? (
-															<div className="text-slate-400 text-xs">
+															<div className="hidden text-slate-400 text-xs sm:block">
 																ID: {exam.id}
 															</div>
 														) : null}

@@ -91,6 +91,9 @@ export function TaskPlayer({
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
 	const [canSubmit, setCanSubmit] = useState(true);
 
+	const [touchDragFrom, setTouchDragFrom] = useState<number | null>(null);
+	const [touchOverIndex, setTouchOverIndex] = useState<number | null>(null);
+
 	const taskId = hasId(task) ? task.id : undefined;
 	const interactionsLocked = disabled;
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: reset when taskId changes intentionally */
@@ -120,12 +123,54 @@ export function TaskPlayer({
 		if (cfgName !== "ordering" || !Array.isArray(cfg?.items)) return;
 
 		if (answers[taskId] === undefined) {
-			const defaultOrder = cfg.items.map((_, index) => index);
+			const defaultOrder = [...cfg.items];
 			setAnswers((prev) => ({ ...prev, [taskId]: defaultOrder }));
 			onProgress?.(taskId, true);
 			onAnswer?.({ name: "ordering", answer: defaultOrder });
 		}
 	}, [taskId, cfgName, cfg?.items, answers, onProgress, onAnswer]);
+
+	// Helpers for touch dragging on mobile
+	const startTouchDrag = (startIdx: number) => {
+		if (interactionsLocked) return;
+		setTouchDragFrom(startIdx);
+		setTouchOverIndex(startIdx);
+	};
+	const updateTouchDrag = (clientX: number, clientY: number) => {
+		if (interactionsLocked) return;
+		if (touchDragFrom === null) return;
+		const el = document.elementFromPoint(
+			clientX,
+			clientY,
+		) as HTMLElement | null;
+		if (!el) return;
+		const itemEl = el.closest(
+			'[data-ordering-item="true"]',
+		) as HTMLElement | null;
+		if (!itemEl) return;
+		const idxStr = itemEl.getAttribute("data-index");
+		if (idxStr === null) return;
+		const overIdx = Number.parseInt(idxStr);
+		if (!Number.isNaN(overIdx)) setTouchOverIndex(overIdx);
+	};
+	const endTouchDrag = () => {
+		if (interactionsLocked) {
+			setTouchDragFrom(null);
+			setTouchOverIndex(null);
+			return;
+		}
+		if (
+			touchDragFrom !== null &&
+			touchOverIndex !== null &&
+			touchDragFrom !== touchOverIndex
+		) {
+			const currentItems = getOrderedItems();
+			const newOrder = moveItem(touchDragFrom, touchOverIndex, currentItems);
+			handleOrdering(newOrder);
+		}
+		setTouchDragFrom(null);
+		setTouchOverIndex(null);
+	};
 
 	const getMappedTaskType = (): string | undefined => {
 		const t = getDtoTaskType(dto);
@@ -207,14 +252,10 @@ export function TaskPlayer({
 
 	const handleOrdering = (newOrder: string[]) => {
 		if (interactionsLocked) return;
-		const originalItems = cfg?.items || [];
-		const orderIndices = newOrder
-			.map((item) => originalItems.indexOf(item))
-			.filter((idx) => idx !== -1);
-		setAnswers((prev) => ({ ...prev, [taskId]: orderIndices }));
+		setAnswers((prev) => ({ ...prev, [taskId]: newOrder }));
 		setCanSubmit(true);
 		onProgress?.(taskId, true);
-		onAnswer?.({ name: "ordering", answer: orderIndices });
+		onAnswer?.({ name: "ordering", answer: newOrder });
 	};
 
 	const moveItem = (
@@ -233,21 +274,26 @@ export function TaskPlayer({
 	const getOrderedItems = (): string[] => {
 		if (!Array.isArray(cfg?.items)) return [];
 
-		if (Array.isArray(answers[taskId])) {
-			const orderIndices = answers[taskId] as number[];
-			if (orderIndices.length === cfg.items.length) {
-				return orderIndices
-					.map((idx) => cfg.items?.[idx])
-					.filter((item): item is string => typeof item === "string");
+		const ans = answers[taskId];
+		if (Array.isArray(ans)) {
+			// If the state is a string[], return it (validated against cfg.items to be safe)
+			if ((ans as unknown[]).every((v) => typeof v === "string")) {
+				const set = new Set(cfg.items);
+				return (ans as string[]).filter((s) => set.has(s));
+			}
+			// Backward-compatibility: number[] indices -> map to strings
+			if ((ans as unknown[]).every((v) => typeof v === "number")) {
+				const orderIndices = ans as number[];
+				if (orderIndices.length === cfg.items.length) {
+					return orderIndices
+						.map((idx) => cfg.items?.[idx])
+						.filter((item): item is string => typeof item === "string");
+				}
 			}
 		}
 
-		if (
-			typeof answers[taskId] === "object" &&
-			answers[taskId] !== null &&
-			!Array.isArray(answers[taskId])
-		) {
-			const orderMap = answers[taskId] as Record<number, number>;
+		if (typeof ans === "object" && ans !== null && !Array.isArray(ans)) {
+			const orderMap = ans as Record<number, number>;
 			const sortedEntries = Object.entries(orderMap)
 				.map(([itemIdx, position]) => ({
 					itemIdx: Number.parseInt(itemIdx),
@@ -514,7 +560,15 @@ export function TaskPlayer({
 								return (
 									<div
 										key={`${item}-${originalIndex}`}
-										className="group flex cursor-move items-center gap-3 rounded-lg border border-slate-700 bg-slate-800 p-3 text-slate-300 transition-colors hover:border-slate-600"
+										data-ordering-item="true"
+										data-index={idx}
+										className={`group flex cursor-move select-none items-center gap-3 rounded-lg border bg-slate-800 p-3 text-slate-300 transition-colors hover:border-slate-600 ${
+											touchDragFrom !== null ? "touch-none" : ""
+										} ${
+											touchDragFrom !== null && touchOverIndex === idx
+												? "border-red-500"
+												: "border-slate-700"
+										} ${touchDragFrom === idx ? "opacity-75" : ""}`}
 										draggable={!interactionsLocked}
 										onDragStart={(e) => {
 											if (interactionsLocked) {
@@ -548,6 +602,27 @@ export function TaskPlayer({
 												);
 												handleOrdering(newOrder);
 											}
+										}}
+										onTouchStart={(e) => {
+											if (interactionsLocked) return;
+											if (e.touches.length === 0) return;
+											// Initialize touch drag from this index
+											startTouchDrag(idx);
+										}}
+										onTouchMove={(e) => {
+											if (interactionsLocked) return;
+											if (touchDragFrom === null) return;
+											const touch = e.touches.item(0);
+											if (!touch) return;
+											// Prevent page scroll while dragging
+											e.preventDefault();
+											updateTouchDrag(touch.clientX, touch.clientY);
+										}}
+										onTouchEnd={() => {
+											endTouchDrag();
+										}}
+										onTouchCancel={() => {
+											endTouchDrag();
 										}}
 									>
 										<GripVertical

@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 	title: "LMS",
 	description: "Learning Management System",
 	generator: "",
+	viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({
