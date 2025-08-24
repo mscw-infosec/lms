@@ -1312,9 +1312,6 @@ export default function LearnPage() {
 									</div>
 								) : (
 									<>
-										{attempt?.active ? (
-											<div className="text-slate-400 text-sm"></div>
-										) : null}
 										{tasks[taskIndex]
 											? renderInteractiveTask(tasks[taskIndex] as PublicTaskDTO)
 											: null}
