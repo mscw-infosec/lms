@@ -19,6 +19,7 @@ import {
 	Upload,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type TaskConfig = {
 	name?: string;
@@ -88,6 +89,7 @@ export function TaskPlayer({
 	isLast = false,
 	initial,
 }: TaskPlayerProps) {
+	const { t } = useTranslation("common");
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
 	const [canSubmit, setCanSubmit] = useState(true);
 
@@ -657,7 +659,7 @@ export function TaskPlayer({
 							}}
 							disabled={disabled || !canSubmit}
 						>
-							Submit
+							{t("submit")}
 						</Button>
 					</div>
 				</CardContent>

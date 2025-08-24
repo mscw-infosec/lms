@@ -219,7 +219,7 @@ export default function CreateTopicItemDialog({
 								</div>
 								<div>
 									<Label className="text-slate-300">
-										{t("duration_minutes") || "Duration (min)"}
+										{t("duration_minutes") || "Duration (sec)"}
 									</Label>
 									<Input
 										type="number"
