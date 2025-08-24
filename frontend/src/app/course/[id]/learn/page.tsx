@@ -85,7 +85,7 @@ export default function LearnPage() {
 	} = useAttempt(selectedExam?.id ?? null, isStaff, selectedExam?.tries_count);
 
 	const unlimitedAttempts = (selectedExam?.tries_count ?? -1) === 0;
-	const noMoreAttemptsEffective = !unlimitedAttempts && noMoreAttempts;
+	const ranOutEffective = !unlimitedAttempts && ranOut === true;
 
 	const latestAnswersRef = useRef<
 		Record<number, ReturnType<typeof buildTaskAnswer> | null>
@@ -353,17 +353,41 @@ export default function LearnPage() {
 						: verdict === "on_review"
 							? (t("on_review") ?? "On review")
 							: undefined;
+		const tone =
+			verdict === "full_score"
+				? "green"
+				: verdict === "incorrect"
+					? "red"
+					: verdict === "on_review" || verdict === "partial_score"
+						? "amber"
+						: "slate";
+		const border =
+			tone === "green"
+				? "border-green-700"
+				: tone === "red"
+					? "border-red-700"
+					: tone === "amber"
+						? "border-amber-700"
+						: "border-slate-800";
+		const badgeBg =
+			tone === "green"
+				? "bg-green-600"
+				: tone === "red"
+					? "bg-red-600"
+					: tone === "amber"
+						? "bg-amber-600"
+						: "bg-slate-700";
 		return (
-			<Card key={task.id} className="border-slate-800 bg-slate-900">
+			<Card key={task.id} className={`relative border bg-slate-900 ${border}`}>
+				{verdictLabel ? (
+					<div
+						className={`absolute top-3 right-3 rounded-full px-2.5 py-1 font-medium text-white text-xs ${badgeBg}`}
+					>
+						{verdictLabel}
+					</div>
+				) : null}
 				<CardHeader>
-					<CardTitle className="text-white">
-						{task.title}
-						{verdictLabel ? (
-							<span className="ml-2 align-middle text-slate-400 text-xs">
-								{verdictLabel}
-							</span>
-						) : null}
-					</CardTitle>
+					<CardTitle className="text-white">{task.title}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
 					{task.description ? (
@@ -1088,7 +1112,7 @@ export default function LearnPage() {
 									<div className="h-4 w-72 animate-pulse rounded bg-slate-800" />
 								</CardContent>
 							</Card>
-						) : !isStaff && noMoreAttemptsEffective && !reviewMode ? (
+						) : !isStaff && ranOutEffective && !reviewMode ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">
 									<div className="mb-2">
@@ -1137,7 +1161,7 @@ export default function LearnPage() {
 							</Card>
 						) : !isStaff &&
 							(!attempt || !attempt.active) &&
-							!noMoreAttemptsEffective &&
+							!ranOutEffective &&
 							!reviewMode &&
 							!loading ? (
 							<Card className="border-slate-800 bg-slate-900">
@@ -1170,7 +1194,7 @@ export default function LearnPage() {
 										})}
 									</div>
 									<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-										{noMoreAttemptsEffective ? (
+										{ranOutEffective ? (
 											<div className="text-slate-400 text-sm">
 												{t("no_attempts_left") ||
 													"You have no attempts left for this exam."}
@@ -1288,14 +1312,6 @@ export default function LearnPage() {
 									</div>
 								) : (
 									<>
-										{attempt?.active ? (
-											<div className="text-slate-400 text-sm">
-												{t("pagination", {
-													index: taskIndex + 1,
-													total: tasks.length,
-												}) || `${taskIndex + 1} / ${tasks.length}`}
-											</div>
-										) : null}
 										{tasks[taskIndex]
 											? renderInteractiveTask(tasks[taskIndex] as PublicTaskDTO)
 											: null}
@@ -1306,40 +1322,41 @@ export default function LearnPage() {
 					</div>
 				</div>
 
-				{/* Right Sidebar: timer + progress (only during active attempt) */}
-				{attempt?.active && tasks.length > 0 && !reviewMode ? (
+				{/* Right Sidebar: timer + progress (active attempt or preview) */}
+				{(attempt?.active || isPreview) && tasks.length > 0 && !reviewMode ? (
 					<div className="hidden w-56 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
-						{/* Timer moved here */}
-						{(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
-							<div
-								className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
-									remainingSec <= 30
-										? "border-red-600 text-red-400"
-										: remainingSec <= 120
-											? "border-amber-600 text-amber-400"
-											: "border-slate-700 text-slate-300"
-								}`}
-								title={t("time_left") || "Time left"}
-							>
-								<span className="mr-2 opacity-80">
-									{t("time_left") || "Time left"}:
-								</span>
-								<span className="font-mono text-base">
-									{formatTime(remainingSec)}
-								</span>
-							</div>
-						) : (
-							(selectedExam?.duration ?? 0) === 0 && (
+						{attempt?.active ? (
+							(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
 								<div
-									className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
-									title={t("no_timer") || "No timer"}
+									className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
+										remainingSec <= 30
+											? "border-red-600 text-red-400"
+											: remainingSec <= 120
+												? "border-amber-600 text-amber-400"
+												: "border-slate-700 text-slate-300"
+									}`}
+									title={t("time_left") || "Time left"}
 								>
-									<span className="font-mono">
-										{t("no_timer") || "No timer"}
+									<span className="mr-2 opacity-80">
+										{t("time_left") || "Time left"}:
+									</span>
+									<span className="font-mono text-base">
+										{formatTime(remainingSec)}
 									</span>
 								</div>
+							) : (
+								(selectedExam?.duration ?? 0) === 0 && (
+									<div
+										className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
+										title={t("no_timer") || "No timer"}
+									>
+										<span className="font-mono">
+											{t("no_timer") || "No timer"}
+										</span>
+									</div>
+								)
 							)
-						)}
+						) : null}
 
 						<div className="mb-2 text-center font-medium text-slate-300 text-xs">
 							{t("progress") || "Progress"}
@@ -1369,38 +1386,42 @@ export default function LearnPage() {
 				) : null}
 			</div>
 
-			{/* Mobile Footer: timer + progress (only during active attempt) */}
-			{attempt?.active && tasks.length > 0 && !reviewMode ? (
+			{/* Mobile Footer: timer + progress (active attempt or preview) */}
+			{(attempt?.active || isPreview) && tasks.length > 0 && !reviewMode ? (
 				<div className="fixed inset-x-0 bottom-0 z-20 border-slate-800 border-t bg-slate-900 p-3 lg:hidden">
-					{/* Timer */}
-					{(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
-						<div
-							className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
-								remainingSec <= 30
-									? "border-red-600 text-red-400"
-									: remainingSec <= 120
-										? "border-amber-600 text-amber-400"
-										: "border-slate-700 text-slate-300"
-							}`}
-							title={t("time_left") || "Time left"}
-						>
-							<span className="mr-2 opacity-80">
-								{t("time_left") || "Time left"}:
-							</span>
-							<span className="font-mono text-base">
-								{formatTime(remainingSec)}
-							</span>
-						</div>
-					) : (
-						(selectedExam?.duration ?? 0) === 0 && (
+					{/* Timer visible only during active attempt */}
+					{attempt?.active ? (
+						(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
 							<div
-								className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
-								title={t("no_timer") || "No timer"}
+								className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
+									remainingSec <= 30
+										? "border-red-600 text-red-400"
+										: remainingSec <= 120
+											? "border-amber-600 text-amber-400"
+											: "border-slate-700 text-slate-300"
+								}`}
+								title={t("time_left") || "Time left"}
 							>
-								<span className="font-mono">{t("no_timer") || "No timer"}</span>
+								<span className="mr-2 opacity-80">
+									{t("time_left") || "Time left"}:
+								</span>
+								<span className="font-mono text-base">
+									{formatTime(remainingSec)}
+								</span>
 							</div>
+						) : (
+							(selectedExam?.duration ?? 0) === 0 && (
+								<div
+									className="mb-3 flex items-center justify-center rounded-md border border-slate-700 px-2 py-2 text-slate-300 text-sm"
+									title={t("no_timer") || "No timer"}
+								>
+									<span className="font-mono">
+										{t("no_timer") || "No timer"}
+									</span>
+								</div>
+							)
 						)
-					)}
+					) : null}
 
 					<div className="mb-2 text-center font-medium text-slate-300 text-xs">
 						{t("progress") || "Progress"}

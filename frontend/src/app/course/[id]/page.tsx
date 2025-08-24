@@ -639,8 +639,12 @@ export default function CoursePage() {
 																		duration:
 																			(exam.duration ?? 0) === 0
 																				? t("no_timer") || "No timer"
-																				: `${exam.duration}m`,
-																		tries: exam.tries_count,
+																				: `${exam.duration}s`,
+																		tries:
+																			(exam.tries_count ?? 0) === 0
+																				? t("infty_attempts") ||
+																					"Infinite attempts"
+																				: `${exam.tries_count}`,
 																	})}
 																</div>
 															</>
