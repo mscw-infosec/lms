@@ -197,6 +197,38 @@ export function TaskPlayer({
 		}
 	};
 
+	const getTaskTypeKey = (): string | undefined => {
+		const mapped = getMappedTaskType();
+		switch (mapped) {
+			case "SingleChoice":
+				return "single_choice";
+			case "MultipleChoice":
+				return "multiple_choice";
+			case "ShortText":
+				return "short_text";
+			case "LongText":
+				return "long_text";
+			case "Ordering":
+				return "ordering";
+			case "FileUpload":
+				return "file_upload";
+			case "CTFd":
+				return "ctfd";
+			default:
+				if (
+					cfgName === "single_choice" ||
+					cfgName === "multiple_choice" ||
+					cfgName === "short_text" ||
+					cfgName === "long_text" ||
+					cfgName === "ordering" ||
+					cfgName === "file_upload" ||
+					cfgName === "ctfd"
+				)
+					return cfgName;
+				return undefined;
+		}
+	};
+
 	const getTaskIcon = () => {
 		const type = getMappedTaskType();
 		const common = "mr-3 h-4 w-4 text-purple-400";
@@ -319,7 +351,7 @@ export function TaskPlayer({
 						<CardTitle className="text-white">
 							<span className="inline-flex items-center">
 								{getTaskIcon()}
-								{dto?.title ?? `Task #${taskId}`}
+								{dto?.title ?? `${t("task")} #${taskId}`}
 							</span>
 						</CardTitle>
 					</CardHeader>
@@ -328,7 +360,7 @@ export function TaskPlayer({
 							<div className="text-slate-300 text-sm">{dto.description}</div>
 						) : null}
 						<div className="text-slate-400 text-xs">
-							{dto?.points ?? 0} pts · {cfgName ?? "task"}
+							{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
 						</div>
 						{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
 							<RadioGroup value={""} onValueChange={() => {}} disabled>
@@ -374,7 +406,7 @@ export function TaskPlayer({
 						{cfgName === "short_text" && (
 							<input
 								type="text"
-								placeholder="Short answer..."
+								placeholder={t("short_answer_placeholder")}
 								className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-white placeholder-slate-400"
 								maxLength={
 									typeof cfg?.max_chars_count === "number"
@@ -386,7 +418,7 @@ export function TaskPlayer({
 						)}
 						{cfgName === "long_text" && (
 							<textarea
-								placeholder="Long answer..."
+								placeholder={t("long_answer_placeholder")}
 								className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-white placeholder-slate-400"
 								rows={5}
 								maxLength={
@@ -411,17 +443,17 @@ export function TaskPlayer({
 						)}
 						{cfgName === "file_upload" && (
 							<div className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-slate-300">
-								File upload (max size:{" "}
-								{typeof cfg?.max_size === "number"
-									? `${cfg.max_size} bytes`
-									: "unknown"}
-								). Disabled in preview.
+								{t("file_upload_preview_disabled", {
+									size:
+										typeof cfg?.max_size === "number"
+											? `${cfg.max_size} bytes`
+											: t("unknown"),
+								})}
 							</div>
 						)}
 						{!cfgName && (
 							<div className="rounded-md border border-slate-800 bg-slate-950 p-3 text-slate-400 text-sm">
-								This is a staff preview. Answers are not recorded and no attempt
-								is active.
+								{t("staff_preview_notice")}
 							</div>
 						)}
 					</CardContent>
@@ -438,7 +470,7 @@ export function TaskPlayer({
 					<CardTitle className="text-white">
 						<span className="inline-flex items-center">
 							{getTaskIcon()}
-							{dto?.title ?? `Task #${taskId}`}
+							{dto?.title ?? `${t("task")} #${taskId}`}
 						</span>
 					</CardTitle>
 				</CardHeader>
@@ -447,7 +479,7 @@ export function TaskPlayer({
 						<div className="text-slate-300 text-sm">{dto.description}</div>
 					) : null}
 					<div className="text-slate-400 text-xs">
-						{dto?.points ?? 0} pts · {cfgName ?? "task"}
+						{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
 					</div>
 					{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
 						<RadioGroup
@@ -524,7 +556,7 @@ export function TaskPlayer({
 					{cfgName === "short_text" && (
 						<input
 							type="text"
-							placeholder="Short answer..."
+							placeholder={t("short_answer_placeholder")}
 							className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-white placeholder-slate-400"
 							maxLength={
 								typeof cfg?.max_chars_count === "number"
@@ -538,7 +570,7 @@ export function TaskPlayer({
 					)}
 					{cfgName === "long_text" && (
 						<textarea
-							placeholder="Long answer..."
+							placeholder={t("long_answer_placeholder")}
 							className="w-full rounded-lg border border-slate-700 bg-slate-800 p-3 text-white placeholder-slate-400"
 							rows={5}
 							maxLength={
@@ -554,7 +586,7 @@ export function TaskPlayer({
 					{cfgName === "ordering" && Array.isArray(cfg?.items) && (
 						<div className="space-y-2">
 							<div className="mb-3 text-slate-400 text-sm">
-								Drag and drop to reorder the items:
+								{t("drag_to_reorder")}
 							</div>
 							{getOrderedItems().map((item: string, idx: number) => {
 								const originalItems = cfg?.items || [];
@@ -636,18 +668,19 @@ export function TaskPlayer({
 							})}
 							{interactionsLocked && (
 								<div className="text-slate-500 text-xs">
-									Interactions are locked.
+									{t("interactions_locked")}
 								</div>
 							)}
 						</div>
 					)}
 					{cfgName === "file_upload" && (
 						<div className="rounded-lg border border-slate-700 bg-slate-800 p-4 text-slate-300">
-							File upload not implemented. Max size:{" "}
-							{typeof cfg?.max_size === "number"
-								? `${cfg.max_size} bytes`
-								: "unknown"}
-							.
+							{t("file_upload_not_implemented", {
+								size:
+									typeof cfg?.max_size === "number"
+										? `${cfg.max_size} bytes`
+										: t("unknown"),
+							})}
 						</div>
 					)}
 					<div className="flex justify-end">

@@ -489,7 +489,8 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						</span>
 					</div>
 
-					<div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+					<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+						{/*
 						<Button
 							type="button"
 							variant="outline"
@@ -501,6 +502,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 							<Key className="h-4 w-4 sm:mr-1" />
 							<span className="hidden text-xs sm:inline">{t("passkey")}</span>
 						</Button>
+						*/}
 
 						<Button
 							type="button"

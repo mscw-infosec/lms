@@ -2,6 +2,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import AuthRerenderBoundary from "@/components/auth-rerender-boundary";
 import { I18nProvider } from "@/components/i18n-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { UserProvider } from "@/store/user";
@@ -32,7 +33,9 @@ html {
 			<body>
 				<I18nProvider>
 					<QueryProvider>
-						<UserProvider>{children}</UserProvider>
+						<UserProvider>
+							<AuthRerenderBoundary>{children}</AuthRerenderBoundary>
+						</UserProvider>
 					</QueryProvider>
 				</I18nProvider>
 			</body>

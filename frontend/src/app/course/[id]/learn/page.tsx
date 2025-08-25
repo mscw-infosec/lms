@@ -11,6 +11,17 @@ import {
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
 import { TaskPlayer } from "@/components/task-player";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -25,12 +36,12 @@ import type { UiAnswerPayload } from "@/lib/answers";
 import { useUserStore } from "@/store/user";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+	ArrowLeft,
 	BookOpen,
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
 	HelpCircle,
-	Home,
 	Menu,
 	Play,
 	X,
@@ -133,7 +144,8 @@ export default function LearnPage() {
 			if (!attempt?.active || !selectedExam?.duration) return null;
 			try {
 				const started = new Date(attempt.started_at).getTime();
-				const endAt = started + Number(selectedExam.duration) * 60_000;
+				// duration is stored in seconds; convert to milliseconds
+				const endAt = started + Number(selectedExam.duration) * 1_000;
 				const secs = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
 				return secs;
 			} catch {
@@ -266,6 +278,17 @@ export default function LearnPage() {
 
 	const handleStart = () => {
 		if (!selectedExam) return;
+
+		if (tasks.length === 0) {
+			toast({
+				title: t("no_tasks_attached") ?? "No tasks attached",
+				description:
+					t("cannot_start_no_tasks") ??
+					"This exam has no linked tasks and cannot be started.",
+				variant: "destructive",
+			});
+			return;
+		}
 		setReviewMode(false);
 		start();
 	};
@@ -423,8 +446,7 @@ export default function LearnPage() {
 								const maybeNum = Number(ansRaw);
 								if (
 									Number.isFinite(maybeNum) &&
-									Array.isArray((cfg as TaskConfig).options) &&
-									(cfg as TaskConfig).options?.[maybeNum] !== undefined
+									Array.isArray((cfg as TaskConfig).options)
 								) {
 									selectedIdx = maybeNum;
 									selectedLabel =
@@ -585,7 +607,7 @@ export default function LearnPage() {
 											(cfg as TaskConfig).options?.[maybeNum] !== undefined
 										) {
 											selectedIdxs.push(maybeNum);
-										} else if (Array.isArray((cfg as TaskConfig).options)) {
+										} else {
 											const i = (
 												(cfg as TaskConfig).options as string[]
 											).indexOf(v);
@@ -779,7 +801,12 @@ export default function LearnPage() {
 							opts[maybeNum] !== undefined
 						) {
 							numIndices.push(maybeNum);
-						} else if (x && (!Array.isArray(opts) || opts.includes(x))) {
+						} else if (
+							typeof x === "string" &&
+							x.length > 0 &&
+							Array.isArray(opts) &&
+							opts.includes(x)
+						) {
 							strLabels.push(x);
 						}
 					}
@@ -833,6 +860,102 @@ export default function LearnPage() {
 		latestAnswersRef.current = {};
 	}, [pendingExam?.id]);
 
+	// Shared sidebar content (header + topics/exams list)
+	function renderSidebarContent() {
+		return (
+			<>
+				<div className="flex items-center justify-between border-slate-800 border-b p-4">
+					<h2 className="font-semibold text-white">{t("course_structure")}</h2>
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => setSidebarOpen(false)}
+						className="text-slate-400 hover:text-white sm:hidden"
+					>
+						<X className="h-4 w-4" />
+					</Button>
+				</div>
+				<div className="h-[calc(100vh-80px)] space-y-4 overflow-y-auto p-4">
+					{topicsQuery.isLoading ? (
+						<div className="text-slate-400 text-sm">{t("loading")}</div>
+					) : null}
+					{/* Button to show course info in main content */}
+					<button
+						type="button"
+						onClick={() => {
+							setPendingExam(null);
+							if (typeof window !== "undefined" && window.innerWidth < 640) {
+								setSidebarOpen(false);
+							}
+						}}
+						className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
+							!(pendingExam ?? selectedExam)
+								? "bg-red-600 text-white"
+								: "text-slate-300 hover:bg-slate-700"
+						}`}
+					>
+						<div className="flex flex-1 items-center">
+							<Info className="mr-2 h-4 w-4 flex-shrink-0 text-sky-400" />
+							<span className="truncate text-sm">
+								{t("course_info") ?? "Course info"}
+							</span>
+						</div>
+					</button>
+					{(topicsQuery.data ?? []).map((topic) => (
+						<Collapsible key={topic.id} defaultOpen>
+							<CollapsibleTrigger className="group flex w-full items-center justify-between overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700">
+								<div className="flex min-w-0 items-center">
+									<BookOpen className="mr-2 h-4 w-4 text-slate-400" />
+									<span className="truncate font-medium text-sm text-white">
+										{topic.title}
+									</span>
+								</div>
+								<ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+							</CollapsibleTrigger>
+							<CollapsibleContent className="mt-2 w-full space-y-1 overflow-x-hidden">
+								{(examsByTopicQuery.data?.[topic.id] ?? []).map((exam) => (
+									<button
+										type="button"
+										key={exam.id}
+										onClick={() => {
+											// Reset review state immediately to avoid flashing review UI
+											setReviewMode(false);
+											setSelectedReviewAttemptId(null);
+											latestAnswersRef.current = {};
+											setPendingExam(exam);
+											if (
+												typeof window !== "undefined" &&
+												window.innerWidth < 640
+											)
+												setSidebarOpen(false);
+										}}
+										className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
+											(pendingExam ?? selectedExam)?.id === exam.id
+												? "bg-red-600 text-white"
+												: "text-slate-300 hover:bg-slate-700"
+										}`}
+									>
+										<div className="flex flex-1 items-center">
+											<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
+											<div className="min-w-0 overflow-hidden">
+												<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
+													{exam.name}
+												</div>
+												<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
+													{t("exam") ?? "Exam"}
+												</div>
+											</div>
+										</div>
+									</button>
+								))}
+							</CollapsibleContent>
+						</Collapsible>
+					))}
+				</div>
+			</>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-slate-950 text-slate-200">
 			<Header
@@ -843,7 +966,7 @@ export default function LearnPage() {
 				{/* Backdrop for mobile */}
 				{sidebarOpen && (
 					<div
-						className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+						className="fixed inset-0 z-50 bg-black/50 sm:hidden"
 						onClick={() => setSidebarOpen(false)}
 						role="button"
 						tabIndex={0}
@@ -857,114 +980,20 @@ export default function LearnPage() {
 					/>
 				)}
 
-				{/* Sidebar */}
+				{/* Mobile Sidebar (drawer) */}
 				<div
-					className={`${sidebarOpen ? "w-full sm:w-80" : "w-0"} overflow-hidden border-slate-800 border-r bg-slate-900 transition-all duration-300 ${sidebarOpen ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto" : ""}`}
+					className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[80vw] transform border-slate-800 border-r bg-slate-900 transition-transform duration-300 sm:hidden ${
+						sidebarOpen ? "translate-x-0" : "-translate-x-full"
+					}`}
 				>
-					<div className="flex items-center justify-between border-slate-800 border-b p-4">
-						<h2 className="font-semibold text-white">
-							{t("course_structure")}
-						</h2>
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => setSidebarOpen(false)}
-							className="text-slate-400 hover:text-white sm:hidden"
-						>
-							<X className="h-4 w-4" />
-						</Button>
-					</div>
-					<div className="h-[calc(100vh-80px)] space-y-4 overflow-y-auto p-4">
-						{topicsQuery.isLoading ? (
-							<div className="text-slate-400 text-sm">{t("loading")}</div>
-						) : null}
-						{/* Button to show course info in main content */}
-						<button
-							type="button"
-							onClick={() => setPendingExam(null)}
-							className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-								!(pendingExam ?? selectedExam)
-									? "bg-red-600 text-white"
-									: "text-slate-300 hover:bg-slate-700"
-							}`}
-						>
-							<div className="flex flex-1 items-center">
-								<Info className="mr-2 h-4 w-4 flex-shrink-0 text-sky-400" />
-								<span className="truncate text-sm">
-									{t("course_info") ?? "Course info"}
-								</span>
-							</div>
-						</button>
-						{(topicsQuery.data ?? []).map((topic) => (
-							<Collapsible key={topic.id} defaultOpen>
-								<CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700">
-									<div className="flex items-center">
-										<BookOpen className="mr-2 h-4 w-4 text-slate-400" />
-										<span className="font-medium text-sm text-white">
-											{topic.title}
-										</span>
-									</div>
-									<ChevronDown className="h-4 w-4 text-slate-400" />
-								</CollapsibleTrigger>
-								<CollapsibleContent className="mt-2 space-y-1">
-									{(examsByTopicQuery.data?.[topic.id] ?? []).map((exam) => (
-										<button
-											type="button"
-											key={exam.id}
-											onClick={() => {
-												// Reset review state immediately to avoid flashing review UI
-												setReviewMode(false);
-												setSelectedReviewAttemptId(null);
-												latestAnswersRef.current = {};
-												setPendingExam(exam);
-												if (
-													typeof window !== "undefined" &&
-													window.innerWidth < 640
-												)
-													setSidebarOpen(false);
-											}}
-											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
-												(pendingExam ?? selectedExam)?.id === exam.id
-													? "bg-red-600 text-white"
-													: "text-slate-300 hover:bg-slate-700"
-											}`}
-										>
-											<div className="flex flex-1 items-center">
-												<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
-												<div className="min-w-0 overflow-hidden">
-													<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
-														{exam.name}
-													</div>
-													{exam.description ? (
-														<div className="w-full truncate text-ellipsis whitespace-nowrap text-slate-400 text-xs hover:truncate">
-															{exam.description}
-														</div>
-													) : null}
-													<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
-														{t("exam_card", {
-															type: t(
-																exam.type === "Instant"
-																	? "exam_type_instant"
-																	: "exam_type_delayed",
-															),
-															duration:
-																(exam.duration ?? 0) === 0
-																	? t("no_timer") || "No timer"
-																	: `${exam.duration}s`,
-															tries:
-																(exam.tries_count ?? 0) === 0
-																	? t("infty_attempts") || "Infinite attempts"
-																	: `${exam.tries_count}`,
-														})}
-													</div>
-												</div>
-											</div>
-										</button>
-									))}
-								</CollapsibleContent>
-							</Collapsible>
-						))}
-					</div>
+					{renderSidebarContent()}
+				</div>
+
+				{/* Desktop Sidebar (collapsible rail) */}
+				<div
+					className={`hidden sm:flex ${sidebarOpen ? "w-80" : "w-0"} shrink-0 overflow-hidden border-slate-800 border-r bg-slate-900 transition-[width] duration-300`}
+				>
+					<div className="w-80">{renderSidebarContent()}</div>
 				</div>
 
 				{/* Main Content */}
@@ -990,7 +1019,7 @@ export default function LearnPage() {
 									size="sm"
 									className="mr-2 flex-shrink-0 text-slate-400 hover:text-white lg:mr-4"
 								>
-									<Home className="h-4 w-4" />
+									<ArrowLeft className="h-4 w-4" />
 								</Button>
 							</Link>
 							<h1 className="truncate font-semibold text-sm text-white lg:text-base">
@@ -1032,29 +1061,54 @@ export default function LearnPage() {
 								</Button>
 
 								{attempt ? (
-									<Button
-										variant="ghost"
-										size="sm"
-										onClick={async () => {
-											submitAllBuffered();
-											await flushNow();
-											stop();
-											setTimeout(() => {
-												refresh();
-											}, 300);
-										}}
-										disabled={stopping || !attempt.active}
-										className="text-red-400 hover:text-red-300"
-										title={
-											attempt.active
-												? (t("finish") ?? "Finish")
-												: (t("finished") ?? "Finished")
-										}
-									>
-										{attempt.active
-											? (t("finish") ?? "Finish")
-											: (t("finished") ?? "Finished")}
-									</Button>
+									<AlertDialog>
+										<AlertDialogTrigger asChild>
+											<Button
+												variant="ghost"
+												size="sm"
+												disabled={stopping || !attempt.active}
+												className="text-red-400 hover:text-red-300"
+												title={
+													attempt.active
+														? (t("finish") ?? "Finish")
+														: (t("finished") ?? "Finished")
+												}
+											>
+												{attempt.active
+													? (t("finish") ?? "Finish")
+													: (t("finished") ?? "Finished")}
+											</Button>
+										</AlertDialogTrigger>
+										<AlertDialogContent>
+											<AlertDialogHeader>
+												<AlertDialogTitle>
+													{t("confirm_finish_title") || "Finish attempt?"}
+												</AlertDialogTitle>
+												<AlertDialogDescription>
+													{t("confirm_finish_desc") ||
+														"Are you sure you want to end this attempt? You won't be able to change your answers afterwards."}
+												</AlertDialogDescription>
+											</AlertDialogHeader>
+											<AlertDialogFooter>
+												<AlertDialogCancel>
+													{t("cancel") || "Cancel"}
+												</AlertDialogCancel>
+												<AlertDialogAction
+													onClick={async () => {
+														submitAllBuffered();
+														await flushNow();
+														stop();
+														setTimeout(() => {
+															refresh();
+														}, 300);
+													}}
+													className="bg-red-600 text-white hover:bg-red-700"
+												>
+													{t("finish") || "Finish"}
+												</AlertDialogAction>
+											</AlertDialogFooter>
+										</AlertDialogContent>
+									</AlertDialog>
 								) : null}
 							</div>
 						) : null}
@@ -1062,30 +1116,30 @@ export default function LearnPage() {
 
 					{/* Content */}
 					<div
-						className={`flex-1 p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
+						className={`max-w-full flex-1 overflow-x-hidden p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
 					>
 						{!selectedExam ? (
 							<div className="space-y-4">
-								<Card className="border-slate-800 bg-slate-900">
-									<CardHeader>
-										<CardTitle className="text-white">
+								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
+									<CardHeader className="p-4 sm:p-6">
+										<CardTitle className="text-base text-white sm:text-lg">
 											{courseQuery.data?.name ?? t("course_structure")}
 										</CardTitle>
 									</CardHeader>
-									<CardContent className="space-y-4">
+									<CardContent className="space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
 										{courseQuery.data?.description ? (
-											<p className="whitespace-pre-wrap text-slate-300">
+											<p className="whitespace-pre-wrap text-slate-300 text-sm sm:text-base">
 												{courseQuery.data.description}
 											</p>
 										) : null}
-										<div className="flex flex-wrap gap-3 text-slate-300">
-											<div className="rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
+										<div className="grid grid-cols-1 gap-2 text-slate-300 sm:grid-cols-2">
+											<div className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
 												<strong className="mr-2 text-white">
 													{t("topics") ?? "Topics"}:
 												</strong>
 												<span>{topicsCount}</span>
 											</div>
-											<div className="rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
+											<div className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
 												<strong className="mr-2 text-white">
 													{t("exams") ?? "Exams"}:
 												</strong>
@@ -1094,9 +1148,80 @@ export default function LearnPage() {
 										</div>
 									</CardContent>
 								</Card>
-								<div className="text-slate-300">
-									{t("select_exam") ?? "Select an exam from the left"}
-								</div>
+								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
+									<CardHeader>
+										<CardTitle className="text-white">
+											{t("course_structure")}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-3">
+										{(topicsQuery.data ?? []).map((topic) => (
+											<Collapsible key={topic.id} defaultOpen>
+												<CollapsibleTrigger className="group flex w-full items-center justify-between overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700">
+													<div className="flex min-w-0 items-center">
+														<BookOpen className="mr-2 h-4 w-4 text-slate-400" />
+														<span className="truncate font-medium text-sm text-white">
+															{topic.title}
+														</span>
+													</div>
+													<ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+												</CollapsibleTrigger>
+												<CollapsibleContent className="mt-2 w-full space-y-1 overflow-x-hidden">
+													{(examsByTopicQuery.data?.[topic.id] ?? []).map(
+														(exam) => (
+															<button
+																type="button"
+																key={exam.id}
+																onClick={() => {
+																	setReviewMode(false);
+																	setSelectedReviewAttemptId(null);
+																	latestAnswersRef.current = {};
+																	setPendingExam(exam);
+																}}
+																className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
+																	(pendingExam ?? selectedExam)?.id === exam.id
+																		? "bg-slate-700 text-white"
+																		: "text-slate-300 hover:bg-slate-700"
+																}`}
+															>
+																<div className="flex flex-1 items-center">
+																	<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
+																	<div className="min-w-0 overflow-hidden">
+																		<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
+																			{exam.name}
+																		</div>
+																		<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
+																			{t("exam") ?? "Exam"}
+																		</div>
+																		<div className="w-full truncate text-ellipsis whitespace-nowrap text-[11px] text-slate-400">
+																			{[
+																				t(
+																					exam.type === "Instant"
+																						? "exam_type_instant"
+																						: "exam_type_delayed",
+																				),
+																				(exam.duration ?? 0) === 0
+																					? t("no_timer") || "No timer"
+																					: `${Math.ceil((exam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
+																				(exam.tries_count ?? 0) === 0
+																					? t("attempts_up_to_infty") ||
+																						`up to ${t("infty_attempts")}`
+																					: t("attempts_up_to", {
+																							count: exam.tries_count,
+																						}) ||
+																						`up to ${exam.tries_count} attempts`,
+																			].join(" · ")}
+																		</div>
+																	</div>
+																</div>
+															</button>
+														),
+													)}
+												</CollapsibleContent>
+											</Collapsible>
+										))}
+									</CardContent>
+								</Card>
 							</div>
 						) : switching ? (
 							<Card className="border-slate-800 bg-slate-900">
@@ -1112,7 +1237,12 @@ export default function LearnPage() {
 									<div className="h-4 w-72 animate-pulse rounded bg-slate-800" />
 								</CardContent>
 							</Card>
-						) : !isStaff && ranOutEffective && !reviewMode ? (
+						) : !isStaff &&
+							ranOutEffective &&
+							!reviewMode &&
+							!attempt?.active &&
+							!starting &&
+							!loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">
 									<div className="mb-2">
@@ -1135,7 +1265,7 @@ export default function LearnPage() {
 											duration:
 												(selectedExam.duration ?? 0) === 0
 													? t("no_timer") || "No timer"
-													: `${selectedExam.duration}s`,
+													: `${Math.ceil((selectedExam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
 											tries:
 												(selectedExam.tries_count ?? 0) === 0
 													? t("infty_attempts") || "Infinite attempts"
@@ -1202,9 +1332,14 @@ export default function LearnPage() {
 										) : (
 											<Button
 												onClick={handleStart}
-												disabled={starting || loading}
+												disabled={starting || loading || tasks.length === 0}
 												size="sm"
 												className="!transition-none !duration-0 w-full bg-red-600 px-2 text-white hover:bg-red-700 sm:w-auto sm:px-3"
+												title={
+													tasks.length === 0
+														? (t("no_tasks_attached") ?? "No tasks attached")
+														: undefined
+												}
 											>
 												<Play className="h-4 w-4 sm:mr-2" />
 												{t("start_exam") ?? "Start attempt"}
@@ -1324,7 +1459,7 @@ export default function LearnPage() {
 
 				{/* Right Sidebar: timer + progress (active attempt or preview) */}
 				{(attempt?.active || isPreview) && tasks.length > 0 && !reviewMode ? (
-					<div className="hidden w-56 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
+					<div className="hidden w-60 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
 						{attempt?.active ? (
 							(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
 								<div
