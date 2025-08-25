@@ -1,7 +1,7 @@
 "use client";
 
 import { type GetUserResponseDTO, getCurrentUser } from "@/api/auth";
-import { getAccessToken } from "@/api/token";
+import { ACCESS_TOKEN_STORAGE_KEY, getAccessToken } from "@/api/token";
 import {
 	bumpAvatar,
 	ensureAvatarChecked,
@@ -68,6 +68,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 			bumpAvatar(user?.id);
 		};
 
+		const onStorage = (e: StorageEvent) => {
+			if (e.key === ACCESS_TOKEN_STORAGE_KEY) {
+				onTokenChange();
+			}
+		};
+
 		refreshUser();
 
 		if (typeof window !== "undefined") {
@@ -75,6 +81,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 				"auth:token-changed",
 				onTokenChange as EventListener,
 			);
+			window.addEventListener("storage", onStorage);
 		}
 
 		const unsubscribeAvatar = subscribeAvatar(() => {
@@ -89,6 +96,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 					"auth:token-changed",
 					onTokenChange as EventListener,
 				);
+				window.removeEventListener("storage", onStorage);
 			}
 			unsubscribeAvatar();
 		};

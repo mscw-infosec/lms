@@ -386,7 +386,7 @@ export default function AccountPage() {
 
 					{/* Sessions card */}
 					<Card className="border-slate-800 bg-slate-900">
-						<CardHeader className="flex flex-row items-center justify-between space-y-0">
+						<CardHeader className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
 							<div>
 								<CardTitle className="text-white">
 									{t("active_sessions")}
@@ -398,12 +398,16 @@ export default function AccountPage() {
 							<Button
 								onClick={() => logoutAllMutation.mutate()}
 								disabled={logoutAllMutation.isPending}
-								className="bg-red-600 text-white hover:bg-red-700"
+								size="sm"
+								title={t("log_out_all")}
+								className="mt-1 bg-red-600 px-2 text-white hover:bg-red-700 sm:mt-0 sm:px-3"
 							>
 								<LogOut className="mr-2 h-4 w-4" />
-								{logoutAllMutation.isPending
-									? t("logging_out")
-									: t("log_out_all")}
+								<span>
+									{logoutAllMutation.isPending
+										? t("logging_out")
+										: t("log_out_all")}
+								</span>
 							</Button>
 						</CardHeader>
 						<CardContent>

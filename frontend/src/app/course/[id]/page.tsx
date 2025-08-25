@@ -49,11 +49,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUserStore } from "@/store/user";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+	ArrowLeft,
 	BookOpen,
 	ChevronDown,
 	Edit,
 	HelpCircle,
-	Home,
 	Loader2,
 	Play,
 	Save,
@@ -325,7 +325,7 @@ export default function CoursePage() {
 								size="sm"
 								className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
 							>
-								<Home className="mr-2 h-4 w-4" />
+								<ArrowLeft className="mr-2 h-4 w-4" />
 								<span className="hidden sm:inline">{t("back_to_courses")}</span>
 								<span className="sm:hidden">{t("back")}</span>
 							</Button>
@@ -464,282 +464,286 @@ export default function CoursePage() {
 					</Card>
 
 					{/* Course Structure */}
-					<Card className="border-slate-800 bg-slate-900">
-						<CardHeader>
-							<CardTitle className="text-white">
-								{t("course_structure")}
-							</CardTitle>
-							<CardDescription className="text-slate-400">
-								{t("course_structure_modules_lessons", {
-									modules: (topicsQuery.data ?? []).length,
-									lessons: 0,
-								})}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							{canEdit && (
-								<TopicCreateForm
-									title={newTopicTitle}
-									orderIndex={newTopicOrderIndex}
-									onTitleChange={setNewTopicTitle}
-									onOrderIndexChange={setNewTopicOrderIndex}
-									onAdd={() => createTopicMutation.mutate()}
-									pending={createTopicMutation.isPending}
-								/>
-							)}
+					{canEdit ? (
+						<Card className="border-slate-800 bg-slate-900">
+							<CardHeader>
+								<CardTitle className="text-white">
+									{t("course_structure")}
+								</CardTitle>
+								<CardDescription className="text-slate-400">
+									{t("course_structure_modules_lessons", {
+										modules: (topicsQuery.data ?? []).length,
+										lessons: 0,
+									})}
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								{canEdit && (
+									<TopicCreateForm
+										title={newTopicTitle}
+										orderIndex={newTopicOrderIndex}
+										onTitleChange={setNewTopicTitle}
+										onOrderIndexChange={setNewTopicOrderIndex}
+										onAdd={() => createTopicMutation.mutate()}
+										pending={createTopicMutation.isPending}
+									/>
+								)}
 
-							{(topicsQuery.data ?? []).map((topic) => (
-								<Collapsible key={topic.id} defaultOpen>
-									<CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
-										<div className="flex items-center gap-3">
-											<BookOpen className="h-5 w-5 text-slate-400" />
-											{editingTopicId === topic.id ? (
-												<>
-													<Input
-														value={editTopicTitle}
-														onChange={(e) => setEditTopicTitle(e.target.value)}
-														className="max-w-xs border-slate-700 bg-slate-900 text-white"
-													/>
-													<Input
-														type="number"
-														value={editTopicOrderIndex}
-														onChange={(e) =>
-															setEditTopicOrderIndex(Number(e.target.value))
-														}
-														className="w-24 border-slate-700 bg-slate-900 text-white"
-													/>
-												</>
-											) : (
-												<span className="font-medium text-white">
-													{topic.title}
-												</span>
-											)}
-										</div>
-										<div className="flex items-center gap-2">
-											{canEdit &&
-												(editingTopicId === topic.id ? (
+								{(topicsQuery.data ?? []).map((topic) => (
+									<Collapsible key={topic.id} defaultOpen>
+										<CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
+											<div className="flex items-center gap-3">
+												<BookOpen className="h-5 w-5 text-slate-400" />
+												{editingTopicId === topic.id ? (
 													<>
-														<Button
-															size="icon"
-															title={t("save") ?? "Save"}
-															aria-label={t("save") ?? "Save"}
-															onClick={() => updateTopicMutation.mutate()}
-															disabled={
-																updateTopicMutation.isPending ||
-																!editTopicTitle.trim()
+														<Input
+															value={editTopicTitle}
+															onChange={(e) =>
+																setEditTopicTitle(e.target.value)
 															}
-															className="bg-red-600 text-white hover:bg-red-700"
-														>
-															{updateTopicMutation.isPending ? (
-																<Loader2 className="h-4 w-4 animate-spin" />
-															) : (
-																<Save className="h-4 w-4" />
-															)}
-														</Button>
-														<Button
-															variant="ghost"
-															size="icon"
-															title={t("cancel") ?? "Cancel"}
-															aria-label={t("cancel") ?? "Cancel"}
-															onClick={() => {
-																setEditingTopicId(null);
-																setEditTopicTitle("");
-															}}
-															className="text-slate-300 hover:bg-slate-800"
-														>
-															<X className="h-4 w-4" />
-														</Button>
+															className="max-w-xs border-slate-700 bg-slate-900 text-white"
+														/>
+														<Input
+															type="number"
+															value={editTopicOrderIndex}
+															onChange={(e) =>
+																setEditTopicOrderIndex(Number(e.target.value))
+															}
+															className="w-24 border-slate-700 bg-slate-900 text-white"
+														/>
 													</>
 												) : (
-													<>
-														<Button
-															variant="ghost"
-															size="icon"
-															title={t("edit") ?? "Edit"}
-															aria-label={t("edit") ?? "Edit"}
-															onClick={() => {
-																setEditingTopicId(topic.id);
-																setEditTopicTitle(topic.title);
-																setEditTopicOrderIndex(topic.order_index);
-															}}
-															className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
-														>
-															<Edit className="h-4 w-4" />
-														</Button>
-														<CreateTopicItemDialog
-															topicId={topic.id}
-															onCreatedExam={(exam) => {
-																setTopicExams((prev) => {
-																	const list = prev[topic.id] ?? [];
-																	const nextExam = {
-																		id: exam.id,
-																		name: exam.name,
-																		description: exam.description ?? null,
-																		type: exam.type,
-																		duration: exam.duration,
-																		tries_count: exam.tries_count,
-																		topic_id: topic.id,
-																	} as ExamLite;
-																	return {
-																		...prev,
-																		[topic.id]: [...list, nextExam],
-																	};
-																});
-															}}
-														/>
-														<ConfirmDialog
-															title={t("delete") || "Delete"}
-															description={
-																t("confirm_delete_item") ||
-																"Are you sure you want to delete this item?"
-															}
-															confirmText={t("delete") || "Delete"}
-															cancelText={t("cancel") || "Cancel"}
-															onConfirm={() =>
-																deleteTopicMutation.mutate(topic.id)
-															}
-														>
+													<span className="font-medium text-white">
+														{topic.title}
+													</span>
+												)}
+											</div>
+											<div className="flex items-center gap-2">
+												{canEdit &&
+													(editingTopicId === topic.id ? (
+														<>
+															<Button
+																size="icon"
+																title={t("save") ?? "Save"}
+																aria-label={t("save") ?? "Save"}
+																onClick={() => updateTopicMutation.mutate()}
+																disabled={
+																	updateTopicMutation.isPending ||
+																	!editTopicTitle.trim()
+																}
+																className="bg-red-600 text-white hover:bg-red-700"
+															>
+																{updateTopicMutation.isPending ? (
+																	<Loader2 className="h-4 w-4 animate-spin" />
+																) : (
+																	<Save className="h-4 w-4" />
+																)}
+															</Button>
 															<Button
 																variant="ghost"
 																size="icon"
-																title={t("delete") ?? "Delete"}
-																aria-label={t("delete") ?? "Delete"}
-																disabled={deleteTopicMutation.isPending}
-																className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																title={t("cancel") ?? "Cancel"}
+																aria-label={t("cancel") ?? "Cancel"}
+																onClick={() => {
+																	setEditingTopicId(null);
+																	setEditTopicTitle("");
+																}}
+																className="text-slate-300 hover:bg-slate-800"
 															>
-																<Trash2 className="h-4 w-4" />
+																<X className="h-4 w-4" />
 															</Button>
-														</ConfirmDialog>
-													</>
-												))}
-											<ChevronDown className="h-5 w-5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-										</div>
-									</CollapsibleTrigger>
-									<CollapsibleContent className="mt-2 ml-8 space-y-2">
-										{(topicExams[topic.id] ?? []).map((exam) => (
-											<div key={exam.id} className="space-y-2">
-												<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
-													<div className="flex min-w-0 items-center gap-3">
-														<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
-														<div className="min-w-0">
-															<>
-																<div className="truncate font-medium text-slate-200">
-																	{exam.name || t("exam")}
-																</div>
-																<div className="hidden truncate text-slate-400 text-sm sm:block">
-																	{exam.description || t("no_description")}
-																</div>
-																<div className="mt-1 hidden text-slate-500 text-xs sm:block">
-																	{t("exam_card", {
-																		type: t(
-																			exam.type === "Instant"
-																				? "exam_type_instant"
-																				: "exam_type_delayed",
-																		),
-																		duration:
-																			(exam.duration ?? 0) === 0
-																				? t("no_timer") || "No timer"
-																				: `${exam.duration}s`,
-																		tries:
-																			(exam.tries_count ?? 0) === 0
-																				? t("infty_attempts") ||
-																					"Infinite attempts"
-																				: `${exam.tries_count}`,
-																	})}
-																</div>
-															</>
-														</div>
-													</div>
-													<div className="flex flex-shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
-														{user &&
-														(user.role === "Teacher" ||
-															user.role === "Admin") ? (
-															<div className="hidden text-slate-400 text-xs sm:block">
-																ID: {exam.id}
-															</div>
-														) : null}
-														{user &&
-														(user.role === "Teacher" ||
-															user.role === "Admin") ? (
-															editingExamId === exam.id ? null : (
-																<>
-																	<Button
-																		variant="ghost"
-																		size="icon"
-																		title={t("edit") ?? "Edit"}
-																		aria-label={t("edit") ?? "Edit"}
-																		onClick={() => {
-																			setEditingExamId(exam.id);
-																			setEditingExamTopicId(topic.id);
-																			setEditExamName(exam.name ?? "");
-																			setEditExamDescription(
-																				exam.description ?? "",
-																			);
-																			setEditExamDuration(exam.duration ?? 0);
-																			setEditExamTries(exam.tries_count ?? 1);
-																		}}
-																		className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
-																	>
-																		<Edit className="h-4 w-4" />
-																	</Button>
-																</>
-															)
-														) : null}
-														{canEdit ? (
+														</>
+													) : (
+														<>
+															<Button
+																variant="ghost"
+																size="icon"
+																title={t("edit") ?? "Edit"}
+																aria-label={t("edit") ?? "Edit"}
+																onClick={() => {
+																	setEditingTopicId(topic.id);
+																	setEditTopicTitle(topic.title);
+																	setEditTopicOrderIndex(topic.order_index);
+																}}
+																className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
+															>
+																<Edit className="h-4 w-4" />
+															</Button>
+															<CreateTopicItemDialog
+																topicId={topic.id}
+																onCreatedExam={(exam) => {
+																	setTopicExams((prev) => {
+																		const list = prev[topic.id] ?? [];
+																		const nextExam = {
+																			id: exam.id,
+																			name: exam.name,
+																			description: exam.description ?? null,
+																			type: exam.type,
+																			duration: exam.duration,
+																			tries_count: exam.tries_count,
+																			topic_id: topic.id,
+																		} as ExamLite;
+																		return {
+																			...prev,
+																			[topic.id]: [...list, nextExam],
+																		};
+																	});
+																}}
+															/>
 															<ConfirmDialog
 																title={t("delete") || "Delete"}
 																description={
-																	t("confirm_delete_exam") ||
-																	"Are you sure you want to delete this exam?"
+																	t("confirm_delete_item") ||
+																	"Are you sure you want to delete this item?"
 																}
 																confirmText={t("delete") || "Delete"}
 																cancelText={t("cancel") || "Cancel"}
-																onConfirm={async () => {
-																	setDeletingExamIds((prev) =>
-																		new Set(prev).add(exam.id),
-																	);
-																	try {
-																		await deleteExam(exam.id);
-																		setTopicExams((prev) => ({
-																			...prev,
-																			[topic.id]: (prev[topic.id] ?? []).filter(
-																				(e) => e.id !== exam.id,
-																			),
-																		}));
-																	} finally {
-																		setDeletingExamIds((prev) => {
-																			const next = new Set(prev);
-																			next.delete(exam.id);
-																			return next;
-																		});
-																	}
-																}}
+																onConfirm={() =>
+																	deleteTopicMutation.mutate(topic.id)
+																}
 															>
 																<Button
 																	variant="ghost"
 																	size="icon"
 																	title={t("delete") ?? "Delete"}
 																	aria-label={t("delete") ?? "Delete"}
-																	disabled={deletingExamIds.has(exam.id)}
+																	disabled={deleteTopicMutation.isPending}
 																	className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
 																>
-																	{deletingExamIds.has(exam.id) ? (
-																		<Loader2 className="h-4 w-4 animate-spin" />
-																	) : (
-																		<Trash2 className="h-4 w-4" />
-																	)}
+																	<Trash2 className="h-4 w-4" />
 																</Button>
 															</ConfirmDialog>
-														) : null}
+														</>
+													))}
+												<ChevronDown className="h-5 w-5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+											</div>
+										</CollapsibleTrigger>
+										<CollapsibleContent className="mt-2 ml-8 space-y-2">
+											{(topicExams[topic.id] ?? []).map((exam) => (
+												<div key={exam.id} className="space-y-2">
+													<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
+														<div className="flex min-w-0 items-center gap-3">
+															<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
+															<div className="min-w-0">
+																<>
+																	<div className="truncate font-medium text-slate-200">
+																		{exam.name || t("exam")}
+																	</div>
+																	<div className="hidden truncate text-slate-400 text-sm sm:block">
+																		{exam.description || t("no_description")}
+																	</div>
+																	<div className="mt-1 hidden text-slate-500 text-xs sm:block">
+																		{t("exam_card", {
+																			type: t(
+																				exam.type === "Instant"
+																					? "exam_type_instant"
+																					: "exam_type_delayed",
+																			),
+																			duration:
+																				(exam.duration ?? 0) === 0
+																					? t("no_timer") || "No timer"
+																					: `${Math.ceil((exam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
+																			tries:
+																				(exam.tries_count ?? 0) === 0
+																					? t("infty_attempts") ||
+																						"Infinite attempts"
+																					: `${exam.tries_count}`,
+																		})}
+																	</div>
+																</>
+															</div>
+														</div>
+														<div className="flex flex-shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
+															{user &&
+															(user.role === "Teacher" ||
+																user.role === "Admin") ? (
+																<div className="hidden text-slate-400 text-xs sm:block">
+																	ID: {exam.id}
+																</div>
+															) : null}
+															{user &&
+															(user.role === "Teacher" ||
+																user.role === "Admin") ? (
+																editingExamId === exam.id ? null : (
+																	<>
+																		<Button
+																			variant="ghost"
+																			size="icon"
+																			title={t("edit") ?? "Edit"}
+																			aria-label={t("edit") ?? "Edit"}
+																			onClick={() => {
+																				setEditingExamId(exam.id);
+																				setEditingExamTopicId(topic.id);
+																				setEditExamName(exam.name ?? "");
+																				setEditExamDescription(
+																					exam.description ?? "",
+																				);
+																				setEditExamDuration(exam.duration ?? 0);
+																				setEditExamTries(exam.tries_count ?? 1);
+																			}}
+																			className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
+																		>
+																			<Edit className="h-4 w-4" />
+																		</Button>
+																	</>
+																)
+															) : null}
+															{canEdit ? (
+																<ConfirmDialog
+																	title={t("delete") || "Delete"}
+																	description={
+																		t("confirm_delete_exam") ||
+																		"Are you sure you want to delete this exam?"
+																	}
+																	confirmText={t("delete") || "Delete"}
+																	cancelText={t("cancel") || "Cancel"}
+																	onConfirm={async () => {
+																		setDeletingExamIds((prev) =>
+																			new Set(prev).add(exam.id),
+																		);
+																		try {
+																			await deleteExam(exam.id);
+																			setTopicExams((prev) => ({
+																				...prev,
+																				[topic.id]: (
+																					prev[topic.id] ?? []
+																				).filter((e) => e.id !== exam.id),
+																			}));
+																		} finally {
+																			setDeletingExamIds((prev) => {
+																				const next = new Set(prev);
+																				next.delete(exam.id);
+																				return next;
+																			});
+																		}
+																	}}
+																>
+																	<Button
+																		variant="ghost"
+																		size="icon"
+																		title={t("delete") ?? "Delete"}
+																		aria-label={t("delete") ?? "Delete"}
+																		disabled={deletingExamIds.has(exam.id)}
+																		className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
+																	>
+																		{deletingExamIds.has(exam.id) ? (
+																			<Loader2 className="h-4 w-4 animate-spin" />
+																		) : (
+																			<Trash2 className="h-4 w-4" />
+																		)}
+																	</Button>
+																</ConfirmDialog>
+															) : null}
+														</div>
 													</div>
 												</div>
-											</div>
-										))}
-									</CollapsibleContent>
-								</Collapsible>
-							))}
-						</CardContent>
-					</Card>
+											))}
+										</CollapsibleContent>
+									</Collapsible>
+								))}
+							</CardContent>
+						</Card>
+					) : null}
 				</div>
 			</main>
 

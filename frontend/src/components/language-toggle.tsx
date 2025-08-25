@@ -44,11 +44,17 @@ export function LanguageToggle() {
 					value={currentLang}
 					onValueChange={(lng) => i18n.changeLanguage(lng)}
 				>
-					<DropdownMenuRadioItem value="en">
+					<DropdownMenuRadioItem
+						value="en"
+						className="hover:bg-slate-800 hover:text-slate-200 focus:bg-slate-800 focus:text-slate-200 data-[state=checked]:bg-slate-800"
+					>
 						<GbFlag className="h-4 w-4" />
 						<span className="ml-2">English</span>
 					</DropdownMenuRadioItem>
-					<DropdownMenuRadioItem value="ru">
+					<DropdownMenuRadioItem
+						value="ru"
+						className="hover:bg-slate-800 hover:text-slate-200 focus:bg-slate-800 focus:text-slate-200 data-[state=checked]:bg-slate-800"
+					>
 						<RuFlag className="h-4 w-4" />
 						<span className="ml-2">Русский</span>
 					</DropdownMenuRadioItem>

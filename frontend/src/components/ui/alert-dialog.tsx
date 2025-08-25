@@ -6,7 +6,25 @@ import * as React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const AlertDialog = AlertDialogPrimitive.Root;
+type AlertDialogCtx = {
+	cancelRef: React.MutableRefObject<HTMLButtonElement | null>;
+} | null;
+const AlertDialogContext = React.createContext<AlertDialogCtx>(null);
+
+type AlertDialogProps = React.ComponentPropsWithoutRef<
+	typeof AlertDialogPrimitive.Root
+>;
+
+const AlertDialog = ({ children, ...props }: AlertDialogProps) => {
+	const cancelRef = React.useRef<HTMLButtonElement | null>(null);
+	return (
+		<AlertDialogContext.Provider value={{ cancelRef }}>
+			<AlertDialogPrimitive.Root {...props}>
+				{children}
+			</AlertDialogPrimitive.Root>
+		</AlertDialogContext.Provider>
+	);
+};
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
 
@@ -15,34 +33,58 @@ const AlertDialogPortal = AlertDialogPrimitive.Portal;
 const AlertDialogOverlay = React.forwardRef<
 	React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
 	React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-	<AlertDialogPrimitive.Overlay
-		className={cn(
-			"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in",
-			className,
-		)}
-		{...props}
-		ref={ref}
-	/>
-));
+>(({ className, onClick, ...props }, ref) => {
+	const ctx = React.useContext(AlertDialogContext);
+	return (
+		<AlertDialogPrimitive.Overlay
+			className={cn(
+				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in",
+				className,
+			)}
+			onClick={(e) => {
+				onClick?.(e);
+				ctx?.cancelRef.current?.click();
+			}}
+			{...props}
+			ref={ref}
+		/>
+	);
+});
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 
 const AlertDialogContent = React.forwardRef<
 	React.ElementRef<typeof AlertDialogPrimitive.Content>,
 	React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => (
-	<AlertDialogPortal>
-		<AlertDialogOverlay />
-		<AlertDialogPrimitive.Content
-			ref={ref}
-			className={cn(
-				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto border bg-background p-4 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in sm:max-h-[85vh] sm:w-full sm:rounded-lg sm:p-6",
-				className,
-			)}
-			{...props}
-		/>
-	</AlertDialogPortal>
-));
+>(({ className, children, ...props }, ref) => {
+	const ctx = React.useContext(AlertDialogContext);
+	return (
+		<AlertDialogPortal>
+			<AlertDialogOverlay />
+			<AlertDialogPrimitive.Content
+				ref={ref}
+				className={cn(
+					"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto border border-slate-800 bg-slate-900 p-4 text-slate-200 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in sm:max-h-[85vh] sm:w-full sm:rounded-lg sm:p-6",
+					className,
+				)}
+				{...props}
+			>
+				{children}
+				{/* Hidden Cancel to allow programmatic close from overlay click */}
+				<AlertDialogPrimitive.Cancel asChild>
+					<button
+						type="button"
+						ref={(el) => {
+							if (ctx) ctx.cancelRef.current = el;
+						}}
+						aria-hidden="true"
+						className="hidden"
+						tabIndex={-1}
+					/>
+				</AlertDialogPrimitive.Cancel>
+			</AlertDialogPrimitive.Content>
+		</AlertDialogPortal>
+	);
+});
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({
@@ -79,7 +121,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<AlertDialogPrimitive.Title
 		ref={ref}
-		className={cn("font-semibold text-lg", className)}
+		className={cn("font-semibold text-lg text-white", className)}
 		{...props}
 	/>
 ));
@@ -91,7 +133,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<AlertDialogPrimitive.Description
 		ref={ref}
-		className={cn("text-muted-foreground text-sm", className)}
+		className={cn("text-slate-300 text-sm", className)}
 		{...props}
 	/>
 ));
@@ -104,7 +146,11 @@ const AlertDialogAction = React.forwardRef<
 >(({ className, ...props }, ref) => (
 	<AlertDialogPrimitive.Action
 		ref={ref}
-		className={cn(buttonVariants(), className)}
+		className={cn(
+			buttonVariants(),
+			"bg-red-600 text-white hover:bg-red-700",
+			className,
+		)}
 		{...props}
 	/>
 ));
@@ -118,7 +164,7 @@ const AlertDialogCancel = React.forwardRef<
 		ref={ref}
 		className={cn(
 			buttonVariants({ variant: "outline" }),
-			"mt-2 sm:mt-0",
+			"mt-2 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800 sm:mt-0",
 			className,
 		)}
 		{...props}
