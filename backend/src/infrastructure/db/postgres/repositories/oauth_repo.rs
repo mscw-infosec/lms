@@ -31,7 +31,7 @@ impl OAuthRepository for RepositoryPostgres {
         Ok(id)
     }
 
-    async fn create_user_with_provider(&self, user: OAuthUser) -> Result<(), LMSError> {
+    async fn create_user_with_provider(&self, user: &OAuthUser) -> Result<(), LMSError> {
         // FIX: this especially
         let mut tx = self.pool.begin().await?;
 
@@ -76,6 +76,24 @@ impl OAuthRepository for RepositoryPostgres {
             id,
             provider.provider.to_string(),
             provider.client_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_ctfd_account(
+        &self,
+        user_id: Uuid,
+        ctfd_user_id: i32,
+    ) -> crate::errors::Result<()> {
+        let _ = sqlx::query!(
+            r#"
+                UPDATE users SET ctfd_id = $1 WHERE id = $2
+            "#,
+            ctfd_user_id,
+            user_id
         )
         .execute(&self.pool)
         .await?;

@@ -25,7 +25,8 @@ pub enum TaskType {
     LongText,
     Ordering,
     FileUpload,
-    #[serde(rename = "CTFd")]
+    #[serde(rename = "ctfd")]
+    #[sqlx(rename = "ctfd")]
     CTFd,
 }
 
@@ -51,6 +52,7 @@ pub enum PublicTaskConfig {
     FileUpload {
         max_size: usize,
     },
+    #[serde(rename = "ctfd")]
     CTFd {
         task_id: usize,
     },
@@ -85,6 +87,7 @@ pub enum TaskConfig {
     FileUpload {
         max_size: usize,
     },
+    #[serde(rename = "ctfd")]
     CTFd {
         task_id: usize,
     },
@@ -195,10 +198,66 @@ impl TaskConfig {
 #[derive(Serialize, Deserialize, ToSchema, Clone)]
 #[serde(tag = "name", rename_all = "snake_case")]
 pub enum TaskAnswer {
-    SingleChoice { answer: String },
-    MultipleChoice { answers: Vec<String> },
-    ShortText { answer: String },
-    LongText { answer: String },
-    Ordering { answer: Vec<String> },
-    FileUpload { file_id: Uuid },
+    SingleChoice {
+        answer: String,
+    },
+    MultipleChoice {
+        answers: Vec<String>,
+    },
+    ShortText {
+        answer: String,
+    },
+    LongText {
+        answer: String,
+    },
+    Ordering {
+        answer: Vec<String>,
+    },
+    FileUpload {
+        file_id: Uuid,
+    },
+    #[serde(rename = "ctfd")]
+    CTFd,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdTaskResponse {
+    pub success: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdMetadataResponse {
+    pub meta: CtfdMetadataContent,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdUsersReponse {
+    pub meta: CtfdMetadataContent,
+    pub data: Vec<CtfdUser>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdUser {
+    pub id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdMetadataContent {
+    pub pagination: CtfdPaginationContent,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdPaginationContent {
+    pub total: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdCreateUserResponse {
+    pub success: bool,
+    pub data: Option<CreateUserData>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CreateUserData {
+    pub id: i32,
 }

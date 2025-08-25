@@ -1,6 +1,7 @@
 use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::Exam;
+use crate::domain::task::model::TaskConfig;
 use crate::dto::exam::{
     CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO,
     UpsertExamRequestDTO,
@@ -12,11 +13,10 @@ use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use std::cmp::max;
 use rand::prelude::SliceRandom;
 use rand::rng;
+use std::cmp::max;
 use uuid::Uuid;
-use crate::domain::task::model::TaskConfig;
 
 /// Create new exam
 #[utoipa::path(

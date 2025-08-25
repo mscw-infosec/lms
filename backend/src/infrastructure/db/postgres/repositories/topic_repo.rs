@@ -1,3 +1,4 @@
+use crate::domain::exam::model::{Exam, ExamType};
 use crate::{
     domain::topics::{model::TopicModel, repository::TopicRepository},
     dto::topics::UpsertTopicRequestDTO,
@@ -5,7 +6,6 @@ use crate::{
     infrastructure::db::postgres::RepositoryPostgres,
 };
 use async_trait::async_trait;
-use crate::domain::exam::model::{Exam, ExamType};
 
 #[async_trait]
 impl TopicRepository for RepositoryPostgres {
