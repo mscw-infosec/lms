@@ -9,5 +9,5 @@ data:
   S3_ENDPOINT: https://storage.yandexcloud.net
   S3_REGION: ru-central1
   S3_BUCKET_NAME: lms-infosec-moscow
-  FRONTEND_REDIRECT_URL: https://lms.infosec.moscow/callback
+  FRONTEND_REDIRECT_URL: https://lms.infosec.moscow/oauth/callback
   IAM_KEY_FILE: /iam/iam-key.json
