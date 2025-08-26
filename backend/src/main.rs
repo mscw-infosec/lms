@@ -75,7 +75,6 @@ async fn main() -> anyhow::Result<()> {
     run_migrations(&db_repo).await?;
 
     let client = reqwest::Client::builder()
-        .danger_accept_invalid_certs(true)
         .user_agent("LMS Backend")
         .build()
         .expect("Failed to build client");
