@@ -75,6 +75,10 @@ pub enum LMSError {
 
     #[error("Redirect to {0}")]
     Redirect(&'static str),
+
+    /// General server error
+    #[error("{0}")]
+    ServerError(String),
 }
 
 impl IntoResponse for LMSError {
@@ -91,7 +95,8 @@ impl IntoResponse for LMSError {
             | Self::RedisError(_)
             | Self::SerdeError(_)
             | Self::GRPCError(_)
-            | Self::S3Error(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            | Self::S3Error(_)
+            | Self::ServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unimplemented => StatusCode::NOT_IMPLEMENTED,
             Self::Forbidden(_) | Self::InvalidToken(_) => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError => StatusCode::CONFLICT,

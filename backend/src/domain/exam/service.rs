@@ -1,10 +1,13 @@
 use crate::domain::exam::model::{Exam, ExamType};
 use crate::domain::exam::repository::ExamRepository;
-use crate::domain::task::model::{Task, TaskAnswer, TaskConfig};
+use crate::domain::task::model::{CtfdMetadataResponse, Task, TaskAnswer, TaskConfig, TaskType};
+use crate::domain::task::service::CTFD_API_URL;
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
 use crate::dto::task::TaskVerdict;
 use crate::errors::{LMSError, Result};
 use crate::repo;
+use crate::utils::send_and_parse;
+use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use chrono::{Duration, Utc};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -13,11 +16,21 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct ExamService {
     repo: repo!(ExamRepository),
+    http_client: reqwest::Client,
+    ctfd_token: String,
 }
 
 impl ExamService {
-    pub fn new(repo: repo!(ExamRepository)) -> Self {
-        Self { repo }
+    pub fn new(
+        repo: repo!(ExamRepository),
+        http_client: reqwest::Client,
+        ctfd_token: String,
+    ) -> Self {
+        Self {
+            repo,
+            http_client,
+            ctfd_token,
+        }
     }
 
     pub async fn create_exam(&self, exam: UpsertExamRequestDTO) -> Result<Exam> {
@@ -112,7 +125,7 @@ impl ExamService {
     }
 
     pub async fn stop_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<()> {
-        let attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
+        let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
         if !attempt.active {
             return Err(LMSError::NotFound(
                 "You have no active attempts".to_string(),
@@ -161,6 +174,26 @@ impl ExamService {
                         .modify_attempt(exam_id, user_id, task_id, user_answer)
                         .await
                 }
+                (
+                    TaskConfig::CTFd {
+                        task_id: ctfd_task_id,
+                    },
+                    TaskAnswer::CTFd,
+                ) => {
+                    let ctfd_user_id = self.repo.get_user_ctfd_id(user_id).await?;
+                    let solve_status = self
+                        .check_if_ctfd_task_solved(*ctfd_task_id, ctfd_user_id)
+                        .await?;
+                    if solve_status {
+                        self.repo
+                            .modify_attempt(exam_id, user_id, task_id, user_answer)
+                            .await
+                    } else {
+                        Err(LMSError::ShitHappened(
+                            "You haven't solved this task yet".to_string(),
+                        ))
+                    }
+                }
                 (TaskConfig::SingleChoice { .. }, TaskAnswer::SingleChoice { .. })
                 | (TaskConfig::MultipleChoice { .. }, TaskAnswer::MultipleChoice { .. })
                 | (TaskConfig::Ordering { .. }, TaskAnswer::Ordering { .. })
@@ -181,13 +214,35 @@ impl ExamService {
     #[allow(clippy::too_many_lines)]
     #[allow(clippy::cast_possible_wrap)]
     #[allow(clippy::cast_precision_loss)]
-    pub async fn score_attempt(&self, attempt: ExamAttempt) -> Result<ScoringData> {
+    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_sign_loss)]
+    pub async fn score_attempt(&self, mut attempt: ExamAttempt) -> Result<ScoringData> {
         let mut scoring_data = ScoringData {
             show_results: false,
             results: HashMap::default(),
         };
         let exam = self.get_exam(attempt.exam_id).await?;
         let tasks = self.get_tasks(attempt.exam_id).await?;
+        let ctfd_user_id = self.repo.get_user_ctfd_id(attempt.user_id).await?;
+        for ctfd_task in tasks
+            .iter()
+            .filter(|x| matches!(x.task_type, TaskType::CTFd))
+        {
+            if let TaskConfig::CTFd {
+                task_id: ctfd_task_id,
+            } = ctfd_task.configuration
+            {
+                let solve_status = self
+                    .check_if_ctfd_task_solved(ctfd_task_id, ctfd_user_id)
+                    .await?;
+                if solve_status {
+                    attempt
+                        .answer_data
+                        .answers
+                        .insert(ctfd_task.id as usize, TaskAnswer::CTFd);
+                }
+            }
+        }
         for (task_id, user_answer) in attempt.answer_data.answers.clone() {
             let task = tasks
                 .iter()
@@ -201,9 +256,13 @@ impl ExamService {
                     },
                 ) => {
                     if answer == options[*correct] {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                         continue;
                     }
 
@@ -226,9 +285,13 @@ impl ExamService {
                     let user_answers: HashSet<_> = answers.iter().collect();
 
                     if user_answers == correct_answers {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                score: task.points as f64,
+                                comment: None,
+                            },
+                        );
                         continue;
                     }
                     if !partial_score {
@@ -253,7 +316,7 @@ impl ExamService {
                     scoring_data.results.insert(
                         task_id,
                         TaskVerdict::PartialScore {
-                            score_multiplier,
+                            score: task.points as f64 * score_multiplier,
                             comment: None,
                         },
                     );
@@ -272,9 +335,13 @@ impl ExamService {
                         continue;
                     }
                     if answers.contains(&answer) {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                     } else {
                         scoring_data
                             .results
@@ -291,9 +358,13 @@ impl ExamService {
                         .iter()
                         .any(|precomputed| precomputed == &answer)
                     {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                     } else {
                         scoring_data
                             .results
@@ -303,6 +374,16 @@ impl ExamService {
                 (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
                 | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
                     scoring_data.results.insert(task_id, TaskVerdict::OnReview);
+                }
+                (TaskAnswer::CTFd, TaskConfig::CTFd { .. }) => {
+                    // if answer exists then task is solved
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::FullScore {
+                            comment: None,
+                            score: task.points as f64,
+                        },
+                    );
                 }
                 _ => unreachable!(), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
             }
@@ -316,5 +397,28 @@ impl ExamService {
             .await?;
 
         Ok(scoring_data)
+    }
+
+    pub async fn check_if_ctfd_task_solved(
+        &self,
+        task_id: usize,
+        ctfd_user_id: i32,
+    ) -> Result<bool> {
+        let answer = send_and_parse::<CtfdMetadataResponse>(
+            self.http_client
+                .get(
+                    format!(
+                        "{CTFD_API_URL}/submissions?challenge_id={task_id}&user_id={ctfd_user_id}&type=correct"
+                    )
+                )
+                .header(CONTENT_TYPE, "application/json")
+                .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
+            "CTFd task solve status check",
+        )
+        .await?;
+        if answer.meta.pagination.total == 0 {
+            return Ok(false);
+        }
+        Ok(true)
     }
 }

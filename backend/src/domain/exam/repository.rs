@@ -32,4 +32,5 @@ pub trait ExamRepository {
         attempt_id: Uuid,
         attempt_score: &ScoringData,
     ) -> Result<()>;
+    async fn get_user_ctfd_id(&self, user_id: Uuid) -> Result<i32>;
 }

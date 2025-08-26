@@ -112,9 +112,10 @@ impl From<JsonValue> for TaskAnswer {
 pub enum TaskVerdict {
     FullScore {
         comment: Option<String>, // for manual review
+        score: f64,
     },
     PartialScore {
-        score_multiplier: f64,
+        score: f64,
         comment: Option<String>,
     },
     Incorrect {

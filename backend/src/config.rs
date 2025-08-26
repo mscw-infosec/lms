@@ -28,6 +28,8 @@ pub struct Config {
 
     #[validate(url)]
     pub frontend_redirect_url: String,
+
+    pub ctfd_token: String,
 }
 
 pub fn env(key: &str) -> String {
@@ -60,6 +62,7 @@ impl Config {
             s3_bucket_name: env("S3_BUCKET_NAME"),
 
             frontend_redirect_url: env("FRONTEND_REDIRECT_URL"),
+            ctfd_token: env("CTFD_TOKEN"),
         };
 
         if let Err(validation_errors) = config.validate() {

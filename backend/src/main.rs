@@ -90,12 +90,18 @@ async fn main() -> anyhow::Result<()> {
         s3.clone(),
         &config.frontend_redirect_url,
     );
-    let basic_auth = BasicAuthService::new(db_repo.clone());
+    let basic_auth =
+        BasicAuthService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
     let course = CourseService::new(db_repo.clone());
-    let exam = ExamService::new(db_repo.clone());
-    let oauth = OAuthService::new(db_repo.clone(), s3.clone());
+    let exam = ExamService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
+    let oauth = OAuthService::new(
+        db_repo.clone(),
+        s3.clone(),
+        client.clone(),
+        config.ctfd_token.clone(),
+    );
     let refresh_token = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
-    let task = TaskService::new(db_repo.clone());
+    let task = TaskService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
     let topic = TopicService::new(db_repo.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
