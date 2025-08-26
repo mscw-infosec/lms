@@ -407,12 +407,9 @@ impl ExamService {
         let answer = send_and_parse::<CtfdMetadataResponse>(
             self.http_client
                 .get(
-                    CTFD_API_URL.to_owned()
-                        + "/submissions?challenge_id="
-                        + &task_id.to_string()
-                        + "&user_id="
-                        + &ctfd_user_id.to_string()
-                        + "&type=correct",
+                    format!(
+                        "{CTFD_API_URL}/submissions?challenge_id={task_id}&user_id={ctfd_user_id}&type=correct"
+                    )
                 )
                 .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),

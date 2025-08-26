@@ -1,10 +1,8 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use axum::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
+use axum::http::header::{ACCEPT, AUTHORIZATION};
 use base64::{Engine, prelude::BASE64_URL_SAFE_NO_PAD};
-use rand::distr::Alphanumeric;
-use rand::{Rng, rng};
 use serde::Deserialize;
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -121,8 +119,10 @@ impl OAuthService {
 
         let existent_user = send_and_parse::<CtfdUsersReponse>(
             self.http_client
-                .get(CTFD_API_URL.to_owned() + "/users?view=admin&field=email&q=" + &email)
-                .header(CONTENT_TYPE, "application/json")
+                .get(format!(
+                    "{CTFD_API_URL}/users?view=admin&field=email&q={email}"
+                ))
+                .header(ACCEPT, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd user checking",
         )
@@ -137,41 +137,31 @@ impl OAuthService {
 
         let user_with_same_name = send_and_parse::<CtfdUsersReponse>(
             self.http_client
-                .get(CTFD_API_URL.to_owned() + "/users?view=admin&field=name&q=" + &username)
-                .header(CONTENT_TYPE, "application/json")
+                .get(format!(
+                    "{CTFD_API_URL}/users?view=admin&field=name&q={username}"
+                ))
+                .header(ACCEPT, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd user name checking",
         )
         .await?;
 
         if user_with_same_name.meta.pagination.total != 0 {
-            ctfd_username = username
-                + "_"
-                + rng()
-                    .sample_iter(&Alphanumeric)
-                    .take(6)
-                    .map(char::from)
-                    .collect::<String>()
-                    .as_str();
+            ctfd_username = username + "_" + generate_random_string(6).as_str();
         }
 
         let created_user = send_and_parse::<CtfdCreateUserResponse>(
             self.http_client
-                .post(CTFD_API_URL.to_owned() + "/users?notify=true")
+                .post(format!("{CTFD_API_URL}/users?notify=true"))
                 .json(&json!({
                     "name": ctfd_username,
                     "email": email,
-                    "password": rng()
-                        .sample_iter(&Alphanumeric)
-                        .take(16)
-                        .map(char::from)
-                        .collect::<String>(),
+                    "password": generate_random_string(16),
                     "verified": "false",
                     "hidden": "false",
                     "banned": "false",
                     "fields": Vec::<String>::new(),
                 }))
-                .header(ACCEPT, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd user creating",
         )

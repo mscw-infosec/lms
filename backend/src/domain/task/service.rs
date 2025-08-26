@@ -41,7 +41,7 @@ impl TaskService {
     pub async fn check_if_ctfd_task_exists(&self, task_id: usize) -> Result<bool> {
         let answer = send_and_parse::<CtfdTaskResponse>(
             self.http_client
-                .get(CTFD_API_URL.to_owned() + "/challenges/" + &task_id.to_string())
+                .get(format!("{CTFD_API_URL}/challenges/{task_id}"))
                 .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd task existence check",
@@ -77,7 +77,6 @@ impl TaskService {
             ));
         }
         if let TaskConfig::CTFd { task_id } = task_data.configuration
-            && !self.check_if_ctfd_task_exists(task_id).await?
             && !self.check_if_ctfd_task_exists(task_id).await?
         {
             return Err(LMSError::NotFound("CTFd task not found".to_string()));

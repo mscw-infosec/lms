@@ -379,9 +379,9 @@ impl ExamRepository for RepositoryPostgres {
     async fn get_user_ctfd_id(&self, user_id: Uuid) -> Result<i32> {
         let uid = sqlx::query_scalar!(
             r#"
-            SELECT ctfd_id FROM USERS
-            WHERE id = $1
-        "#,
+                SELECT ctfd_id FROM USERS
+                WHERE id = $1
+            "#,
             user_id
         )
         .fetch_one(&self.pool)
