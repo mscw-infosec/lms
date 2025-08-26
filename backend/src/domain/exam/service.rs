@@ -256,9 +256,13 @@ impl ExamService {
                     },
                 ) => {
                     if answer == options[*correct] {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                         continue;
                     }
 
@@ -281,9 +285,13 @@ impl ExamService {
                     let user_answers: HashSet<_> = answers.iter().collect();
 
                     if user_answers == correct_answers {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                score: task.points as f64,
+                                comment: None,
+                            },
+                        );
                         continue;
                     }
                     if !partial_score {
@@ -308,7 +316,7 @@ impl ExamService {
                     scoring_data.results.insert(
                         task_id,
                         TaskVerdict::PartialScore {
-                            score_multiplier,
+                            score: task.points as f64 * score_multiplier,
                             comment: None,
                         },
                     );
@@ -327,9 +335,13 @@ impl ExamService {
                         continue;
                     }
                     if answers.contains(&answer) {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                     } else {
                         scoring_data
                             .results
@@ -346,9 +358,13 @@ impl ExamService {
                         .iter()
                         .any(|precomputed| precomputed == &answer)
                     {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::FullScore { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::FullScore {
+                                comment: None,
+                                score: task.points as f64,
+                            },
+                        );
                     } else {
                         scoring_data
                             .results
@@ -361,9 +377,13 @@ impl ExamService {
                 }
                 (TaskAnswer::CTFd, TaskConfig::CTFd { .. }) => {
                     // if answer exists then task is solved
-                    scoring_data
-                        .results
-                        .insert(task_id, TaskVerdict::FullScore { comment: None });
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::FullScore {
+                            comment: None,
+                            score: task.points as f64,
+                        },
+                    );
                 }
                 _ => unreachable!(), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
             }
