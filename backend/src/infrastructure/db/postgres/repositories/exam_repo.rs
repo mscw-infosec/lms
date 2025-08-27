@@ -1,3 +1,5 @@
+use crate::domain::account::model::UserModel;
+use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::{Exam, ExamType};
 use crate::domain::exam::repository::ExamRepository;
 use crate::domain::task::model::TaskType;
@@ -9,6 +11,7 @@ use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
 use serde_json::to_value;
 use sqlx::types::Json;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[async_trait]
@@ -376,24 +379,47 @@ impl ExamRepository for RepositoryPostgres {
         Ok(())
     }
 
-    async fn get_user_ctfd_id(&self, user_id: Uuid) -> Result<i32> {
-        let uid = sqlx::query_scalar!(
+    async fn get_user_by_id(&self, user_id: Uuid) -> Result<UserModel> {
+        let mut tx = self.pool.begin().await?;
+
+        let attributes = sqlx::query!(
             r#"
-                SELECT ctfd_id FROM USERS
-                WHERE id = $1
+                SELECT key, value
+                FROM attributes
+                WHERE user_id = $1
             "#,
             user_id
         )
-        .fetch_one(&self.pool)
-        .await?;
+        .fetch_all(tx.as_mut())
+        .await
+        .map(|x| {
+            x.iter()
+                .map(|row| (row.key.clone(), row.value.clone()))
+                .collect::<HashMap<String, String>>()
+        })?;
 
-        uid.map_or_else(
-            || {
-                Err(LMSError::NotFound(
-                    "No linked ctfd account found".to_string(),
-                ))
-            },
-            Ok,
+        let user = sqlx::query!(
+            r#"
+                SELECT u.id, u.username, u.email, u.created_at,
+                       u.role as "role: UserRole", ac.password_hash as password
+                FROM users u
+                LEFT JOIN auth_credentials ac ON ac.user_id = u.id
+                WHERE u.id = $1
+            "#,
+            user_id
         )
+        .fetch_optional(tx.as_mut())
+        .await?
+        .map(|x| UserModel {
+            id: x.id,
+            username: x.username,
+            email: x.email,
+            role: x.role,
+            password: x.password,
+            attributes,
+            created_at: x.created_at,
+        });
+
+        Ok(user.ok_or(LMSError::NotFound("No user found".to_string()))?)
     }
 }

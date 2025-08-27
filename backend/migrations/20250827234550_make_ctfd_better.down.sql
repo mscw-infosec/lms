@@ -1,0 +1,2 @@
+ALTER TABLE users
+    ADD COLUMN ctfd_id INTEGER;
