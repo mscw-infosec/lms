@@ -689,7 +689,7 @@ export function TaskPlayer({
 					<div className="flex justify-end">
 						{getTaskTypeKey() === "ctfd" ? (
 							<Button
-								className="bg-red-600 text-white hover:bg-red-700 px-2 sm:px-3"
+								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
 								title={t("sync_solution") || "Synchronize solution"}
 								onClick={async () => {
 									if (typeof taskId !== "number") return;
@@ -706,7 +706,9 @@ export function TaskPlayer({
 								disabled={disabled || ctfdSyncing}
 							>
 								<Flag className="h-4 w-4 sm:mr-2" />
-								<span className="hidden sm:inline">{t("sync_solution") || "Synchronize solution"}</span>
+								<span className="hidden sm:inline">
+									{t("sync_solution") || "Synchronize solution"}
+								</span>
 							</Button>
 						) : (
 							<Button
