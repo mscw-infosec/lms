@@ -1,3 +1,4 @@
+use crate::domain::account::model::UserModel;
 use crate::domain::exam::model::Exam;
 use crate::domain::task::model::{Task, TaskAnswer};
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
@@ -32,5 +33,5 @@ pub trait ExamRepository {
         attempt_id: Uuid,
         attempt_score: &ScoringData,
     ) -> Result<()>;
-    async fn get_user_ctfd_id(&self, user_id: Uuid) -> Result<i32>;
+    async fn get_user_by_id(&self, user_id: Uuid) -> Result<UserModel>;
 }

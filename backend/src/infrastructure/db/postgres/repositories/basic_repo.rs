@@ -5,7 +5,6 @@ use crate::{
     infrastructure::db::postgres::RepositoryPostgres,
 };
 use async_trait::async_trait;
-use uuid::Uuid;
 
 #[async_trait]
 impl BasicAuthRepository for RepositoryPostgres {
@@ -86,19 +85,5 @@ impl BasicAuthRepository for RepositoryPostgres {
         });
 
         Ok(user)
-    }
-
-    async fn update_ctfd_account(&self, user_id: Uuid, ctfd_user_id: i32) -> Result<()> {
-        let _ = sqlx::query!(
-            r#"
-                UPDATE users SET ctfd_id = $1 WHERE id = $2
-            "#,
-            ctfd_user_id,
-            user_id
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
     }
 }
