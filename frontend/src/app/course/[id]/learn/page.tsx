@@ -7,7 +7,7 @@ import {
 	type PublicTaskDTO,
 	getTopicExams,
 	getUserExamAttempts,
-    patchAttempt,
+	patchAttempt,
 } from "@/api/exam";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
@@ -831,41 +831,53 @@ export default function LearnPage() {
 				}}
 				onProgress={onProgress}
 				onAnswer={onAnswer}
-                onCtfdSync={async (taskId: number) => {
-                    try {
-                        if (!selectedExam) return;
-                        const body = {
-                            task_id: taskId,
-                            answer: { name: "ctfd" as const },
-                        };
-                        await patchAttempt(String(selectedExam.id), body);
-                        toast({ description: t("synced_success") || "Solution synchronized" });
-                        // refresh attempt and tasks to reflect updated data
-                        refresh();
-                    } catch (err) {
-                        const { msg } = ((): { msg?: string } => {
-                            try {
-                                if (typeof err === "object" && err) {
-                                    const e = err as Record<string, unknown>;
-                                    const message = typeof e.message === "string" ? e.message : undefined;
-                                    const error = typeof e.error === "string" ? e.error : undefined;
-                                    const response = e.response as { status?: number; data?: { error?: unknown } } | undefined;
-                                    const respError =
-                                        response && typeof response.data?.error === "string"
-                                            ? (response.data.error as string)
-                                            : undefined;
-                                    // If backend returns 400 for unsolved task, show a friendly message
-                                    if (response?.status === 400) {
-                                        return { msg: t("ctfd_not_solved") || "Task is not solved in CTFd yet" };
-                                    }
-                                    return { msg: message ?? error ?? respError };
-                                }
-                            } catch {}
-                            return {};
-                        })();
-                        toast({ description: msg ?? (t("failed_operation") || "Operation failed") });
-                    }
-                }}
+				onCtfdSync={async (taskId: number) => {
+					try {
+						if (!selectedExam) return;
+						const body = {
+							task_id: taskId,
+							answer: { name: "ctfd" as const },
+						};
+						await patchAttempt(String(selectedExam.id), body);
+						toast({
+							description: t("synced_success") || "Solution synchronized",
+						});
+						// refresh attempt and tasks to reflect updated data
+						refresh();
+					} catch (err) {
+						const { msg } = ((): { msg?: string } => {
+							try {
+								if (typeof err === "object" && err) {
+									const e = err as Record<string, unknown>;
+									const message =
+										typeof e.message === "string" ? e.message : undefined;
+									const error =
+										typeof e.error === "string" ? e.error : undefined;
+									const response = e.response as
+										| { status?: number; data?: { error?: unknown } }
+										| undefined;
+									const respError =
+										response && typeof response.data?.error === "string"
+											? (response.data.error as string)
+											: undefined;
+									// If backend returns 400 for unsolved task, show a friendly message
+									if (response?.status === 400) {
+										return {
+											msg:
+												t("ctfd_not_solved") ||
+												"Task is not solved in CTFd yet",
+										};
+									}
+									return { msg: message ?? error ?? respError };
+								}
+							} catch {}
+							return {};
+						})();
+						toast({
+							description: msg ?? (t("failed_operation") || "Operation failed"),
+						});
+					}
+				}}
 			/>
 		);
 	}
@@ -1054,9 +1066,7 @@ export default function LearnPage() {
 							</h1>
 						</div>
 
-						{selectedExam &&
-						(isPreview || attempt?.active) &&
-						!reviewMode ? (
+						{selectedExam && (isPreview || attempt?.active) && !reviewMode ? (
 							<div className="flex flex-shrink-0 items-center space-x-1 lg:space-x-2">
 								<Button
 									variant="outline"

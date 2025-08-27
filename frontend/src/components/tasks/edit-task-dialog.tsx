@@ -168,7 +168,7 @@ export default function EditTaskDialog({
 					typeof cfg.max_size === "number" ? (cfg.max_size as number) : 10,
 				);
 				break;
-			case "CTFd":
+			case "ctfd":
 				setCtfdTaskId(
 					typeof cfg.task_id === "number" ? (cfg.task_id as number) : 0,
 				);
@@ -289,8 +289,8 @@ export default function EditTaskDialog({
 					config = { name: "file_upload", max_size: fuMaxSize };
 					break;
 				}
-				case "CTFd": {
-					config = { name: "c_t_fd", task_id: ctfdTaskId };
+				case "ctfd": {
+					config = { name: "ctfd", task_id: ctfdTaskId };
 					break;
 				}
 			}
@@ -552,7 +552,7 @@ export default function EditTaskDialog({
 						</div>
 					)}
 
-					{taskType === "CTFd" && (
+					{taskType === "ctfd" && (
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 							<div>
 								<Label className="text-slate-300">
