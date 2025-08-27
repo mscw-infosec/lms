@@ -69,6 +69,7 @@ interface TaskPlayerProps {
 	disabled?: boolean;
 	isLast?: boolean;
 	initial?: number | number[] | string | Record<number, number>;
+	onCtfdSync?: (taskId: number) => Promise<void> | void;
 }
 
 type AnswerValue =
@@ -88,10 +89,12 @@ export function TaskPlayer({
 	disabled = false,
 	isLast = false,
 	initial,
+	onCtfdSync,
 }: TaskPlayerProps) {
 	const { t } = useTranslation("common");
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
 	const [canSubmit, setCanSubmit] = useState(true);
+	const [ctfdSyncing, setCtfdSyncing] = useState(false);
 
 	const [touchDragFrom, setTouchDragFrom] = useState<number | null>(null);
 	const [touchOverIndex, setTouchOverIndex] = useState<number | null>(null);
@@ -684,16 +687,39 @@ export function TaskPlayer({
 						</div>
 					)}
 					<div className="flex justify-end">
-						<Button
-							className="bg-red-600 text-white hover:bg-red-700"
-							onClick={() => {
-								onComplete();
-								setCanSubmit(false);
-							}}
-							disabled={disabled || !canSubmit}
-						>
-							{t("submit")}
-						</Button>
+						{getTaskTypeKey() === "ctfd" ? (
+							<Button
+								className="bg-red-600 text-white hover:bg-red-700 px-2 sm:px-3"
+								title={t("sync_solution") || "Synchronize solution"}
+								onClick={async () => {
+									if (typeof taskId !== "number") return;
+									if (ctfdSyncing) return;
+									try {
+										setCtfdSyncing(true);
+										setCanSubmit(false);
+										await onCtfdSync?.(taskId);
+									} finally {
+										setCtfdSyncing(false);
+										setCanSubmit(true);
+									}
+								}}
+								disabled={disabled || ctfdSyncing}
+							>
+								<Flag className="h-4 w-4 sm:mr-2" />
+								<span className="hidden sm:inline">{t("sync_solution") || "Synchronize solution"}</span>
+							</Button>
+						) : (
+							<Button
+								className="bg-red-600 text-white hover:bg-red-700"
+								onClick={() => {
+									onComplete();
+									setCanSubmit(false);
+								}}
+								disabled={disabled || !canSubmit}
+							>
+								{t("submit")}
+							</Button>
+						)}
 					</div>
 				</CardContent>
 			</Card>

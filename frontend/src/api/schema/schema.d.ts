@@ -472,6 +472,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/task/{task_id}/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get task by id (admin view) */
+        get: operations["get_by_id_admin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/topics/new": {
         parameters: {
             query?: never;
@@ -680,7 +697,7 @@ export interface components {
             name: "file_upload";
         } | {
             /** @enum {string} */
-            name: "c_t_fd";
+            name: "ctfd";
             task_id: number;
         };
         PublicTaskDTO: {
@@ -712,6 +729,16 @@ export interface components {
             /** Format: date-time */
             last_used: string;
         };
+        Task: {
+            configuration: components["schemas"]["TaskConfig"];
+            description?: string | null;
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            points: number;
+            task_type: components["schemas"]["TaskType"];
+            title: string;
+        };
         TaskAnswer: {
             answer: string;
             /** @enum {string} */
@@ -737,6 +764,9 @@ export interface components {
             file_id: string;
             /** @enum {string} */
             name: "file_upload";
+        } | {
+            /** @enum {string} */
+            name: "ctfd";
         };
         TaskAnswerDTO: {
             answer: components["schemas"]["TaskAnswer"];
@@ -776,19 +806,21 @@ export interface components {
             name: "file_upload";
         } | {
             /** @enum {string} */
-            name: "c_t_fd";
+            name: "ctfd";
             task_id: number;
         };
         /** @enum {string} */
-        TaskType: "SingleChoice" | "MultipleChoice" | "ShortText" | "LongText" | "Ordering" | "FileUpload" | "CTFd";
+        TaskType: "SingleChoice" | "MultipleChoice" | "ShortText" | "LongText" | "Ordering" | "FileUpload" | "ctfd";
         TaskVerdict: {
             comment?: string | null;
+            /** Format: double */
+            score: number;
             /** @enum {string} */
             verdict: "full_score";
         } | {
             comment?: string | null;
             /** Format: double */
-            score_multiplier: number;
+            score: number;
             /** @enum {string} */
             verdict: "partial_score";
         } | {
@@ -2031,6 +2063,42 @@ export interface operations {
             };
             /** @description User has no permission to delete task */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_by_id_admin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Found task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

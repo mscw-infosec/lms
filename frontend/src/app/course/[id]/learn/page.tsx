@@ -7,6 +7,7 @@ import {
 	type PublicTaskDTO,
 	getTopicExams,
 	getUserExamAttempts,
+    patchAttempt,
 } from "@/api/exam";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
@@ -278,17 +279,6 @@ export default function LearnPage() {
 
 	const handleStart = () => {
 		if (!selectedExam) return;
-
-		if (tasks.length === 0) {
-			toast({
-				title: t("no_tasks_attached") ?? "No tasks attached",
-				description:
-					t("cannot_start_no_tasks") ??
-					"This exam has no linked tasks and cannot be started.",
-				variant: "destructive",
-			});
-			return;
-		}
 		setReviewMode(false);
 		start();
 	};
@@ -841,6 +831,41 @@ export default function LearnPage() {
 				}}
 				onProgress={onProgress}
 				onAnswer={onAnswer}
+                onCtfdSync={async (taskId: number) => {
+                    try {
+                        if (!selectedExam) return;
+                        const body = {
+                            task_id: taskId,
+                            answer: { name: "ctfd" as const },
+                        };
+                        await patchAttempt(String(selectedExam.id), body);
+                        toast({ description: t("synced_success") || "Solution synchronized" });
+                        // refresh attempt and tasks to reflect updated data
+                        refresh();
+                    } catch (err) {
+                        const { msg } = ((): { msg?: string } => {
+                            try {
+                                if (typeof err === "object" && err) {
+                                    const e = err as Record<string, unknown>;
+                                    const message = typeof e.message === "string" ? e.message : undefined;
+                                    const error = typeof e.error === "string" ? e.error : undefined;
+                                    const response = e.response as { status?: number; data?: { error?: unknown } } | undefined;
+                                    const respError =
+                                        response && typeof response.data?.error === "string"
+                                            ? (response.data.error as string)
+                                            : undefined;
+                                    // If backend returns 400 for unsolved task, show a friendly message
+                                    if (response?.status === 400) {
+                                        return { msg: t("ctfd_not_solved") || "Task is not solved in CTFd yet" };
+                                    }
+                                    return { msg: message ?? error ?? respError };
+                                }
+                            } catch {}
+                            return {};
+                        })();
+                        toast({ description: msg ?? (t("failed_operation") || "Operation failed") });
+                    }
+                }}
 			/>
 		);
 	}
@@ -1030,7 +1055,6 @@ export default function LearnPage() {
 						</div>
 
 						{selectedExam &&
-						tasks.length > 0 &&
 						(isPreview || attempt?.active) &&
 						!reviewMode ? (
 							<div className="flex flex-shrink-0 items-center space-x-1 lg:space-x-2">
@@ -1332,7 +1356,7 @@ export default function LearnPage() {
 										) : (
 											<Button
 												onClick={handleStart}
-												disabled={starting || loading || tasks.length === 0}
+												disabled={starting || loading}
 												size="sm"
 												className="!transition-none !duration-0 w-full bg-red-600 px-2 text-white hover:bg-red-700 sm:w-auto sm:px-3"
 												title={

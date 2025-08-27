@@ -62,7 +62,7 @@ function getTaskIcon(type: TaskType) {
 			return <ListOrdered className={common} />;
 		case "FileUpload":
 			return <Upload className={common} />;
-		case "CTFd":
+		case "ctfd":
 			return <Flag className={common} />;
 		default:
 			return <ListChecks className={common} />;
@@ -328,7 +328,7 @@ export default function TasksPage() {
 											<SelectItem value="FileUpload">
 												{t("file_upload")}
 											</SelectItem>
-											<SelectItem value="CTFd">CTFd</SelectItem>
+											<SelectItem value="ctfd">CTFd</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>

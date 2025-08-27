@@ -206,9 +206,9 @@ export default function CreateTaskDialog({
 					};
 					break;
 				}
-				case "CTFd": {
+				case "ctfd": {
 					config = {
-						name: "c_t_fd",
+						name: "ctfd",
 						task_id: ctfdTaskId,
 					};
 					break;
@@ -330,7 +330,7 @@ export default function CreateTaskDialog({
 									<SelectItem value="FileUpload">
 										{t("file_upload") || "File upload"}
 									</SelectItem>
-									<SelectItem value="CTFd">CTFd</SelectItem>
+									<SelectItem value="ctfd">CTFd</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
@@ -567,7 +567,7 @@ export default function CreateTaskDialog({
 						</div>
 					)}
 
-					{taskType === "CTFd" && (
+					{taskType === "ctfd" && (
 						<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 							<div>
 								<Label className="text-slate-300">
