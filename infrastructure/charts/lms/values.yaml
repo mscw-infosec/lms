@@ -3,7 +3,7 @@ backend:
   replicas: 2
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend
-    tag: 0.0.21
+    tag: 0.0.23
     pullPolicy: IfNotPresent
 
 frontend:
