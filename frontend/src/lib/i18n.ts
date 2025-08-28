@@ -11,7 +11,7 @@ if (isBrowser) {
 }
 
 i18n.use(initReactI18next).init({
-	fallbackLng: "en",
+	fallbackLng: "ru",
 	debug: true,
 	ns: ["common"],
 	defaultNS: "common",

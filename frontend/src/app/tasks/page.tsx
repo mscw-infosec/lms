@@ -5,6 +5,7 @@ import type { TaskDTO, TaskType } from "@/api/tasks";
 import { deleteTask as deleteTaskApi, listTasks } from "@/api/tasks";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
+import Markdown from "@/components/markdown";
 import CreateTaskDialog from "@/components/tasks/create-task-dialog";
 import EditTaskDialog from "@/components/tasks/edit-task-dialog";
 import { Button } from "@/components/ui/button";
@@ -406,11 +407,6 @@ export default function TasksPage() {
 														{t("points")}: {task.points} · {t("type")}:{" "}
 														{task.task_type}
 													</div>
-													{task.description ? (
-														<div className="mt-1 text-slate-300 text-sm">
-															{task.description}
-														</div>
-													) : null}
 												</div>
 											</div>
 											<div className="flex items-center gap-3">

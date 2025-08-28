@@ -11,6 +11,7 @@ import {
 } from "@/api/exam";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
+import Markdown from "@/components/markdown";
 import { TaskPlayer } from "@/components/task-player";
 import {
 	AlertDialog,
@@ -325,6 +326,16 @@ export default function LearnPage() {
 		);
 	}, [reviewMode, selectedReviewAttemptId, sortedAttempts]);
 
+	const hasViewableAttempts = useMemo(() => {
+		try {
+			return (sortedAttempts ?? []).some(
+				(a) => !!a?.scoring_data?.show_results,
+			);
+		} catch {
+			return false;
+		}
+	}, [sortedAttempts]);
+
 	const answersByTaskId: Record<number, unknown> = (() => {
 		const a = (reviewAttempt ?? attempt)?.answer_data?.answers;
 		if (!a) return {};
@@ -400,14 +411,10 @@ export default function LearnPage() {
 					</div>
 				) : null}
 				<CardHeader>
-					<CardTitle className="text-white">{task.title}</CardTitle>
+					<CardTitle className="text-2xl text-white">{task.title}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					{task.description ? (
-						<div className="whitespace-pre-wrap text-slate-300 text-sm">
-							{task.description}
-						</div>
-					) : null}
+					{task.description ? <Markdown content={task.description} /> : null}
 					<div className="text-slate-400 text-xs">
 						{task.points ?? 0} {t("points") ?? "points"} · {cfgName ?? "task"}
 					</div>
@@ -822,6 +829,19 @@ export default function LearnPage() {
 				disabled={false}
 				isLast={isLastTask}
 				initial={initial as never}
+				ctfdAlreadySynced={(() => {
+					try {
+						const ans = answersByTaskId[task.id];
+						if (
+							ans &&
+							typeof ans === "object" &&
+							(ans as { name?: string }).name === "ctfd"
+						) {
+							return true;
+						}
+					} catch {}
+					return false;
+				})()}
 				onComplete={() => {
 					submitBufferedForTask(task.id);
 				}}
@@ -832,51 +852,17 @@ export default function LearnPage() {
 				onProgress={onProgress}
 				onAnswer={onAnswer}
 				onCtfdSync={async (taskId: number) => {
-					try {
-						if (!selectedExam) return;
-						const body = {
-							task_id: taskId,
-							answer: { name: "ctfd" as const },
-						};
-						await patchAttempt(String(selectedExam.id), body);
-						toast({
-							description: t("synced_success") || "Solution synchronized",
-						});
-						// refresh attempt and tasks to reflect updated data
-						refresh();
-					} catch (err) {
-						const { msg } = ((): { msg?: string } => {
-							try {
-								if (typeof err === "object" && err) {
-									const e = err as Record<string, unknown>;
-									const message =
-										typeof e.message === "string" ? e.message : undefined;
-									const error =
-										typeof e.error === "string" ? e.error : undefined;
-									const response = e.response as
-										| { status?: number; data?: { error?: unknown } }
-										| undefined;
-									const respError =
-										response && typeof response.data?.error === "string"
-											? (response.data.error as string)
-											: undefined;
-									// If backend returns 400 for unsolved task, show a friendly message
-									if (response?.status === 400) {
-										return {
-											msg:
-												t("ctfd_not_solved") ||
-												"Task is not solved in CTFd yet",
-										};
-									}
-									return { msg: message ?? error ?? respError };
-								}
-							} catch {}
-							return {};
-						})();
-						toast({
-							description: msg ?? (t("failed_operation") || "Operation failed"),
-						});
-					}
+					if (!selectedExam) return;
+					const body = {
+						task_id: taskId,
+						answer: { name: "ctfd" as const },
+					};
+					await patchAttempt(String(selectedExam.id), body);
+					toast({
+						description: t("synced_success") || "Solution synchronized",
+					});
+					// refresh attempt and tasks to reflect updated data
+					refresh();
 				}}
 			/>
 		);
@@ -1156,15 +1142,16 @@ export default function LearnPage() {
 							<div className="space-y-4">
 								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
 									<CardHeader className="p-4 sm:p-6">
-										<CardTitle className="text-base text-white sm:text-lg">
+										<CardTitle className="text-2xl text-white">
 											{courseQuery.data?.name ?? t("course_structure")}
 										</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
 										{courseQuery.data?.description ? (
-											<p className="whitespace-pre-wrap text-slate-300 text-sm sm:text-base">
-												{courseQuery.data.description}
-											</p>
+											<Markdown
+												content={courseQuery.data.description}
+												className="markdown-body max-w-none text-slate-300 text-sm sm:text-base"
+											/>
 										) : null}
 										<div className="grid grid-cols-1 gap-2 text-slate-300 sm:grid-cols-2">
 											<div className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
@@ -1279,16 +1266,6 @@ export default function LearnPage() {
 							!loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">
-									<div className="mb-2">
-										<h2 className="font-semibold text-lg text-white">
-											{selectedExam.name}
-										</h2>
-										{selectedExam.description ? (
-											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
-												{selectedExam.description}
-											</p>
-										) : null}
-									</div>
 									<div className="text-slate-300">
 										{t("exam_card", {
 											type: t(
@@ -1306,11 +1283,22 @@ export default function LearnPage() {
 													: `${selectedExam.tries_count}`,
 										})}
 									</div>
+									<div className="mb-2">
+										<h2 className="font-semibold text-2xl text-white">
+											{selectedExam.name}
+										</h2>
+										{selectedExam.description ? (
+											<div className="mt-1">
+												<Markdown content={selectedExam.description} />
+											</div>
+										) : null}
+									</div>
+									<div className="my-3 h-px bg-slate-800" />
 									<div className="text-slate-400 text-sm">
 										{t("no_attempts_left") ||
 											"You have no attempts left for this exam."}
 									</div>
-									{!attempt?.active && attempt?.scoring_data?.show_results ? (
+									{hasViewableAttempts ? (
 										<div className="flex items-center gap-2">
 											<Button
 												variant="outline"
@@ -1330,16 +1318,6 @@ export default function LearnPage() {
 							!loading ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="p-6">
-									<div className="mb-3">
-										<h2 className="font-semibold text-lg text-white">
-											{selectedExam.name}
-										</h2>
-										{selectedExam.description ? (
-											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
-												{selectedExam.description}
-											</p>
-										) : null}
-									</div>
 									<div className="mb-3 text-slate-300">
 										{t("exam_card", {
 											type: t(
@@ -1356,6 +1334,17 @@ export default function LearnPage() {
 													? t("infty_attempts") || "Infinite attempts"
 													: `${selectedExam.tries_count}`,
 										})}
+									</div>
+									<div className="mb-3">
+										<h2 className="font-semibold text-lg text-white">
+											{selectedExam.name}
+										</h2>
+										{selectedExam.description ? (
+											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
+												{selectedExam.description}
+											</p>
+										) : null}
+										<div className="my-3 h-px bg-slate-800" />
 									</div>
 									<div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
 										{ranOutEffective ? (
