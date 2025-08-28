@@ -811,8 +811,8 @@ export default function CoursePage() {
 								<Input
 									id="edit-exam-tries"
 									type="number"
-									min={1}
-									value={Number.isFinite(editExamTries) ? editExamTries : 1}
+									min={0}
+									value={Number.isFinite(editExamTries) ? editExamTries : 0}
 									onChange={(e) => setEditExamTries(Number(e.target.value))}
 									className="w-28 border-slate-700 bg-slate-800 text-white"
 								/>
@@ -847,7 +847,7 @@ export default function CoursePage() {
 												: undefined,
 											type: prevExam.type,
 											duration: Number(editExamDuration) || 0,
-											tries_count: Number(editExamTries) || 1,
+											tries_count: Number(editExamTries) || 0,
 											topic_id: prevExam.topic_id,
 										} as components["schemas"]["UpsertExamRequestDTO"];
 										try {

@@ -103,7 +103,6 @@ export default function Markdown({ content, className }: MarkdownProps) {
 								</code>
 							);
 						}
-						// For fenced blocks, wrapper <pre> handles most styling; keep className for language
 						return (
 							<code className={`${className ?? ""}`} {...rest}>
 								{children}
@@ -111,7 +110,6 @@ export default function Markdown({ content, className }: MarkdownProps) {
 						);
 					},
 				}}
-				// Allow basic inline HTML if needed in descriptions; keep disabled for safety by default
 				skipHtml
 			>
 				{content}

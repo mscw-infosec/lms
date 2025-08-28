@@ -1328,7 +1328,7 @@ export default function LearnPage() {
 											duration:
 												(selectedExam.duration ?? 0) === 0
 													? t("no_timer") || "No timer"
-													: `${selectedExam.duration}s`,
+													: `${Math.ceil((selectedExam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
 											tries:
 												(selectedExam.tries_count ?? 0) === 0
 													? t("infty_attempts") || "Infinite attempts"
@@ -1336,13 +1336,14 @@ export default function LearnPage() {
 										})}
 									</div>
 									<div className="mb-3">
-										<h2 className="font-semibold text-lg text-white">
+										<h2 className="font-semibold text-2xl text-white">
 											{selectedExam.name}
 										</h2>
 										{selectedExam.description ? (
-											<p className="mt-1 whitespace-pre-wrap text-slate-300 text-sm">
-												{selectedExam.description}
-											</p>
+											<Markdown
+												content={selectedExam.description}
+												className="markdown-body mt-1 max-w-none text-slate-300 text-sm"
+											/>
 										) : null}
 										<div className="my-3 h-px bg-slate-800" />
 									</div>
