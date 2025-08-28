@@ -21,6 +21,7 @@ import { AuthModal } from "@/components/auth-modal";
 import ConfirmDialog from "@/components/common/confirm-dialog";
 import CourseHeaderActions from "@/components/course/course-header-actions";
 import { Header } from "@/components/header";
+import Markdown from "@/components/markdown";
 import CreateTopicItemDialog from "@/components/topic/create-topic-item-dialog";
 import TopicCreateForm from "@/components/topic/topic-create-form";
 import { Button } from "@/components/ui/button";
@@ -403,7 +404,7 @@ export default function CoursePage() {
 												className="max-w-xl border-slate-700 bg-slate-800 text-white"
 											/>
 										) : (
-											<h1 className="font-bold text-3xl text-white">
+											<h1 className="font-bold text-2xl text-white">
 												{courseQuery.data.name}
 											</h1>
 										)}
@@ -456,8 +457,15 @@ export default function CoursePage() {
 									className="min-h-32 border-slate-700 bg-slate-800 text-white"
 								/>
 							) : (
-								<div className="whitespace-pre-line text-slate-300">
-									{courseQuery.data.description ?? t("no_description")}
+								<div className="text-slate-300">
+									{courseQuery.data.description ? (
+										<Markdown
+											content={courseQuery.data.description}
+											className="prose prose-invert max-w-none"
+										/>
+									) : (
+										<span>{t("no_description")}</span>
+									)}
 								</div>
 							)}
 						</CardContent>
@@ -628,9 +636,6 @@ export default function CoursePage() {
 																<>
 																	<div className="truncate font-medium text-slate-200">
 																		{exam.name || t("exam")}
-																	</div>
-																	<div className="hidden truncate text-slate-400 text-sm sm:block">
-																		{exam.description || t("no_description")}
 																	</div>
 																	<div className="mt-1 hidden text-slate-500 text-xs sm:block">
 																		{t("exam_card", {
@@ -806,8 +811,8 @@ export default function CoursePage() {
 								<Input
 									id="edit-exam-tries"
 									type="number"
-									min={1}
-									value={Number.isFinite(editExamTries) ? editExamTries : 1}
+									min={0}
+									value={Number.isFinite(editExamTries) ? editExamTries : 0}
 									onChange={(e) => setEditExamTries(Number(e.target.value))}
 									className="w-28 border-slate-700 bg-slate-800 text-white"
 								/>
@@ -842,7 +847,7 @@ export default function CoursePage() {
 												: undefined,
 											type: prevExam.type,
 											duration: Number(editExamDuration) || 0,
-											tries_count: Number(editExamTries) || 1,
+											tries_count: Number(editExamTries) || 0,
 											topic_id: prevExam.topic_id,
 										} as components["schemas"]["UpsertExamRequestDTO"];
 										try {

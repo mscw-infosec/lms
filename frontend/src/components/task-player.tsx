@@ -1,6 +1,7 @@
 "use client";
 
 import type { PublicTaskDTO } from "@/api/exam";
+import Markdown from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UiAnswerPayload } from "@/lib/answers";
 import {
+	AlertCircle,
+	CheckCircle,
 	CheckSquare,
 	CircleDot,
 	FileText,
@@ -15,6 +18,7 @@ import {
 	GripVertical,
 	ListChecks,
 	ListOrdered,
+	Loader2,
 	Type as TypeIcon,
 	Upload,
 } from "lucide-react";
@@ -70,6 +74,8 @@ interface TaskPlayerProps {
 	isLast?: boolean;
 	initial?: number | number[] | string | Record<number, number>;
 	onCtfdSync?: (taskId: number) => Promise<void> | void;
+	/** If true, the CTFd task is already synced; show success banner initially */
+	ctfdAlreadySynced?: boolean;
 }
 
 type AnswerValue =
@@ -90,11 +96,14 @@ export function TaskPlayer({
 	isLast = false,
 	initial,
 	onCtfdSync,
+	ctfdAlreadySynced = false,
 }: TaskPlayerProps) {
 	const { t } = useTranslation("common");
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
 	const [canSubmit, setCanSubmit] = useState(true);
 	const [ctfdSyncing, setCtfdSyncing] = useState(false);
+	const [ctfdError, setCtfdError] = useState<string | null>(null);
+	const [ctfdSuccess, setCtfdSuccess] = useState<string | null>(null);
 
 	const [touchDragFrom, setTouchDragFrom] = useState<number | null>(null);
 	const [touchOverIndex, setTouchOverIndex] = useState<number | null>(null);
@@ -111,6 +120,20 @@ export function TaskPlayer({
 		if (initial === undefined || initial === null) return;
 		setAnswers((prev) => ({ ...prev, [taskId]: initial }));
 	}, [taskId, initial]);
+
+	// If a CTFd task is already synced (from existing answers), show success banner initially
+	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally run this effect on taskId and ctfdAlreadySynced changes to control banner reset; t is stable from i18n provider */
+	useEffect(() => {
+		if (getTaskTypeKey() !== "ctfd") return;
+		if (ctfdAlreadySynced) {
+			setCtfdSuccess(t("ctfd_sync_success") || "Synchronized successfully");
+			setCtfdError(null);
+		} else {
+			// reset success when switching tasks or status
+			setCtfdSuccess(null);
+		}
+		// We intentionally depend on taskId and ctfdAlreadySynced
+	}, [taskId, ctfdAlreadySynced]);
 
 	if (typeof taskId !== "number") {
 		return null;
@@ -359,12 +382,11 @@ export function TaskPlayer({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-3">
-						{dto?.description ? (
-							<div className="text-slate-300 text-sm">{dto.description}</div>
-						) : null}
+						{dto?.description ? <Markdown content={dto.description} /> : null}
 						<div className="text-slate-400 text-xs">
 							{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
 						</div>
+						<div className="my-4 border-slate-800 border-t" />
 						{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
 							<RadioGroup value={""} onValueChange={() => {}} disabled>
 								<div className="space-y-3">
@@ -478,12 +500,11 @@ export function TaskPlayer({
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
-					{dto?.description ? (
-						<div className="text-slate-300 text-sm">{dto.description}</div>
-					) : null}
+					{dto?.description ? <Markdown content={dto.description} /> : null}
 					<div className="text-slate-400 text-xs">
 						{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
 					</div>
+					<div className="my-4 border-slate-800 border-t" />
 					{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
 						<RadioGroup
 							value={
@@ -690,25 +711,136 @@ export function TaskPlayer({
 						{getTaskTypeKey() === "ctfd" ? (
 							<Button
 								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
-								title={t("sync_solution") || "Synchronize solution"}
+								title={
+									ctfdSyncing
+										? t("syncing") || "Syncing..."
+										: t("sync_solution") || "Synchronize solution"
+								}
 								onClick={async () => {
 									if (typeof taskId !== "number") return;
 									if (ctfdSyncing) return;
 									try {
+										setCtfdError(null);
+										setCtfdSuccess(null);
 										setCtfdSyncing(true);
 										setCanSubmit(false);
 										await onCtfdSync?.(taskId);
+										setCtfdSuccess(
+											t("ctfd_sync_success") || "Synchronized successfully",
+										);
+									} catch (err) {
+										let message: string | undefined;
+										try {
+											if (typeof err === "object" && err) {
+												const e = err as Record<string, unknown> & {
+													response?: { status?: number; data?: unknown };
+													message?: string;
+												};
+												const resp = e.response;
+												const dataUnknown = resp?.data;
+												const isObj = (
+													v: unknown,
+												): v is Record<string, unknown> =>
+													typeof v === "object" && v !== null;
+
+												if (isObj(dataUnknown)) {
+													const dataObj = dataUnknown as Record<
+														string,
+														unknown
+													>;
+													if (typeof dataObj.error === "string") {
+														message = dataObj.error;
+													} else if (isObj(dataObj.error)) {
+														const errObj = dataObj.error as Record<
+															string,
+															unknown
+														>;
+														if (typeof errObj.detail === "string")
+															message = errObj.detail;
+														else if (typeof errObj.message === "string")
+															message = errObj.message;
+														else if (typeof errObj.error === "string")
+															message = errObj.error;
+														else if (Array.isArray(errObj.errors))
+															message = errObj.errors
+																.map((x) => String(x))
+																.join("; ");
+														else message = JSON.stringify(errObj);
+													} else if (typeof dataObj.message === "string") {
+														message = dataObj.message;
+													} else if (typeof dataObj.detail === "string") {
+														message = dataObj.detail;
+													} else if (Array.isArray(dataObj.errors)) {
+														message = dataObj.errors
+															.map((x) => String(x))
+															.join("; ");
+													}
+												}
+
+												if (!message && typeof e.message === "string") {
+													message = e.message;
+												}
+
+												if (
+													typeof message === "string" &&
+													/^(\{|\[)/.test(message.trim())
+												) {
+													try {
+														const parsed = JSON.parse(message);
+														if (typeof parsed === "string") message = parsed;
+														else if (isObj(parsed)) {
+															const p = parsed as Record<string, unknown>;
+															if (typeof p.detail === "string")
+																message = p.detail;
+															else if (typeof p.message === "string")
+																message = p.message;
+															else if (typeof p.error === "string")
+																message = p.error;
+															else if (Array.isArray(p.errors))
+																message = p.errors
+																	.map((x) => String(x))
+																	.join("; ");
+															else message = JSON.stringify(p);
+														}
+													} catch {}
+												}
+											}
+										} catch {}
+
+										if (typeof message === "string") {
+											const normalized = message.trim();
+											if (normalized === "You haven't solved this task yet") {
+												message = t("ctfd_error_not_solved");
+											} else if (
+												normalized === "No linked ctfd account found" ||
+												normalized === "No linked CTFd account found"
+											) {
+												message = t("ctfd_error_no_account");
+											}
+										}
+
+										setCtfdError(
+											message ?? (t("failed_operation") || "Operation failed"),
+										);
 									} finally {
 										setCtfdSyncing(false);
 										setCanSubmit(true);
 									}
 								}}
-								disabled={disabled || ctfdSyncing}
+								disabled={disabled || ctfdSyncing || Boolean(ctfdSuccess)}
+								aria-busy={ctfdSyncing}
 							>
-								<Flag className="h-4 w-4 sm:mr-2" />
-								<span className="hidden sm:inline">
-									{t("sync_solution") || "Synchronize solution"}
-								</span>
+								{ctfdSyncing ? (
+									<>
+										<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+										<span>{t("syncing") || "Syncing..."}</span>
+									</>
+								) : (
+									<>
+										<Flag className="mr-2 h-4 w-4" />
+										<span>{t("sync_solution") || "Synchronize solution"}</span>
+									</>
+								)}
 							</Button>
 						) : (
 							<Button
@@ -723,6 +855,19 @@ export function TaskPlayer({
 							</Button>
 						)}
 					</div>
+					{getTaskTypeKey() === "ctfd" ? (
+						ctfdSuccess ? (
+							<div className="mt-2 flex items-start gap-2 rounded-md border border-green-700 bg-green-950/30 p-2 text-green-300 text-sm">
+								<CheckCircle className="mt-0.5 h-4 w-4 text-green-400" />
+								<span>{ctfdSuccess}</span>
+							</div>
+						) : ctfdError ? (
+							<div className="mt-2 flex items-start gap-2 rounded-md border border-red-700 bg-red-950/40 p-2 text-red-300 text-sm">
+								<AlertCircle className="mt-0.5 h-4 w-4 text-red-400" />
+								<span>{ctfdError}</span>
+							</div>
+						) : null
+					) : null}
 				</CardContent>
 			</Card>
 		</div>

@@ -43,6 +43,8 @@ export default function EditTaskDialog({
 	const taskType = task.task_type;
 	const [submitting, setSubmitting] = useState(false);
 
+	const [description, setDescription] = useState<string>("");
+
 	const [scOptions, setScOptions] = useState<string>("");
 
 	const [scCorrectInput, setScCorrectInput] = useState<string>("0");
@@ -80,6 +82,10 @@ export default function EditTaskDialog({
 
 	useEffect(() => {
 		if (!open) return;
+
+		setDescription(
+			typeof task.description === "string" ? task.description : "",
+		);
 
 		type LooseCfg = {
 			options?: unknown;
@@ -297,14 +303,14 @@ export default function EditTaskDialog({
 
 			const payload: UpsertTaskRequestDTO = {
 				title: task.title,
-				description: task.description,
+				description: description,
 				points: task.points,
 				task_type: task.task_type,
 				configuration: config,
 			};
 
 			await updateTask(task.id, payload);
-			onUpdated?.({ ...task, configuration: config } as TaskDTO);
+			onUpdated?.({ ...task, description, configuration: config } as TaskDTO);
 			setOpen(false);
 		} finally {
 			setSubmitting(false);
@@ -325,6 +331,17 @@ export default function EditTaskDialog({
 				</DialogHeader>
 
 				<div className="space-y-3 py-2">
+					<div className="space-y-2">
+						<Label className="text-slate-300">
+							{t("description") || "Description"}
+						</Label>
+						<Textarea
+							value={description}
+							onChange={(e) => setDescription(e.target.value)}
+							className="mt-1 border-slate-700 bg-slate-800 text-white"
+							rows={3}
+						/>
+					</div>
 					{taskType === "SingleChoice" && (
 						<div className="space-y-2">
 							<Label className="text-slate-300">

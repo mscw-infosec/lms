@@ -158,15 +158,7 @@ export default function HomePage() {
 												{course.name}
 											</CardTitle>
 										</CardHeader>
-										<CardContent className="pt-0">
-											<CardDescription className="mb-3 text-slate-400 text-sm">
-												{course.description ?? t("no_description")}
-											</CardDescription>
-											<div className="flex items-center text-slate-500 text-sm">
-												<Clock className="mr-1 h-4 w-4" />
-												{new Date(course.created_at).toLocaleDateString()}
-											</div>
-										</CardContent>
+										<CardContent className="pt-0" />
 									</Card>
 								</Link>
 							))}
