@@ -73,7 +73,7 @@ export default function InfoSecAnnualProgram() {
 							className="whitespace-nowrap bg-red-600 hover:bg-red-700"
 							asChild
 						>
-							<Link href="https://reg.olimpiada.ru">Вход</Link>
+							<Link href="#">Вход</Link>
 						</Button>
 					</div>
 				</div>
@@ -97,7 +97,7 @@ export default function InfoSecAnnualProgram() {
 									className="bg-red-600 hover:bg-red-700"
 									asChild
 								>
-									<a href="https://reg.olimpiada.ru">Поступить в набор осени 2025</a>
+									<a href="#">Поступить в набор осени 2025</a>
 								</Button>
 								<Button variant="outline" size="lg" asChild>
 									<a href="#admissions">Даты и сроки</a>
@@ -254,7 +254,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Сбор заявок
 											</div>
-											<div className="text-[10px] text-gray-600">1–14 Сен</div>
+											<div className="text-[10px] text-gray-600">1–12 Сен</div>
 										</div>
 									</li>
 									{/* 2 */}
@@ -269,7 +269,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Отборочный тест
 											</div>
-											<div className="text-[10px] text-gray-600">15–16 Сен</div>
+											<div className="text-[10px] text-gray-600">14 Сен</div>
 										</div>
 									</li>
 									{/* 3 */}
@@ -284,7 +284,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Проверка теста
 											</div>
-											<div className="text-[10px] text-gray-600">17–24 Сен</div>
+											<div className="text-[10px] text-gray-600">15–24 Сен</div>
 										</div>
 									</li>
 								</ul>
@@ -336,9 +336,9 @@ export default function InfoSecAnnualProgram() {
 							<div className="absolute top-8 right-4 left-4 h-1 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
 							<ul className="relative grid grid-cols-5 place-items-center gap-4 px-2">
 								{[
-									{ title: "Сбор заявок", date: "1–14 Сен" },
-									{ title: "Отборочный тест", date: "15–16 Сен" },
-									{ title: "Проверка теста", date: "17–24 Сен" },
+									{ title: "Сбор заявок", date: "1–12 Сен" },
+									{ title: "Отборочный тест", date: "14 Сен" },
+									{ title: "Проверка теста", date: "15–24 Сен" },
 									{ title: "Результаты теста", date: "25 Сен" },
 									{ title: "Начало занятий", date: "29 Сен" },
 								].map((m) => (
@@ -491,10 +491,10 @@ export default function InfoSecAnnualProgram() {
 							className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
 						>
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://reg.olimpiada.ru">Подать заявку</Link>
+								<Link href="#">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
-								<Link href="https://reg.olimpiada.ru">Уже подали? Входите!</Link>
+								<Link href="#">Уже подали? Входите!</Link>
 							</Button>
 						</div>
 					</div>
@@ -516,6 +516,14 @@ export default function InfoSecAnnualProgram() {
 									от школьников всех возрастов, но участвовать в олимпиаде на
 									региональном и заключительном этапе могут только ученики 9-11
 									классов.
+								</p>
+							</details>
+							<details className="group rounded-lg border p-4">
+								<summary className="cursor-pointer list-none font-medium text-gray-900">
+									Есть ли у вас занятия для школьников 7-8 классов?
+								</summary>
+								<p className="mt-2 text-gray-600 text-sm">
+									Да, мы проводим отдельные занятия (и вступительный экзамен) и для школьников 7-8 классов.
 								</p>
 							</details>
 							<details className="group rounded-lg border p-4">
@@ -546,9 +554,8 @@ export default function InfoSecAnnualProgram() {
 									Как будут проводиться занятия?
 								</summary>
 								<p className="mt-2 text-gray-600 text-sm">
-									Мы проводим одну онлайн-лекцию и несколько оффлайн-семинаров в
-									одну неделю. Оффлайн-занятия проходят в Центре Педагогического
-									Мастерства по адресу Олимпийский просп., 11, стр. 1.
+									Мы проводим одну онлайн-лекцию и несколько очных семинаров
+									каждую неделю. Оффлайн-занятия в Москве.
 								</p>
 							</details>
 						</div>
@@ -563,7 +570,7 @@ export default function InfoSecAnnualProgram() {
 						</h2>
 						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://reg.olimpiada.ru">Подать заявку</Link>
+								<Link href="#">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
 								<Link href="#curriculum">Программа</Link>

@@ -1,13 +1,15 @@
 use crate::domain::exam::model::{Exam, ExamType};
 use crate::domain::exam::repository::ExamRepository;
-use crate::domain::task::model::{CtfdMetadataResponse, Task, TaskAnswer, TaskConfig, TaskType};
+use crate::domain::task::model::{
+    CtfdMetadataResponse, CtfdUsersReponse, Task, TaskAnswer, TaskConfig, TaskType,
+};
 use crate::domain::task::service::CTFD_API_URL;
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
 use crate::dto::task::TaskVerdict;
 use crate::errors::{LMSError, Result};
 use crate::repo;
 use crate::utils::send_and_parse;
-use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
+use axum::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use chrono::{Duration, Utc};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -180,9 +182,9 @@ impl ExamService {
                     },
                     TaskAnswer::CTFd,
                 ) => {
-                    let ctfd_user_id = self.repo.get_user_ctfd_id(user_id).await?;
+                    let user = self.repo.get_user_by_id(attempt.user_id).await?;
                     let solve_status = self
-                        .check_if_ctfd_task_solved(*ctfd_task_id, ctfd_user_id)
+                        .check_if_ctfd_task_solved(*ctfd_task_id, user.email)
                         .await?;
                     if solve_status {
                         self.repo
@@ -223,7 +225,6 @@ impl ExamService {
         };
         let exam = self.get_exam(attempt.exam_id).await?;
         let tasks = self.get_tasks(attempt.exam_id).await?;
-        let ctfd_user_id = self.repo.get_user_ctfd_id(attempt.user_id).await?;
         for ctfd_task in tasks
             .iter()
             .filter(|x| matches!(x.task_type, TaskType::CTFd))
@@ -232,8 +233,9 @@ impl ExamService {
                 task_id: ctfd_task_id,
             } = ctfd_task.configuration
             {
+                let user = self.repo.get_user_by_id(attempt.user_id).await?;
                 let solve_status = self
-                    .check_if_ctfd_task_solved(ctfd_task_id, ctfd_user_id)
+                    .check_if_ctfd_task_solved(ctfd_task_id, user.email)
                     .await?;
                 if solve_status {
                     attempt
@@ -399,18 +401,35 @@ impl ExamService {
         Ok(scoring_data)
     }
 
+    pub async fn find_ctfd_id_by_email(&self, user_email: String) -> Result<i32> {
+        let existent_user = send_and_parse::<CtfdUsersReponse>(
+            self.http_client
+                .get(format!(
+                    "{CTFD_API_URL}/users?view=admin&field=email&q={user_email}"
+                ))
+                .header(ACCEPT, "application/json")
+                .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
+            "CTFd user checking",
+        )
+        .await?;
+
+        if existent_user.meta.pagination.total != 0 {
+            return Ok(existent_user.data[0].id);
+        }
+        Err(LMSError::NotFound("CTFd user not found".to_string()))
+    }
+
     pub async fn check_if_ctfd_task_solved(
         &self,
         task_id: usize,
-        ctfd_user_id: i32,
+        user_email: String,
     ) -> Result<bool> {
         let answer = send_and_parse::<CtfdMetadataResponse>(
             self.http_client
-                .get(
-                    format!(
-                        "{CTFD_API_URL}/submissions?challenge_id={task_id}&user_id={ctfd_user_id}&type=correct"
-                    )
-                )
+                .get(format!(
+                    "{CTFD_API_URL}/submissions?challenge_id={task_id}&user_id={}&type=correct",
+                    self.find_ctfd_id_by_email(user_email).await?
+                ))
                 .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd task solve status check",

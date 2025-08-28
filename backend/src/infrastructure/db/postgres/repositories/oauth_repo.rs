@@ -82,22 +82,4 @@ impl OAuthRepository for RepositoryPostgres {
 
         Ok(())
     }
-
-    async fn update_ctfd_account(
-        &self,
-        user_id: Uuid,
-        ctfd_user_id: i32,
-    ) -> crate::errors::Result<()> {
-        let _ = sqlx::query!(
-            r#"
-                UPDATE users SET ctfd_id = $1 WHERE id = $2
-            "#,
-            ctfd_user_id,
-            user_id
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
 }

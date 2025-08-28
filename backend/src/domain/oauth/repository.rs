@@ -13,5 +13,4 @@ pub trait OAuthRepository {
     async fn find_by_email(&self, email: &str) -> Result<Option<Uuid>, LMSError>;
     async fn create_user_with_provider(&self, user: &OAuthUser) -> Result<(), LMSError>;
     async fn add_provider(&self, user_id: Uuid, provider: OAuth) -> Result<(), LMSError>;
-    async fn update_ctfd_account(&self, user_id: Uuid, ctfd_id: i32) -> Result<(), LMSError>;
 }

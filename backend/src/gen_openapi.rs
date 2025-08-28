@@ -30,16 +30,10 @@ pub fn save_openapi() {
         dummy.clone(),
         &config.frontend_redirect_url,
     );
-    let basic_auth =
-        BasicAuthService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
+    let basic_auth = BasicAuthService::new(dummy.clone());
     let course = CourseService::new(dummy.clone());
     let exam = ExamService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
-    let oauth = OAuthService::new(
-        dummy.clone(),
-        dummy.clone(),
-        client.clone(),
-        config.ctfd_token.clone(),
-    );
+    let oauth = OAuthService::new(dummy.clone(), dummy.clone());
     let refresh_token = RefreshTokenService::new(dummy.clone(), jwt.clone());
     let task = TaskService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
     let topic = TopicService::new(dummy.clone());
