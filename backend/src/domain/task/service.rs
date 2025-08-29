@@ -36,7 +36,7 @@ impl TaskService {
                 return Err(LMSError::NotFound("CTFd task not found".to_string()));
             }
             task.title = ctfd_task.data.name;
-            task.description = Option::from(ctfd_task.data.description);
+            task.description = Some(ctfd_task.data.description);
         }
         self.repo.create(task).await
     }
@@ -83,7 +83,7 @@ impl TaskService {
                 return Err(LMSError::NotFound("CTFd task not found".to_string()));
             }
             task_data.title = ctfd_task.data.name;
-            task_data.description = Option::from(ctfd_task.data.description);
+            task_data.description = Some(ctfd_task.data.description);
         }
         self.repo.update_task(task_id, task_data).await
     }

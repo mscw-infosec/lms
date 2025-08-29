@@ -298,16 +298,11 @@ pub async fn get_last_attempt(
     attempt.max_score = tasks.iter().map(|t| t.points).sum();
     if let Some(scoring_data) = attempt.scoring_data.as_mut() {
         if scoring_data.show_results {
-            attempt.score = Option::from(
+            attempt.score = Some(
                 scoring_data
                     .results
                     .values()
-                    .map(|t| match t {
-                        TaskVerdict::FullScore { score, .. }
-                        | TaskVerdict::PartialScore { score, .. }
-                        | TaskVerdict::Incorrect { score, .. } => score,
-                        TaskVerdict::OnReview => &0f64,
-                    })
+                    .map(TaskVerdict::score)
                     .sum::<f64>(),
             );
         } else {
@@ -358,16 +353,11 @@ pub async fn get_user_exam_attempts(
         attempt.max_score = max_score;
         if let Some(scoring_data) = attempt.scoring_data.as_mut() {
             if scoring_data.show_results {
-                attempt.score = Option::from(
+                attempt.score = Some(
                     scoring_data
                         .results
                         .values()
-                        .map(|t| match t {
-                            TaskVerdict::FullScore { score, .. }
-                            | TaskVerdict::PartialScore { score, .. }
-                            | TaskVerdict::Incorrect { score, .. } => score,
-                            TaskVerdict::OnReview => &0f64,
-                        })
+                        .map(TaskVerdict::score)
                         .sum::<f64>(),
                 );
             } else {
