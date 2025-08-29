@@ -223,6 +223,13 @@ pub enum TaskAnswer {
 #[derive(Serialize, Deserialize)]
 pub struct CtfdTaskResponse {
     pub success: bool,
+    pub data: CtfdTaskData,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CtfdTaskData {
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Serialize, Deserialize)]

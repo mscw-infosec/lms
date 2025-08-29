@@ -355,8 +355,7 @@ pub async fn get_user_exam_attempts(
     let max_score: i64 = tasks.iter().map(|t| t.points).sum();
     for attempt in &mut attempts {
         attempt.max_score = max_score;
-        if let Some(scoring_data) = attempt.scoring_data.as_mut()
-        {
+        if let Some(scoring_data) = attempt.scoring_data.as_mut() {
             if !scoring_data.show_results {
                 attempt.scoring_data = None;
             } else {
