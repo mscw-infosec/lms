@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -6,6 +8,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 import {
 	Award,
 	BookOpen,
@@ -18,17 +21,41 @@ import {
 	Shield,
 	Target,
 	Users,
+	X
 } from "lucide-react";
 import Link from "next/link";
 
 export default function InfoSecAnnualProgram() {
-	const heroDescription = (
+
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+
+    // Handle escape key to close modal
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isLoginModalOpen) {
+                setIsLoginModalOpen(false)
+            }
+        }
+
+        if (isLoginModalOpen) {
+            document.addEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'hidden'
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'unset'
+        }
+    }, [isLoginModalOpen])
+
+    const heroDescription = (
 		<p className="mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
 			Обучение навыкам в области информационной безопасности для школьников на
 			протяжении всего учебного года, занятия с преподавателями онлайн и
 			оффлайн, интересные задачи и крутое сообщество учеников-единомышленников.
 		</p>
 	);
+
 	return (
 		<div className="flex min-h-screen flex-col">
 			<header className="h-12 border-b bg-white/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 md:h-16 md:px-6">
@@ -72,12 +99,49 @@ export default function InfoSecAnnualProgram() {
 							size="sm"
 							className="whitespace-nowrap bg-red-600 hover:bg-red-700"
 							asChild
+							onClick={() => setIsLoginModalOpen(true)}
 						>
 							<Link href="#">Вход</Link>
 						</Button>
 					</div>
 				</div>
 			</header>
+
+			{/* Login Modal */}
+			{isLoginModalOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center">
+					{/* Backdrop */}
+					<div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsLoginModalOpen(false)} />
+
+					{/* Modal */}
+					<div className="relative bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full">
+						<div className="flex items-center justify-between mb-4">
+							<h2 className="text-lg font-semibold text-gray-900">Вход в систему</h2>
+							<button
+								onClick={() => setIsLoginModalOpen(false)}
+								className="text-gray-400 hover:text-gray-600 transition-colors"
+							>
+								<X className="h-5 w-5" />
+							</button>
+						</div>
+
+						<div className="text-center py-8">
+							<Shield className="h-12 w-12 text-red-600 mx-auto mb-4" />
+							<p className="text-gray-600 mb-2">Скоро здесь будет вход в тестирующую систему</p>
+							<p className="text-sm text-gray-500">Пока его нет, вы можете подать заявку на участие в отборе в сборную.</p>
+						</div>
+
+						<div className="flex gap-3">
+							<Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsLoginModalOpen(false)}>
+								Закрыть
+							</Button>
+							<Button className="flex-1 bg-red-600 hover:bg-red-700" asChild onClick={() => setIsLoginModalOpen(false)}>
+								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
 
 			<main className="flex-1">
 				{/* Hero */}
@@ -97,10 +161,10 @@ export default function InfoSecAnnualProgram() {
 									className="bg-red-600 hover:bg-red-700"
 									asChild
 								>
-									<a href="#">Поступить в набор осени 2025</a>
+									<a href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Поступить в набор осени 2025</a>
 								</Button>
 								<Button variant="outline" size="lg" asChild>
-									<a href="#admissions">Даты и сроки</a>
+									<a href="#timeline">Даты и сроки</a>
 								</Button>
 							</div>
 							<p className="mt-3 text-gray-500 text-xs">
@@ -491,7 +555,7 @@ export default function InfoSecAnnualProgram() {
 							className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
 						>
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="#">Подать заявку</Link>
+								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
 								<Link href="#">Уже подали? Входите!</Link>
@@ -545,7 +609,7 @@ export default function InfoSecAnnualProgram() {
 								<p className="mt-2 text-gray-600 text-sm">
 									Экзамен - внутренний входной тест, который определяет, готовы
 									ли вы начать заниматься в сборной, а также позволяет понять
-									ваш уровень знаний. Экзамен займёт до двух часов, а после
+									ваш уровень знаний. Экзамен займёт до трёх часов, а после
 									старта таймер на экзамен нельзя будет остановить.
 								</p>
 							</details>
@@ -570,7 +634,7 @@ export default function InfoSecAnnualProgram() {
 						</h2>
 						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="#">Подать заявку</Link>
+								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
 								<Link href="#curriculum">Программа</Link>
