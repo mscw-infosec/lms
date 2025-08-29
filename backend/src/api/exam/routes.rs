@@ -297,14 +297,12 @@ pub async fn get_last_attempt(
     let tasks = state.exam_service.get_tasks(exam_id).await?;
     attempt.max_score = tasks.iter().map(|t| t.points).sum();
     if let Some(scoring_data) = attempt.scoring_data.as_mut() {
-        if !scoring_data.show_results {
-            attempt.scoring_data = None;
-        } else {
+        if scoring_data.show_results {
             attempt.score = Option::from(
                 scoring_data
                     .results
-                    .iter()
-                    .map(|(_, t)| match t {
+                    .values()
+                    .map(|t| match t {
                         TaskVerdict::FullScore { score, .. }
                         | TaskVerdict::PartialScore { score, .. }
                         | TaskVerdict::Incorrect { score, .. } => score,
@@ -312,6 +310,8 @@ pub async fn get_last_attempt(
                     })
                     .sum::<f64>(),
             );
+        } else {
+            attempt.scoring_data = None;
         }
     }
 
@@ -337,6 +337,7 @@ pub async fn get_last_attempt(
     )
 )]
 #[allow(clippy::cast_sign_loss)]
+#[allow(clippy::cast_possible_wrap)]
 pub async fn get_user_exam_attempts(
     claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
@@ -356,14 +357,12 @@ pub async fn get_user_exam_attempts(
     for attempt in &mut attempts {
         attempt.max_score = max_score;
         if let Some(scoring_data) = attempt.scoring_data.as_mut() {
-            if !scoring_data.show_results {
-                attempt.scoring_data = None;
-            } else {
+            if scoring_data.show_results {
                 attempt.score = Option::from(
                     scoring_data
                         .results
-                        .iter()
-                        .map(|(_, t)| match t {
+                        .values()
+                        .map(|t| match t {
                             TaskVerdict::FullScore { score, .. }
                             | TaskVerdict::PartialScore { score, .. }
                             | TaskVerdict::Incorrect { score, .. } => score,
@@ -371,6 +370,8 @@ pub async fn get_user_exam_attempts(
                         })
                         .sum::<f64>(),
                 );
+            } else {
+                attempt.scoring_data = None;
             }
         }
     }

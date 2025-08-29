@@ -31,7 +31,7 @@ impl TaskService {
 
     pub async fn create_task(&self, mut task: UpsertTaskRequestDTO) -> Result<Task> {
         if let TaskConfig::CTFd { task_id } = task.configuration {
-            let ctfd_task = (&self).get_ctfd_task_data(task_id).await?;
+            let ctfd_task = self.get_ctfd_task_data(task_id).await?;
             if !ctfd_task.success {
                 return Err(LMSError::NotFound("CTFd task not found".to_string()));
             }
@@ -78,7 +78,7 @@ impl TaskService {
             ));
         }
         if let TaskConfig::CTFd { task_id } = task_data.configuration {
-            let ctfd_task = (&self).get_ctfd_task_data(task_id).await?;
+            let ctfd_task = self.get_ctfd_task_data(task_id).await?;
             if !ctfd_task.success {
                 return Err(LMSError::NotFound("CTFd task not found".to_string()));
             }
