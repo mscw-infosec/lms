@@ -407,7 +407,7 @@ impl ExamService {
                 .get(format!(
                     "{CTFD_API_URL}/users?view=admin&field=email&q={user_email}"
                 ))
-                .header(ACCEPT, "application/json")
+                .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd user checking",
         )
