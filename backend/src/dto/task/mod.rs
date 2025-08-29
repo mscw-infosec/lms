@@ -113,13 +113,17 @@ pub enum TaskVerdict {
     FullScore {
         comment: Option<String>, // for manual review
         score: f64,
+        max_score: f64,
     },
     PartialScore {
-        score: f64,
         comment: Option<String>,
+        score: f64,
+        max_score: f64,
     },
     Incorrect {
         comment: Option<String>,
+        score: f64,
+        max_score: f64,
     },
     OnReview,
 }

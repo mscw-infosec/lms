@@ -55,7 +55,7 @@ pub struct ScoringData {
     pub results: HashMap<usize, TaskVerdict>,
 }
 
-#[derive(Serialize, Deserialize, FromRow, ToSchema)]
+#[derive(Serialize, Deserialize, FromRow, ToSchema, Default)]
 pub struct ExamAttemptSchema {
     pub id: Uuid,
     pub exam_id: Uuid,
@@ -64,12 +64,14 @@ pub struct ExamAttemptSchema {
     pub active: bool,
     pub answer_data: ExamAnswer,
     pub scoring_data: Option<ScoringData>,
+    pub score: Option<f64>,
+    pub max_score: i64,
 }
 
 #[derive(Serialize, Deserialize, FromRow, ToSchema)]
 pub struct ExamAttemptsListDTO {
     pub ran_out_of_attempts: bool,
-    pub attempts_left: usize,
+    pub attempts_left: i64,
     pub attempts: Vec<ExamAttemptSchema>,
 }
 
@@ -83,6 +85,8 @@ impl From<ExamAttempt> for ExamAttemptSchema {
             active: value.active,
             answer_data: value.answer_data.into(),
             scoring_data: Some(value.scoring_data.into()),
+            score: Option::default(),
+            max_score: i64::default(),
         }
     }
 }
