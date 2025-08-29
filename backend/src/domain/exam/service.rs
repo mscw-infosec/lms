@@ -9,7 +9,7 @@ use crate::dto::task::TaskVerdict;
 use crate::errors::{LMSError, Result};
 use crate::repo;
 use crate::utils::send_and_parse;
-use axum::http::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE};
+use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use chrono::{Duration, Utc};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -263,14 +263,20 @@ impl ExamService {
                             TaskVerdict::FullScore {
                                 comment: None,
                                 score: task.points as f64,
+                                max_score: task.points as f64,
                             },
                         );
                         continue;
                     }
 
-                    scoring_data
-                        .results
-                        .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::Incorrect {
+                            comment: None,
+                            score: 0f64,
+                            max_score: task.points as f64,
+                        },
+                    );
                 }
 
                 (
@@ -290,16 +296,22 @@ impl ExamService {
                         scoring_data.results.insert(
                             task_id,
                             TaskVerdict::FullScore {
-                                score: task.points as f64,
                                 comment: None,
+                                score: task.points as f64,
+                                max_score: task.points as f64,
                             },
                         );
                         continue;
                     }
                     if !partial_score {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::Incorrect {
+                                comment: None,
+                                score: 0f64,
+                                max_score: task.points as f64,
+                            },
+                        );
                         continue;
                     }
 
@@ -309,9 +321,14 @@ impl ExamService {
                     let score_multiplier =
                         (correct_count - incorrect_count) / correct_answers.len() as f64;
                     if score_multiplier <= 0f64 {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::Incorrect {
+                                comment: None,
+                                score: 0f64,
+                                max_score: task.points as f64,
+                            },
+                        );
                         continue;
                     }
 
@@ -320,6 +337,7 @@ impl ExamService {
                         TaskVerdict::PartialScore {
                             score: task.points as f64 * score_multiplier,
                             comment: None,
+                            max_score: task.points as f64,
                         },
                     );
                 }
@@ -342,12 +360,18 @@ impl ExamService {
                             TaskVerdict::FullScore {
                                 comment: None,
                                 score: task.points as f64,
+                                max_score: task.points as f64,
                             },
                         );
                     } else {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::Incorrect {
+                                comment: None,
+                                score: 0f64,
+                                max_score: task.points as f64,
+                            },
+                        );
                     }
                 }
 
@@ -365,12 +389,18 @@ impl ExamService {
                             TaskVerdict::FullScore {
                                 comment: None,
                                 score: task.points as f64,
+                                max_score: task.points as f64,
                             },
                         );
                     } else {
-                        scoring_data
-                            .results
-                            .insert(task_id, TaskVerdict::Incorrect { comment: None });
+                        scoring_data.results.insert(
+                            task_id,
+                            TaskVerdict::Incorrect {
+                                comment: None,
+                                score: 0f64,
+                                max_score: task.points as f64,
+                            },
+                        );
                     }
                 }
                 (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
@@ -384,6 +414,7 @@ impl ExamService {
                         TaskVerdict::FullScore {
                             comment: None,
                             score: task.points as f64,
+                            max_score: task.points as f64,
                         },
                     );
                 }
@@ -407,7 +438,7 @@ impl ExamService {
                 .get(format!(
                     "{CTFD_API_URL}/users?view=admin&field=email&q={user_email}"
                 ))
-                .header(ACCEPT, "application/json")
+                .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd user checking",
         )

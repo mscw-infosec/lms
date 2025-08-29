@@ -6,7 +6,7 @@ use crate::dto::exam::{
     CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO,
     UpsertExamRequestDTO,
 };
-use crate::dto::task::PublicTaskDTO;
+use crate::dto::task::{PublicTaskDTO, TaskVerdict};
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
@@ -294,10 +294,25 @@ pub async fn get_last_attempt(
         .get_user_last_attempt(exam_id, claims.sub)
         .await?
         .into();
-    if let Some(scoring_data) = attempt.scoring_data.as_mut()
-        && !scoring_data.show_results
-    {
-        attempt.scoring_data = None;
+    let tasks = state.exam_service.get_tasks(exam_id).await?;
+    attempt.max_score = tasks.iter().map(|t| t.points).sum();
+    if let Some(scoring_data) = attempt.scoring_data.as_mut() {
+        if scoring_data.show_results {
+            attempt.score = Option::from(
+                scoring_data
+                    .results
+                    .values()
+                    .map(|t| match t {
+                        TaskVerdict::FullScore { score, .. }
+                        | TaskVerdict::PartialScore { score, .. }
+                        | TaskVerdict::Incorrect { score, .. } => score,
+                        TaskVerdict::OnReview => &0f64,
+                    })
+                    .sum::<f64>(),
+            );
+        } else {
+            attempt.scoring_data = None;
+        }
     }
 
     Ok(Json(attempt))
@@ -322,6 +337,7 @@ pub async fn get_last_attempt(
     )
 )]
 #[allow(clippy::cast_sign_loss)]
+#[allow(clippy::cast_possible_wrap)]
 pub async fn get_user_exam_attempts(
     claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
@@ -336,16 +352,32 @@ pub async fn get_user_exam_attempts(
         .iter()
         .map(|x| ExamAttemptSchema::from(x.clone()))
         .collect();
+    let tasks = state.exam_service.get_tasks(exam_id).await?;
+    let max_score: i64 = tasks.iter().map(|t| t.points).sum();
     for attempt in &mut attempts {
-        if let Some(scoring_data) = attempt.scoring_data.as_mut()
-            && !scoring_data.show_results
-        {
-            attempt.scoring_data = None;
+        attempt.max_score = max_score;
+        if let Some(scoring_data) = attempt.scoring_data.as_mut() {
+            if scoring_data.show_results {
+                attempt.score = Option::from(
+                    scoring_data
+                        .results
+                        .values()
+                        .map(|t| match t {
+                            TaskVerdict::FullScore { score, .. }
+                            | TaskVerdict::PartialScore { score, .. }
+                            | TaskVerdict::Incorrect { score, .. } => score,
+                            TaskVerdict::OnReview => &0f64,
+                        })
+                        .sum::<f64>(),
+                );
+            } else {
+                attempt.scoring_data = None;
+            }
         }
     }
 
     Ok(Json(ExamAttemptsListDTO {
-        attempts_left: max(exam.tries_count as usize - attempts.len(), 0),
+        attempts_left: max(i64::from(exam.tries_count) - attempts.len() as i64, 0),
         ran_out_of_attempts: exam.tries_count != 0 && attempts.len() >= exam.tries_count as usize,
         attempts,
     }))
