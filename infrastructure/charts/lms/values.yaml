@@ -19,5 +19,5 @@ landing:
   replicas: 4
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-landing
-    tag: 0.0.5
+    tag: 0.0.6
     pullPolicy: IfNotPresent

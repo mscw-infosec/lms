@@ -557,7 +557,7 @@ export default function InfoSecAnnualProgram() {
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
 								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
 							</Button>
-							<Button variant="outline" size="lg" asChild>
+							<Button variant="outline" size="lg" asChild onClick={() => setIsLoginModalOpen(true)}>
 								<Link href="#">Уже подали? Входите!</Link>
 							</Button>
 						</div>
