@@ -42,14 +42,15 @@ impl TaskService {
     }
 
     pub async fn get_ctfd_task_data(&self, task_id: usize) -> Result<CtfdTaskResponse> {
-        send_and_parse::<CtfdTaskResponse>(
+        let ctfd_task = send_and_parse::<CtfdTaskResponse>(
             self.http_client
                 .get(format!("{CTFD_API_URL}/challenges/{task_id}"))
                 .header(CONTENT_TYPE, "application/json")
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
-            "CTFd task existence check",
+            "CTFd task check",
         )
-        .await
+            .await;
+        ctfd_task.map_or_else(|_| Err(LMSError::NotFound("Task not found in CTFd".to_string())), Ok)
     }
 
     pub async fn get_task(&self, task_id: i32) -> Result<Task> {

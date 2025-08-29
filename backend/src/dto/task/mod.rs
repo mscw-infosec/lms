@@ -8,7 +8,7 @@ use validator::Validate;
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
 pub struct UpsertTaskRequestDTO {
-    #[validate(length(min = 1, max = 50))]
+    #[validate(length(max = 50))]
     pub title: String,
     pub description: Option<String>,
     pub task_type: TaskType,
