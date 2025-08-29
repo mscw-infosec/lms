@@ -85,8 +85,7 @@ impl From<ExamAttempt> for ExamAttemptSchema {
             active: value.active,
             answer_data: value.answer_data.into(),
             scoring_data: Some(value.scoring_data.into()),
-            score: Option::default(),
-            max_score: i64::default(),
+            ..Default::default()
         }
     }
 }

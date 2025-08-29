@@ -127,3 +127,14 @@ pub enum TaskVerdict {
     },
     OnReview,
 }
+
+impl TaskVerdict {
+    pub const fn score(&self) -> &f64 {
+        match self {
+            Self::FullScore { score, .. }
+            | Self::PartialScore { score, .. }
+            | Self::Incorrect { score, .. } => score,
+            Self::OnReview => &0f64,
+        }
+    }
+}
