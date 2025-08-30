@@ -26,17 +26,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import { buildTaskAnswer } from "@/lib/answers";
 import type { UiAnswerPayload } from "@/lib/answers";
+import { getPointsPlural } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowLeft,
 	BookOpen,
@@ -359,6 +362,64 @@ export default function LearnPage() {
 		return out;
 	})();
 
+	// Full results map for review mode (score/max_score where available)
+	const resultsByTaskId: Record<
+		number,
+		{ score?: number; max_score?: number; verdict?: string }
+	> = (() => {
+		const r = (reviewAttempt ?? attempt)?.scoring_data?.results;
+		if (!r) return {};
+		const out: Record<
+			number,
+			{ score?: number; max_score?: number; verdict?: string }
+		> = {};
+		for (const [k, v] of Object.entries(r)) {
+			const id = Number(k);
+			if (Number.isFinite(id) && v && typeof v === "object") {
+				out[id] = {
+					score:
+						v.verdict !== "on_review" && typeof v.score === "number"
+							? v.score
+							: undefined,
+					max_score:
+						v.verdict !== "on_review" && typeof v.max_score === "number"
+							? v.max_score
+							: undefined,
+					verdict:
+						typeof v.verdict === "string" ? (v.verdict as string) : undefined,
+				};
+			}
+		}
+		return out;
+	})();
+
+	function formatPoints(n: number | undefined): string {
+		if (typeof n !== "number" || !Number.isFinite(n)) return "-";
+		const rounded = Math.round(n * 100) / 100;
+		if (Math.abs(rounded - Math.round(rounded)) < 1e-9)
+			return String(Math.round(rounded));
+		return rounded.toFixed(2);
+	}
+
+	const reviewTotals = useMemo(() => {
+		const res = (reviewAttempt ?? attempt)?.scoring_data?.results;
+		const totalMax = (tasks ?? []).reduce(
+			(acc, t) => acc + (Number(t.points) || 0),
+			0,
+		);
+		if (!res)
+			return {
+				score: 0,
+				max: totalMax,
+			};
+		let score = 0;
+		for (const v of Object.values(res)) {
+			const s = v.verdict !== "on_review" ? v.score : 0;
+			if (typeof s === "number" && Number.isFinite(s)) score += s;
+		}
+		return { score, max: totalMax };
+	}, [reviewAttempt, attempt, tasks]);
+
 	function renderReadOnlyTask(task: PublicTaskDTO) {
 		const cfg = (task as { configuration?: TaskConfig }).configuration ?? {};
 		const cfgName: string | undefined =
@@ -367,24 +428,59 @@ export default function LearnPage() {
 				: undefined;
 		const ans = answersByTaskId[task.id];
 		const verdict = verdictsByTaskId[task.id];
+		const hasAnswer = (() => {
+			try {
+				if (cfgName === "single_choice") {
+					const v = (ans as { answer?: unknown })?.answer;
+					return (
+						typeof v === "number" || (typeof v === "string" && v.length > 0)
+					);
+				}
+				if (cfgName === "multiple_choice") {
+					const arr = (ans as { answers?: unknown[] })?.answers;
+					return Array.isArray(arr) && arr.length > 0;
+				}
+				if (cfgName === "short_text" || cfgName === "long_text") {
+					const v = (ans as { answer?: unknown })?.answer;
+					return typeof v === "string" && v.length > 0;
+				}
+				if (cfgName === "ordering") {
+					const arr = (ans as { answer?: unknown[] })?.answer as
+						| unknown[]
+						| undefined;
+					return Array.isArray(arr) && arr.length > 0;
+				}
+				if (cfgName === "file_upload") {
+					const v = (ans as { file_id?: unknown })?.file_id;
+					return typeof v === "string" && v.length > 0;
+				}
+			} catch {}
+			return false;
+		})();
+		const effectiveVerdict: string | undefined = verdict;
 		const verdictLabel =
-			verdict === "full_score"
+			effectiveVerdict === "full_score"
 				? (t("correct") ?? "Correct")
-				: verdict === "partial_score"
+				: effectiveVerdict === "partial_score"
 					? (t("partially_correct") ?? "Partially correct")
-					: verdict === "incorrect"
+					: effectiveVerdict === "incorrect"
 						? (t("incorrect") ?? "Incorrect")
-						: verdict === "on_review"
+						: effectiveVerdict === "on_review"
 							? (t("on_review") ?? "On review")
-							: undefined;
+							: !hasAnswer
+								? (t("no_answer") ?? "No answer")
+								: undefined;
 		const tone =
-			verdict === "full_score"
+			effectiveVerdict === "full_score"
 				? "green"
-				: verdict === "incorrect"
+				: effectiveVerdict === "incorrect"
 					? "red"
-					: verdict === "on_review" || verdict === "partial_score"
+					: effectiveVerdict === "on_review" ||
+							effectiveVerdict === "partial_score"
 						? "amber"
-						: "slate";
+						: !hasAnswer
+							? "red"
+							: "slate";
 		const border =
 			tone === "green"
 				? "border-green-700"
@@ -403,20 +499,37 @@ export default function LearnPage() {
 						: "bg-slate-700";
 		return (
 			<Card key={task.id} className={`relative border bg-slate-900 ${border}`}>
-				{verdictLabel ? (
+				<div className="absolute top-3 right-3 flex items-center gap-2">
 					<div
-						className={`absolute top-3 right-3 rounded-full px-2.5 py-1 font-medium text-white text-xs ${badgeBg}`}
+						className={`rounded-full px-2.5 py-1 font-bold text-white text-xs ${badgeBg}`}
+						title={t(getPointsPlural(task.points)) || "points"}
 					>
-						{verdictLabel}
+						{(() => {
+							const info = resultsByTaskId[task.id];
+							if (info && typeof info.score === "number") {
+								return `${formatPoints(info.score)} / ${formatPoints(task.points)}`;
+							}
+							if (!hasAnswer) {
+								return `0 / ${formatPoints(task.points)}`;
+							}
+							return `${formatPoints(task.points)}`;
+						})()}
 					</div>
-				) : null}
+					{verdictLabel ? (
+						<div
+							className={`rounded-full px-2.5 py-1 font-medium text-white text-xs ${badgeBg}`}
+						>
+							{verdictLabel}
+						</div>
+					) : null}
+				</div>
 				<CardHeader>
 					<CardTitle className="text-2xl text-white">{task.title}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-3">
 					{task.description ? <Markdown content={task.description} /> : null}
 					<div className="text-slate-400 text-xs">
-						{task.points ?? 0} {t("points") ?? "points"} · {cfgName ?? "task"}
+						{t(cfgName as string) || "Task"}
 					</div>
 
 					{cfgName === "single_choice" &&
@@ -465,8 +578,16 @@ export default function LearnPage() {
 									: verdict === "full_score" && typeof selectedIdx === "number"
 										? selectedIdx
 										: undefined;
+
 							return (
-								<div className="space-y-2">
+								<RadioGroup
+									value={
+										typeof selectedIdx === "number"
+											? String(selectedIdx)
+											: undefined
+									}
+									disabled
+								>
 									{((cfg as TaskConfig).options as string[]).map(
 										(label, idx) => {
 											const isSelected =
@@ -478,31 +599,31 @@ export default function LearnPage() {
 												? "text-green-400"
 												: isSelected
 													? "text-red-400"
-													: "text-slate-400";
-											const accent = isCorrect
-												? "accent-green-500"
+													: "text-slate-200";
+											const fill = isCorrect
+												? "bg-green-500"
 												: isSelected
-													? "accent-red-500"
-													: "accent-slate-500";
+													? "bg-red-500"
+													: "bg-slate-800";
 											return (
 												<div
 													key={`${task.id}-opt-${idx}`}
-													className="flex items-center space-x-2 opacity-90"
+													className="flex items-center space-x-2 opacity-100"
 												>
-													<label className={`flex items-center gap-2 ${color}`}>
-														<input
-															type="radio"
-															disabled
-															checked={isSelected}
-															className={accent}
-														/>
-														<span>{label}</span>
-													</label>
+													<RadioGroupItem
+														value={String(idx)}
+														checked={isSelected}
+														disabled
+														className={`h-5 w-5 border-2 border-slate-500 ${fill}`}
+													/>
+													<span className={`font-semibold ${color}`}>
+														{label}
+													</span>
 												</div>
 											);
 										},
 									)}
-								</div>
+								</RadioGroup>
 							);
 						})()}
 					{cfgName === "short_text" &&
@@ -512,11 +633,11 @@ export default function LearnPage() {
 									? ((ans as { answer?: unknown })?.answer as string)
 									: "";
 							const tone =
-								verdict === "full_score"
+								effectiveVerdict === "full_score"
 									? "green"
-									: verdict === "incorrect"
+									: effectiveVerdict === "incorrect"
 										? "red"
-										: verdict === "on_review"
+										: effectiveVerdict === "on_review"
 											? "amber"
 											: "slate";
 							const border =
@@ -553,11 +674,11 @@ export default function LearnPage() {
 									? ((ans as { answer?: unknown })?.answer as string)
 									: "";
 							const tone =
-								verdict === "full_score"
+								effectiveVerdict === "full_score"
 									? "green"
-									: verdict === "incorrect"
+									: effectiveVerdict === "incorrect"
 										? "red"
-										: verdict === "on_review"
+										: effectiveVerdict === "on_review"
 											? "amber"
 											: "slate";
 							const border =
@@ -619,12 +740,12 @@ export default function LearnPage() {
 										(label, idx) => {
 											const isSelected = selectedIdxs.includes(idx);
 											const tone =
-												verdict === "full_score"
+												effectiveVerdict === "full_score"
 													? "green"
-													: verdict === "incorrect"
+													: effectiveVerdict === "incorrect"
 														? "red"
-														: verdict === "on_review" ||
-																verdict === "partial_score"
+														: effectiveVerdict === "on_review" ||
+																effectiveVerdict === "partial_score"
 															? "amber"
 															: "slate";
 											const color = isSelected
@@ -634,31 +755,30 @@ export default function LearnPage() {
 														? "text-red-400"
 														: tone === "amber"
 															? "text-amber-400"
-															: "text-slate-400"
-												: "text-slate-400";
-											const accent = isSelected
+															: "text-slate-200"
+												: "text-slate-200";
+											const fill = isSelected
 												? tone === "green"
-													? "accent-green-500"
+													? "bg-green-500"
 													: tone === "red"
-														? "accent-red-500"
+														? "bg-red-500"
 														: tone === "amber"
-															? "accent-amber-500"
-															: "accent-slate-500"
-												: "accent-slate-500";
+															? "bg-amber-500"
+															: "bg-slate-800"
+												: "bg-slate-800";
 											return (
 												<div
 													key={`${task.id}-mc-${idx}`}
-													className="flex items-center space-x-2 opacity-90"
+													className="flex items-center space-x-2 opacity-100"
 												>
-													<label className={`flex items-center gap-2 ${color}`}>
-														<input
-															type="checkbox"
-															disabled
-															checked={isSelected}
-															className={accent}
-														/>
-														<span>{label}</span>
-													</label>
+													<Checkbox
+														checked={isSelected}
+														disabled
+														className={`h-5 w-5 border-2 border-slate-500 ${fill}`}
+													/>
+													<span className={`font-semibold ${color}`}>
+														{label}
+													</span>
 												</div>
 											);
 										},
@@ -669,39 +789,54 @@ export default function LearnPage() {
 					{cfgName === "ordering" &&
 						Array.isArray((cfg as TaskConfig)?.items) && (
 							<div className="space-y-2">
-								{Array.isArray((ans as { answer?: unknown })?.answer) &&
-									((ans as { answer?: unknown })?.answer as string[]).map(
-										(idxStr: string, pos: number) => {
-											const tone =
-												verdict === "full_score"
-													? "green"
-													: verdict === "incorrect"
-														? "red"
-														: verdict === "on_review" ||
-																verdict === "partial_score"
-															? "amber"
-															: "slate";
-											const border =
-												tone === "green"
-													? "border-green-600"
-													: tone === "red"
-														? "border-red-600"
-														: tone === "amber"
-															? "border-amber-600"
-															: "border-slate-700";
-											const textColor =
-												tone === "green"
-													? "text-green-300"
-													: tone === "red"
-														? "text-red-300"
-														: tone === "amber"
-															? "text-amber-300"
-															: "text-slate-300";
-											const items = Array.isArray((cfg as TaskConfig).items)
-												? ((cfg as TaskConfig).items as string[])
-												: [];
+								{(() => {
+									const items = Array.isArray((cfg as TaskConfig).items)
+										? ((cfg as TaskConfig).items as string[])
+										: [];
+									const ansArr = Array.isArray(
+										(ans as { answer?: unknown })?.answer,
+									)
+										? ((ans as { answer?: unknown })
+												?.answer as string[] as string[])
+										: [];
+									const renderingItems = !(
+										Array.isArray(ansArr) && ansArr.length > 0
+									);
+									const seq: (string | number)[] = renderingItems
+										? items
+										: (ansArr as (string | number)[]);
+									return seq.map((val: string | number, pos: number) => {
+										const tone =
+											effectiveVerdict === "full_score"
+												? "green"
+												: effectiveVerdict === "incorrect"
+													? "red"
+													: effectiveVerdict === "on_review" ||
+															effectiveVerdict === "partial_score"
+														? "amber"
+														: "slate";
+										const border =
+											tone === "green"
+												? "border-green-600"
+												: tone === "red"
+													? "border-red-600"
+													: tone === "amber"
+														? "border-amber-600"
+														: "border-slate-700";
+										const textColor =
+											tone === "green"
+												? "text-green-300"
+												: tone === "red"
+													? "text-red-300"
+													: tone === "amber"
+														? "text-amber-300"
+														: "text-slate-300";
+										let label: string;
+										if (renderingItems) {
+											label = String(val);
+										} else {
+											const idxStr = val;
 											const maybeNum = Number(idxStr);
-											let label: string;
 											if (
 												Number.isFinite(maybeNum) &&
 												items[maybeNum] !== undefined
@@ -712,20 +847,21 @@ export default function LearnPage() {
 												idxStr.length > 0 &&
 												items.includes(idxStr)
 											) {
-												label = idxStr;
+												label = idxStr as string;
 											} else {
 												label = String(idxStr);
 											}
-											return (
-												<div
-													key={`${pos}-${String(idxStr)}`}
-													className={`rounded-lg border bg-slate-800 p-3 ${border} ${textColor}`}
-												>
-													{label}
-												</div>
-											);
-										},
-									)}
+										}
+										return (
+											<div
+												key={`${pos}-${String(val)}`}
+												className={`rounded-lg border bg-slate-800 p-3 ${border} ${textColor}`}
+											>
+												{label}
+											</div>
+										);
+									});
+								})()}
 							</div>
 						)}
 					{cfgName === "file_upload" && (
@@ -1387,7 +1523,7 @@ export default function LearnPage() {
 							</Card>
 						) : (
 							<div className="space-y-4">
-								{attempt ? (
+								{attempt && !reviewMode ? (
 									<div className="text-slate-400 text-xs">
 										{attempt.active
 											? (t("attempt_active") ?? "Attempt active")
@@ -1455,6 +1591,26 @@ export default function LearnPage() {
 														</option>
 													))}
 												</select>
+											</div>
+										) : null}
+										{(reviewAttempt ?? attempt)?.scoring_data?.show_results ? (
+											<div className="rounded-md border border-slate-800 bg-slate-900 p-3 text-slate-200 text-sm">
+												<div className="flex items-center justify-between">
+													<div>
+														{t("attempt_score") ?? "Attempt score"}:{" "}
+														{formatPoints(reviewTotals.score)} /{" "}
+														{formatPoints(reviewTotals.max)}{" "}
+														{t(getPointsPlural(reviewTotals.max)) ?? "points"}
+													</div>
+													<div className="text-slate-400 text-xs">
+														{reviewTotals.max > 0
+															? Math.round(
+																	(reviewTotals.score / reviewTotals.max) * 100,
+																)
+															: 0}
+														%
+													</div>
+												</div>
 											</div>
 										) : null}
 										{tasks.length === 0 ? (

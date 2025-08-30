@@ -8,11 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UiAnswerPayload } from "@/lib/answers";
+import { getPointsPlural } from "@/lib/utils";
 import {
 	AlertCircle,
 	CheckCircle,
 	CheckSquare,
 	CircleDot,
+	ExternalLink,
 	FileText,
 	Flag,
 	GripVertical,
@@ -31,6 +33,7 @@ type TaskConfig = {
 	items?: string[];
 	max_chars_count?: number;
 	max_size?: number;
+	task_id?: number;
 };
 
 function hasId(obj: unknown): obj is { id: number } {
@@ -384,7 +387,8 @@ export function TaskPlayer({
 					<CardContent className="space-y-3">
 						{dto?.description ? <Markdown content={dto.description} /> : null}
 						<div className="text-slate-400 text-xs">
-							{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
+							{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
+							{t(getTaskTypeKey() ?? "task")}
 						</div>
 						<div className="my-4 border-slate-800 border-t" />
 						{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
@@ -502,7 +506,8 @@ export function TaskPlayer({
 				<CardContent className="space-y-3">
 					{dto?.description ? <Markdown content={dto.description} /> : null}
 					<div className="text-slate-400 text-xs">
-						{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
+						{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
+						{t(getTaskTypeKey() ?? "task")}
 					</div>
 					<div className="my-4 border-slate-800 border-t" />
 					{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
@@ -707,7 +712,20 @@ export function TaskPlayer({
 							})}
 						</div>
 					)}
-					<div className="flex justify-end">
+					<div
+						className={`flex items-center gap-3 ${getTaskTypeKey() === "ctfd" ? "justify-between" : "justify-end"}`}
+					>
+						{getTaskTypeKey() === "ctfd" && typeof cfg?.task_id === "number" ? (
+							<a
+								href={`https://ctfd.infosec.moscow/challenges#task-${cfg.task_id}`}
+								target="_blank"
+								rel="noreferrer"
+								className="flex h-10 items-center rounded-md bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
+							>
+								<span>{t("open_in_ctfd") || "Open in CTFd"}</span>
+								<ExternalLink className="ml-1 h-4 w-4" />
+							</a>
+						) : null}
 						{getTaskTypeKey() === "ctfd" ? (
 							<Button
 								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
