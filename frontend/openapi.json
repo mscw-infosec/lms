@@ -1700,7 +1700,8 @@
 					"user_id",
 					"started_at",
 					"active",
-					"answer_data"
+					"answer_data",
+					"max_score"
 				],
 				"properties": {
 					"active": {
@@ -1716,6 +1717,14 @@
 					"id": {
 						"type": "string",
 						"format": "uuid"
+					},
+					"max_score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"score": {
+						"type": ["number", "null"],
+						"format": "double"
 					},
 					"scoring_data": {
 						"oneOf": [
@@ -1749,7 +1758,7 @@
 					},
 					"attempts_left": {
 						"type": "integer",
-						"minimum": 0
+						"format": "int64"
 					},
 					"ran_out_of_attempts": {
 						"type": "boolean"
@@ -2290,10 +2299,14 @@
 				"oneOf": [
 					{
 						"type": "object",
-						"required": ["score", "verdict"],
+						"required": ["score", "max_score", "verdict"],
 						"properties": {
 							"comment": {
 								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
 							},
 							"score": {
 								"type": "number",
@@ -2307,10 +2320,14 @@
 					},
 					{
 						"type": "object",
-						"required": ["score", "verdict"],
+						"required": ["score", "max_score", "verdict"],
 						"properties": {
 							"comment": {
 								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
 							},
 							"score": {
 								"type": "number",
@@ -2324,10 +2341,18 @@
 					},
 					{
 						"type": "object",
-						"required": ["verdict"],
+						"required": ["score", "max_score", "verdict"],
 						"properties": {
 							"comment": {
 								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
+							},
+							"score": {
+								"type": "number",
+								"format": "double"
 							},
 							"verdict": {
 								"type": "string",

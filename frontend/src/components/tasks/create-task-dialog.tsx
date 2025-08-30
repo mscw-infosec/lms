@@ -214,9 +214,12 @@ export default function CreateTaskDialog({
 					break;
 				}
 			}
+			const payloadTitle = taskType === "ctfd" ? "ctfd" : title;
+			const payloadDescription =
+				taskType === "ctfd" ? "ctfd" : description ? description : null;
 			const payload: UpsertTaskRequestDTO = {
-				title,
-				description: description ? description : null,
+				title: payloadTitle,
+				description: payloadDescription as string | null,
 				points,
 				task_type: taskType,
 				configuration: config,
@@ -224,8 +227,8 @@ export default function CreateTaskDialog({
 			const res = await createTask(payload);
 			onCreated?.({
 				id: res.id,
-				title,
-				description: description ? description : null,
+				title: payloadTitle,
+				description: payloadDescription as string | null,
 				points,
 				task_type: taskType,
 				configuration: config,
@@ -274,6 +277,7 @@ export default function CreateTaskDialog({
 							onChange={(e) => setTitle(e.target.value)}
 							placeholder={t("title_placeholder") ?? "Title..."}
 							className="mt-1 border-slate-700 bg-slate-800 text-white"
+							disabled={taskType === "ctfd"}
 						/>
 					</div>
 
@@ -284,6 +288,7 @@ export default function CreateTaskDialog({
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder={t("description") ?? "Description"}
 							className="mt-1 border-slate-700 bg-slate-800 text-white"
+							disabled={taskType === "ctfd"}
 						/>
 					</div>
 
@@ -598,7 +603,9 @@ export default function CreateTaskDialog({
 						onClick={handleCreate}
 						disabled={
 							submitting ||
-							!title ||
+							(taskType !== "ctfd" && !title) ||
+							(taskType === "ctfd" &&
+								(!Number.isFinite(ctfdTaskId) || ctfdTaskId <= 0)) ||
 							(taskType === "SingleChoice" &&
 								(scCorrectInput.trim() === "" ||
 									!Number.isFinite(parsedScCorrect) ||

@@ -243,8 +243,22 @@ export default function TasksPage() {
 							</h1>
 							<div className="flex items-center gap-2">
 								<CreateTaskDialog
-									onCreated={(created: TaskDTO) => {
-										setTasks((prev) => [created, ...prev]);
+									onCreated={async (created: TaskDTO) => {
+										if (created.task_type === "ctfd") {
+											try {
+												setLoading(true);
+												const data = await listTasks(PAGE_SIZE, 0);
+												setTasks(data as TaskDTO[]);
+												setOffset(data.length);
+												setHasMore(data.length === PAGE_SIZE);
+											} catch (e) {
+												console.error(e);
+											} finally {
+												setLoading(false);
+											}
+										} else {
+											setTasks((prev) => [created, ...prev]);
+										}
 									}}
 								>
 									<Button

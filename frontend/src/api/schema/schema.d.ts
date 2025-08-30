@@ -647,6 +647,10 @@ export interface components {
             exam_id: string;
             /** Format: uuid */
             id: string;
+            /** Format: int64 */
+            max_score: number;
+            /** Format: double */
+            score?: number | null;
             scoring_data?: null | components["schemas"]["ScoringData"];
             /** Format: date-time */
             started_at: string;
@@ -655,6 +659,7 @@ export interface components {
         };
         ExamAttemptsListDTO: {
             attempts: components["schemas"]["ExamAttemptSchema"][];
+            /** Format: int64 */
             attempts_left: number;
             ran_out_of_attempts: boolean;
         };
@@ -814,17 +819,25 @@ export interface components {
         TaskVerdict: {
             comment?: string | null;
             /** Format: double */
+            max_score: number;
+            /** Format: double */
             score: number;
             /** @enum {string} */
             verdict: "full_score";
         } | {
             comment?: string | null;
             /** Format: double */
+            max_score: number;
+            /** Format: double */
             score: number;
             /** @enum {string} */
             verdict: "partial_score";
         } | {
             comment?: string | null;
+            /** Format: double */
+            max_score: number;
+            /** Format: double */
+            score: number;
             /** @enum {string} */
             verdict: "incorrect";
         } | {
