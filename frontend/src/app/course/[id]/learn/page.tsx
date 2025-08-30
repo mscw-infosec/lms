@@ -26,17 +26,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import { buildTaskAnswer } from "@/lib/answers";
 import type { UiAnswerPayload } from "@/lib/answers";
+import { getPointsPlural } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowLeft,
 	BookOpen,
@@ -499,7 +502,7 @@ export default function LearnPage() {
 				<div className="absolute top-3 right-3 flex items-center gap-2">
 					<div
 						className={`rounded-full px-2.5 py-1 font-bold text-white text-xs ${badgeBg}`}
-						title={t("points") ?? "points"}
+						title={t(getPointsPlural(task.points)) || "points"}
 					>
 						{(() => {
 							const info = resultsByTaskId[task.id];
@@ -525,7 +528,9 @@ export default function LearnPage() {
 				</CardHeader>
 				<CardContent className="space-y-3">
 					{task.description ? <Markdown content={task.description} /> : null}
-					<div className="text-slate-400 text-xs">{cfgName ?? "task"}</div>
+					<div className="text-slate-400 text-xs">
+						{t(cfgName as string) || "Task"}
+					</div>
 
 					{cfgName === "single_choice" &&
 						Array.isArray((cfg as TaskConfig)?.options) &&
@@ -573,8 +578,16 @@ export default function LearnPage() {
 									: verdict === "full_score" && typeof selectedIdx === "number"
 										? selectedIdx
 										: undefined;
+
 							return (
-								<div className="space-y-2">
+								<RadioGroup
+									value={
+										typeof selectedIdx === "number"
+											? String(selectedIdx)
+											: undefined
+									}
+									disabled
+								>
 									{((cfg as TaskConfig).options as string[]).map(
 										(label, idx) => {
 											const isSelected =
@@ -586,31 +599,31 @@ export default function LearnPage() {
 												? "text-green-400"
 												: isSelected
 													? "text-red-400"
-													: "text-slate-400";
-											const accent = isCorrect
-												? "accent-green-500"
+													: "text-slate-200";
+											const fill = isCorrect
+												? "bg-green-500"
 												: isSelected
-													? "accent-red-500"
-													: "accent-slate-500";
+													? "bg-red-500"
+													: "bg-slate-800";
 											return (
 												<div
 													key={`${task.id}-opt-${idx}`}
-													className="flex items-center space-x-2 opacity-90"
+													className="flex items-center space-x-2 opacity-100"
 												>
-													<label className={`flex items-center gap-2 ${color}`}>
-														<input
-															type="radio"
-															disabled
-															checked={isSelected}
-															className={accent}
-														/>
-														<span>{label}</span>
-													</label>
+													<RadioGroupItem
+														value={String(idx)}
+														checked={isSelected}
+														disabled
+														className={`h-5 w-5 border-2 border-slate-500 ${fill}`}
+													/>
+													<span className={`font-semibold ${color}`}>
+														{label}
+													</span>
 												</div>
 											);
 										},
 									)}
-								</div>
+								</RadioGroup>
 							);
 						})()}
 					{cfgName === "short_text" &&
@@ -742,31 +755,30 @@ export default function LearnPage() {
 														? "text-red-400"
 														: tone === "amber"
 															? "text-amber-400"
-															: "text-slate-400"
-												: "text-slate-400";
-											const accent = isSelected
+															: "text-slate-200"
+												: "text-slate-200";
+											const fill = isSelected
 												? tone === "green"
-													? "accent-green-500"
+													? "bg-green-500"
 													: tone === "red"
-														? "accent-red-500"
+														? "bg-red-500"
 														: tone === "amber"
-															? "accent-amber-500"
-															: "accent-slate-500"
-												: "accent-slate-500";
+															? "bg-amber-500"
+															: "bg-slate-800"
+												: "bg-slate-800";
 											return (
 												<div
 													key={`${task.id}-mc-${idx}`}
-													className="flex items-center space-x-2 opacity-90"
+													className="flex items-center space-x-2 opacity-100"
 												>
-													<label className={`flex items-center gap-2 ${color}`}>
-														<input
-															type="checkbox"
-															disabled
-															checked={isSelected}
-															className={accent}
-														/>
-														<span>{label}</span>
-													</label>
+													<Checkbox
+														checked={isSelected}
+														disabled
+														className={`h-5 w-5 border-2 border-slate-500 ${fill}`}
+													/>
+													<span className={`font-semibold ${color}`}>
+														{label}
+													</span>
 												</div>
 											);
 										},
@@ -1588,7 +1600,7 @@ export default function LearnPage() {
 														{t("attempt_score") ?? "Attempt score"}:{" "}
 														{formatPoints(reviewTotals.score)} /{" "}
 														{formatPoints(reviewTotals.max)}{" "}
-														{t("points") ?? "points"}
+														{t(getPointsPlural(reviewTotals.max)) ?? "points"}
 													</div>
 													<div className="text-slate-400 text-xs">
 														{reviewTotals.max > 0

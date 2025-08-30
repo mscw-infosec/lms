@@ -5,7 +5,6 @@ import type { TaskDTO, TaskType } from "@/api/tasks";
 import { deleteTask as deleteTaskApi, listTasks } from "@/api/tasks";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
-import Markdown from "@/components/markdown";
 import CreateTaskDialog from "@/components/tasks/create-task-dialog";
 import EditTaskDialog from "@/components/tasks/edit-task-dialog";
 import { Button } from "@/components/ui/button";
@@ -418,7 +417,7 @@ export default function TasksPage() {
 														{task.title}
 													</div>
 													<div className="text-slate-400 text-xs">
-														{t("points")}: {task.points} · {t("type")}:{" "}
+														{t("points_other")}: {task.points} · {t("type")}:{" "}
 														{task.task_type}
 													</div>
 												</div>

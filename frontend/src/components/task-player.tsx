@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UiAnswerPayload } from "@/lib/answers";
+import { getPointsPlural } from "@/lib/utils";
 import {
 	AlertCircle,
 	CheckCircle,
@@ -386,7 +387,8 @@ export function TaskPlayer({
 					<CardContent className="space-y-3">
 						{dto?.description ? <Markdown content={dto.description} /> : null}
 						<div className="text-slate-400 text-xs">
-							{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
+							{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
+							{t(getTaskTypeKey() ?? "task")}
 						</div>
 						<div className="my-4 border-slate-800 border-t" />
 						{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
@@ -504,7 +506,8 @@ export function TaskPlayer({
 				<CardContent className="space-y-3">
 					{dto?.description ? <Markdown content={dto.description} /> : null}
 					<div className="text-slate-400 text-xs">
-						{dto?.points ?? 0} {t("points")} · {t(getTaskTypeKey() ?? "task")}
+						{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
+						{t(getTaskTypeKey() ?? "task")}
 					</div>
 					<div className="my-4 border-slate-800 border-t" />
 					{cfgName === "single_choice" && Array.isArray(cfg?.options) && (
