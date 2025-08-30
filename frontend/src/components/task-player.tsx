@@ -21,6 +21,7 @@ import {
 	Loader2,
 	Type as TypeIcon,
 	Upload,
+	ExternalLink,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +32,7 @@ type TaskConfig = {
 	items?: string[];
 	max_chars_count?: number;
 	max_size?: number;
+	task_id?: number;
 };
 
 function hasId(obj: unknown): obj is { id: number } {
@@ -707,7 +709,18 @@ export function TaskPlayer({
 							})}
 						</div>
 					)}
-					<div className="flex justify-end">
+					<div className={`flex items-center gap-3 ${getTaskTypeKey() === "ctfd" ? "justify-between" : "justify-end"}`}>
+						{getTaskTypeKey() === "ctfd" && typeof cfg?.task_id === "number" ? (
+ 						<a
+								href={`https://ctfd.infosec.moscow/challenges#task-${cfg.task_id}`}
+								target="_blank"
+								rel="noopener"
+ 							className="flex h-10 items-center rounded-md bg-red-600 px-2 sm:px-3 text-white hover:bg-red-700"
+							>
+								<span>{t("open_in_ctfd") || "Open in CTFd"}</span>
+								<ExternalLink className="ml-1 h-4 w-4" />
+							</a>
+						) : null}
 						{getTaskTypeKey() === "ctfd" ? (
 							<Button
 								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"
