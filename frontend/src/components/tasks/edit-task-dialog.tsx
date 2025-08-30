@@ -301,16 +301,17 @@ export default function EditTaskDialog({
 				}
 			}
 
+			const payloadDescription = taskType === "ctfd" ? "" : description;
 			const payload: UpsertTaskRequestDTO = {
 				title: task.title,
-				description: description,
+				description: payloadDescription,
 				points: task.points,
 				task_type: task.task_type,
 				configuration: config,
 			};
 
 			await updateTask(task.id, payload);
-			onUpdated?.({ ...task, description, configuration: config } as TaskDTO);
+			onUpdated?.({ ...task, description: payloadDescription, configuration: config } as TaskDTO);
 			setOpen(false);
 		} finally {
 			setSubmitting(false);
@@ -340,6 +341,7 @@ export default function EditTaskDialog({
 							onChange={(e) => setDescription(e.target.value)}
 							className="mt-1 border-slate-700 bg-slate-800 text-white"
 							rows={3}
+							disabled={taskType === "ctfd"}
 						/>
 					</div>
 					{taskType === "SingleChoice" && (
