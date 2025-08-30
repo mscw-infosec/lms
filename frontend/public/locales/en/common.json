@@ -12,6 +12,7 @@
 	"are_you_sure": "Are you sure?",
 	"attempt_active": "Attempt active",
 	"attempt_finished": "Attempt finished",
+	"attempt_score": "Attempt score",
 	"attempts_up_to": "up to {{count}}x attempts",
 	"attempts_up_to_infty": "up to infinite attempts",
 	"auth_failed": "Authentication failed",

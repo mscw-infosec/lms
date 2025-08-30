@@ -12,6 +12,7 @@
 	"are_you_sure": "Вы уверены?",
 	"attempt_active": "Попытка активна",
 	"attempt_finished": "Попытка завершена",
+	"attempt_score": "Сумма баллов",
 	"attempts_up_to": "до {{count}}x попыток",
 	"attempts_up_to_infty": "до ∞ попыток",
 	"auth_failed": "Ошибка аутентификации",
