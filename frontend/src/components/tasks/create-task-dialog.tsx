@@ -604,7 +604,8 @@ export default function CreateTaskDialog({
 						disabled={
 							submitting ||
 							(taskType !== "ctfd" && !title) ||
-							(taskType === "ctfd" && (!Number.isFinite(ctfdTaskId) || ctfdTaskId <= 0)) ||
+							(taskType === "ctfd" &&
+								(!Number.isFinite(ctfdTaskId) || ctfdTaskId <= 0)) ||
 							(taskType === "SingleChoice" &&
 								(scCorrectInput.trim() === "" ||
 									!Number.isFinite(parsedScCorrect) ||

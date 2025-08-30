@@ -1,2835 +1,2500 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "utoipa-axum",
-    "description": "Utoipa's axum bindings for seamless integration for the two",
-    "contact": {
-      "name": "Juha Kukkonen",
-      "email": "juha7kukkonen@gmail.com"
-    },
-    "license": {
-      "name": "MIT OR Apache-2.0",
-      "identifier": "MIT OR Apache-2.0"
-    },
-    "version": "0.2.0"
-  },
-  "paths": {
-    "/account": {
-      "get": {
-        "tags": [
-          "Account"
-        ],
-        "summary": "Return user object",
-        "operationId": "get_user",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetUserResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/account/avatar": {
-      "put": {
-        "tags": [
-          "Account"
-        ],
-        "operationId": "upload_avatar",
-        "responses": {
-          "200": {
-            "description": "Return presigned url to upload avatar",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AvatarUploadResponse"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/auth/logout-all": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Invalidate all refresh tokens",
-        "operationId": "logout_all",
-        "responses": {
-          "200": {
-            "description": "All sessions logged out successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/auth/logout-session/{jti}": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Revoke refresh token with jti passed to path parameters",
-        "operationId": "logout_session",
-        "parameters": [
-          {
-            "name": "jti",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Session logged out successfully"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/auth/refresh": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Return new access and refresh tokens",
-        "operationId": "refresh",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RefreshResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token"
-          }
-        },
-        "security": [
-          {
-            "CookieAuth": []
-          }
-        ]
-      }
-    },
-    "/auth/sessions": {
-      "get": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Return information for all active sessions (refresh tokens)",
-        "operationId": "get_sessions",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SessionInfo"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          },
-          {
-            "CookieAuth": []
-          }
-        ]
-      }
-    },
-    "/basic/login": {
-      "post": {
-        "tags": [
-          "Basic"
-        ],
-        "summary": "Login user with email and password",
-        "operationId": "login",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BasicLoginRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Returns access and refresh tokens",
-            "headers": {
-              "Set-Cookie": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Contains the `refresh_token`"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BasicLoginResponse"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Wrong email or password"
-          }
-        }
-      }
-    },
-    "/basic/register": {
-      "post": {
-        "tags": [
-          "Basic"
-        ],
-        "summary": "Register a new user using email, username and password",
-        "operationId": "register",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BasicRegisterRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Create new user",
-            "headers": {
-              "Set-Cookie": {
-                "schema": {
-                  "type": "string"
-                },
-                "description": "Contains the `refresh_token`"
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BasicRegisterResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "User with the same email or name already exists"
-          }
-        }
-      }
-    },
-    "/courses": {
-      "get": {
-        "tags": [
-          "Course"
-        ],
-        "summary": "Get all courses",
-        "operationId": "get_all_courses",
-        "responses": {
-          "200": {
-            "description": "Get all courses",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/UpsertCourseResponseDTO"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/courses/new": {
-      "post": {
-        "tags": [
-          "Course"
-        ],
-        "summary": "Create a new course",
-        "operationId": "create_course",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertCourseRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Create new course",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpsertCourseResponseDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "User cannot create courses"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/courses/{course_id}": {
-      "get": {
-        "tags": [
-          "Course"
-        ],
-        "summary": "Get course by id",
-        "operationId": "get_course_by_id",
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get course by id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpsertCourseResponseDTO"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Course not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Course"
-        ],
-        "summary": "Edit an existing course",
-        "operationId": "edit_course",
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertCourseRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Edit course",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpsertCourseResponseDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "User cannot edit courses"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Course"
-        ],
-        "summary": "Delete an existing course",
-        "operationId": "delete_course",
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Delete course"
-          },
-          "400": {
-            "description": "Invalid request body"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "User cannot delete courses"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/courses/{course_id}/topics": {
-      "get": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Retrieves all topics associated with a specific course.",
-        "operationId": "get_all_topics_in_course",
-        "parameters": [
-          {
-            "name": "course_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of topics in the course",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TopicResponseDTO"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Course not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/new": {
-      "post": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Create new exam",
-        "operationId": "create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertExamRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Returns created exam's id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateExamResponseDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to create exams"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}": {
-      "get": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Get exam by id",
-        "operationId": "get_by_id",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Found exam",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Exam"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Update exam by id",
-        "operationId": "update_exam",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertExamRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully updated exam"
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to update exam"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Delete exam by id",
-        "operationId": "delete_exam",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successfully deleted exam"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to delete exam"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/attempt/last": {
-      "get": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Get last attempt",
-        "operationId": "get_last_attempt",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully got last attempt",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExamAttemptSchema"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Exam or attempt not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/attempt/list": {
-      "get": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Get user attempts for exam",
-        "operationId": "get_user_exam_attempts",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully got attempts list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExamAttemptsListDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/attempt/patch": {
-      "patch": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Change answer for an active attempt",
-        "operationId": "patch_attempt",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TaskAnswerDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully patched"
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Exam or attempt not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/attempt/start": {
-      "post": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Start new attempt",
-        "operationId": "start_new_attempt",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully started new attempt",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExamAttemptSchema"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to update exam"
-          },
-          "404": {
-            "description": "Exam not found"
-          },
-          "409": {
-            "description": "User can't start new attempt due to limits or another active attempt"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/attempt/stop": {
-      "post": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Stop active attempt",
-        "operationId": "stop_attempt",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully stopped an attempt"
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Exam or attempt not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/exam/{exam_id}/tasks": {
-      "get": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Get exam tasks (only with active attempt or if exam scores are available or if admin)",
-        "operationId": "get_tasks",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully got exam's tasks",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PublicTaskDTO"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "You have no permission to view tasks"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Exam"
-        ],
-        "summary": "Update exam's tasks by id",
-        "operationId": "update_exam_tasks",
-        "parameters": [
-          {
-            "name": "exam_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully updated exam's tasks"
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to update exam"
-          },
-          "404": {
-            "description": "Exam not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/oauth/github/callback": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Callback for github oauth provider",
-        "operationId": "callback",
-        "responses": {}
-      }
-    },
-    "/oauth/github/login": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Redirect user to github oauth login page",
-        "operationId": "login",
-        "responses": {}
-      }
-    },
-    "/oauth/yandex/callback": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Callback for yandex oauth provider",
-        "operationId": "callback",
-        "responses": {}
-      }
-    },
-    "/oauth/yandex/login": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Redirect user to yandex oauth login page",
-        "operationId": "login",
-        "responses": {}
-      }
-    },
-    "/task/list": {
-      "get": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "List tasks",
-        "description": "List all tasks. Limit <= 20.",
-        "operationId": "list_tasks",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "offset",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successfully got tasks list"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to view tasks list"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/task/new": {
-      "post": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "Create new task",
-        "operationId": "create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertTaskRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Returns created task's id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateTaskResponseDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to create tasks"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/task/{task_id}": {
-      "get": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "Get task by id",
-        "operationId": "get_by_id",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Found task",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicTaskDTO"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "Update task by id",
-        "operationId": "update_task",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertTaskRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully updated task"
-          },
-          "400": {
-            "description": "Wrong data format"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to update task"
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "Delete task by id",
-        "operationId": "delete_task",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successfully deleted task"
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to delete task"
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/task/{task_id}/admin": {
-      "get": {
-        "tags": [
-          "Task"
-        ],
-        "summary": "Get task by id (admin view)",
-        "operationId": "get_by_id_admin",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Found task",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Task"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "404": {
-            "description": "Task not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/topics/new": {
-      "post": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Adds a new topic to a course.",
-        "operationId": "add_topic_to_course",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertTopicRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Topic added successfully"
-          },
-          "400": {
-            "description": "Invalid request data"
-          },
-          "403": {
-            "description": "Forbidden: User cannot add topics"
-          },
-          "404": {
-            "description": "Course not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/topics/{id}": {
-      "get": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Retrieves a specific topic by its ID.",
-        "operationId": "get_topic_by_id",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Topic found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TopicResponseDTO"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Topic not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Updates a topic by its ID.",
-        "operationId": "update_topic",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpsertTopicRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Topic updated successfully"
-          },
-          "400": {
-            "description": "Invalid request data"
-          },
-          "403": {
-            "description": "Forbidden: User cannot update topics"
-          },
-          "404": {
-            "description": "Topic not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Deletes a topic by its ID.",
-        "operationId": "delete_topic",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Topic deleted successfully"
-          },
-          "404": {
-            "description": "Topic not found"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/topics/{topic_id}/exams": {
-      "get": {
-        "tags": [
-          "Topic"
-        ],
-        "summary": "Get topic exams",
-        "operationId": "get_exams",
-        "parameters": [
-          {
-            "name": "topic_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Exams listed"
-          },
-          "400": {
-            "description": "Invalid request data"
-          },
-          "401": {
-            "description": "No auth data"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/video/new": {
-      "post": {
-        "tags": [
-          "Video"
-        ],
-        "summary": "Creates new video entity and return TUS url for uploading",
-        "operationId": "create",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateVideoRequestDTO"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateVideoResponseDTO"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No auth data found"
-          },
-          "403": {
-            "description": "User has no permission to upload videos"
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    },
-    "/video/{video_id}": {
-      "get": {
-        "tags": [
-          "Video"
-        ],
-        "summary": "Return video player url by video id",
-        "operationId": "get_video_url",
-        "parameters": [
-          {
-            "name": "video_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetVideoUrlResponseDTO"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ]
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "AvatarUploadResponse": {
-        "type": "object",
-        "required": [
-          "url",
-          "fields"
-        ],
-        "properties": {
-          "fields": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            },
-            "propertyNames": {
-              "type": "string"
-            }
-          },
-          "url": {
-            "type": "string"
-          }
-        }
-      },
-      "BasicLoginRequest": {
-        "type": "object",
-        "required": [
-          "username",
-          "password"
-        ],
-        "properties": {
-          "password": {
-            "type": "string",
-            "example": "Password123"
-          },
-          "username": {
-            "type": "string",
-            "example": "John Doe"
-          }
-        }
-      },
-      "BasicLoginResponse": {
-        "type": "object",
-        "required": [
-          "access_token"
-        ],
-        "properties": {
-          "access_token": {
-            "type": "string"
-          }
-        }
-      },
-      "BasicRegisterRequest": {
-        "type": "object",
-        "required": [
-          "username",
-          "email",
-          "password"
-        ],
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "john@example.com"
-          },
-          "password": {
-            "type": "string",
-            "example": "Password123"
-          },
-          "username": {
-            "type": "string",
-            "example": "John Doe"
-          }
-        }
-      },
-      "BasicRegisterResponse": {
-        "type": "object",
-        "required": [
-          "access_token"
-        ],
-        "properties": {
-          "access_token": {
-            "type": "string"
-          }
-        }
-      },
-      "CreateExamResponseDTO": {
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "CreateTaskResponseDTO": {
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "CreateVideoRequestDTO": {
-        "type": "object",
-        "required": [
-          "size",
-          "name"
-        ],
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "CreateVideoResponseDTO": {
-        "type": "object",
-        "required": [
-          "url"
-        ],
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        }
-      },
-      "Exam": {
-        "type": "object",
-        "required": [
-          "id",
-          "topic_id",
-          "tries_count",
-          "duration",
-          "name",
-          "type"
-        ],
-        "properties": {
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "duration": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "topic_id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tries_count": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "type": {
-            "$ref": "#/components/schemas/ExamType"
-          }
-        }
-      },
-      "ExamAnswer": {
-        "type": "object",
-        "required": [
-          "answers"
-        ],
-        "properties": {
-          "answers": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/TaskAnswer"
-            },
-            "propertyNames": {
-              "type": "integer",
-              "minimum": 0
-            }
-          }
-        }
-      },
-      "ExamAttemptSchema": {
-        "type": "object",
-        "required": [
-          "id",
-          "exam_id",
-          "user_id",
-          "started_at",
-          "active",
-          "answer_data",
-          "max_score"
-        ],
-        "properties": {
-          "active": {
-            "type": "boolean"
-          },
-          "answer_data": {
-            "$ref": "#/components/schemas/ExamAnswer"
-          },
-          "exam_id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "max_score": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "score": {
-            "type": [
-              "number",
-              "null"
-            ],
-            "format": "double"
-          },
-          "scoring_data": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ScoringData"
-              }
-            ]
-          },
-          "started_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "user_id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "ExamAttemptsListDTO": {
-        "type": "object",
-        "required": [
-          "ran_out_of_attempts",
-          "attempts_left",
-          "attempts"
-        ],
-        "properties": {
-          "attempts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ExamAttemptSchema"
-            }
-          },
-          "attempts_left": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "ran_out_of_attempts": {
-            "type": "boolean"
-          }
-        }
-      },
-      "ExamType": {
-        "type": "string",
-        "enum": [
-          "Instant",
-          "Delayed"
-        ]
-      },
-      "GetUserResponseDTO": {
-        "type": "object",
-        "required": [
-          "id",
-          "username",
-          "email",
-          "role"
-        ],
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "role": {
-            "$ref": "#/components/schemas/UserRole"
-          },
-          "username": {
-            "type": "string"
-          }
-        }
-      },
-      "GetVideoUrlResponseDTO": {
-        "type": "object",
-        "required": [
-          "url"
-        ],
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        }
-      },
-      "PublicTaskConfig": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "options",
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "enum": [
-                  "single_choice"
-                ]
-              },
-              "options": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "options",
-              "partial_score",
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "enum": [
-                  "multiple_choice"
-                ]
-              },
-              "options": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "partial_score": {
-                "type": "boolean"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "max_chars_count",
-              "name"
-            ],
-            "properties": {
-              "max_chars_count": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "short_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "max_chars_count",
-              "name"
-            ],
-            "properties": {
-              "max_chars_count": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "long_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "items",
-              "name"
-            ],
-            "properties": {
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ordering"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "max_size",
-              "name"
-            ],
-            "properties": {
-              "max_size": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "file_upload"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "task_id",
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ctfd"
-                ]
-              },
-              "task_id": {
-                "type": "integer",
-                "minimum": 0
-              }
-            }
-          }
-        ]
-      },
-      "PublicTaskDTO": {
-        "type": "object",
-        "required": [
-          "id",
-          "title",
-          "task_type",
-          "points",
-          "configuration"
-        ],
-        "properties": {
-          "configuration": {
-            "$ref": "#/components/schemas/PublicTaskConfig"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "points": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "task_type": {
-            "$ref": "#/components/schemas/TaskType"
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "RefreshResponse": {
-        "type": "object",
-        "required": [
-          "access_token"
-        ],
-        "properties": {
-          "access_token": {
-            "type": "string"
-          }
-        }
-      },
-      "ScoringData": {
-        "type": "object",
-        "required": [
-          "show_results",
-          "results"
-        ],
-        "properties": {
-          "results": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/components/schemas/TaskVerdict"
-            },
-            "propertyNames": {
-              "type": "integer",
-              "minimum": 0
-            }
-          },
-          "show_results": {
-            "type": "boolean"
-          }
-        }
-      },
-      "SessionInfo": {
-        "type": "object",
-        "required": [
-          "jti",
-          "is_current",
-          "device_id",
-          "last_used",
-          "issued_at"
-        ],
-        "properties": {
-          "device_id": {
-            "type": "string"
-          },
-          "is_current": {
-            "type": "boolean"
-          },
-          "issued_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "jti": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "last_used": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "Task": {
-        "type": "object",
-        "required": [
-          "id",
-          "title",
-          "task_type",
-          "points",
-          "configuration"
-        ],
-        "properties": {
-          "configuration": {
-            "$ref": "#/components/schemas/TaskConfig"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "points": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "task_type": {
-            "$ref": "#/components/schemas/TaskType"
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "TaskAnswer": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "answer",
-              "name"
-            ],
-            "properties": {
-              "answer": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "single_choice"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "answers",
-              "name"
-            ],
-            "properties": {
-              "answers": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "multiple_choice"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "answer",
-              "name"
-            ],
-            "properties": {
-              "answer": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "short_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "answer",
-              "name"
-            ],
-            "properties": {
-              "answer": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "long_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "answer",
-              "name"
-            ],
-            "properties": {
-              "answer": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ordering"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "file_id",
-              "name"
-            ],
-            "properties": {
-              "file_id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "file_upload"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ctfd"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "TaskAnswerDTO": {
-        "type": "object",
-        "required": [
-          "task_id",
-          "answer"
-        ],
-        "properties": {
-          "answer": {
-            "$ref": "#/components/schemas/TaskAnswer"
-          },
-          "task_id": {
-            "type": "integer",
-            "minimum": 0
-          }
-        }
-      },
-      "TaskConfig": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "options",
-              "correct",
-              "shuffle",
-              "name"
-            ],
-            "properties": {
-              "correct": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "single_choice"
-                ]
-              },
-              "options": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "shuffle": {
-                "type": "boolean"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "options",
-              "correct",
-              "shuffle",
-              "partial_score",
-              "name"
-            ],
-            "properties": {
-              "correct": {
-                "type": "array",
-                "items": {
-                  "type": "integer",
-                  "minimum": 0
-                }
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "multiple_choice"
-                ]
-              },
-              "options": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "partial_score": {
-                "type": "boolean"
-              },
-              "shuffle": {
-                "type": "boolean"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "auto_grade",
-              "max_chars_count",
-              "answers",
-              "name"
-            ],
-            "properties": {
-              "answers": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "auto_grade": {
-                "type": "boolean"
-              },
-              "max_chars_count": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "short_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "max_chars_count",
-              "name"
-            ],
-            "properties": {
-              "max_chars_count": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "long_text"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "items",
-              "answers",
-              "name"
-            ],
-            "properties": {
-              "answers": {
-                "type": "array",
-                "items": {
-                  "type": "array",
-                  "items": {
-                    "type": "integer",
-                    "minimum": 0
-                  }
-                }
-              },
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ordering"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "max_size",
-              "name"
-            ],
-            "properties": {
-              "max_size": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "name": {
-                "type": "string",
-                "enum": [
-                  "file_upload"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "task_id",
-              "name"
-            ],
-            "properties": {
-              "name": {
-                "type": "string",
-                "enum": [
-                  "ctfd"
-                ]
-              },
-              "task_id": {
-                "type": "integer",
-                "minimum": 0
-              }
-            }
-          }
-        ]
-      },
-      "TaskType": {
-        "type": "string",
-        "enum": [
-          "SingleChoice",
-          "MultipleChoice",
-          "ShortText",
-          "LongText",
-          "Ordering",
-          "FileUpload",
-          "ctfd"
-        ]
-      },
-      "TaskVerdict": {
-        "oneOf": [
-          {
-            "type": "object",
-            "required": [
-              "score",
-              "max_score",
-              "verdict"
-            ],
-            "properties": {
-              "comment": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "max_score": {
-                "type": "number",
-                "format": "double"
-              },
-              "score": {
-                "type": "number",
-                "format": "double"
-              },
-              "verdict": {
-                "type": "string",
-                "enum": [
-                  "full_score"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "score",
-              "max_score",
-              "verdict"
-            ],
-            "properties": {
-              "comment": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "max_score": {
-                "type": "number",
-                "format": "double"
-              },
-              "score": {
-                "type": "number",
-                "format": "double"
-              },
-              "verdict": {
-                "type": "string",
-                "enum": [
-                  "partial_score"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "score",
-              "max_score",
-              "verdict"
-            ],
-            "properties": {
-              "comment": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "max_score": {
-                "type": "number",
-                "format": "double"
-              },
-              "score": {
-                "type": "number",
-                "format": "double"
-              },
-              "verdict": {
-                "type": "string",
-                "enum": [
-                  "incorrect"
-                ]
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "verdict"
-            ],
-            "properties": {
-              "verdict": {
-                "type": "string",
-                "enum": [
-                  "on_review"
-                ]
-              }
-            }
-          }
-        ]
-      },
-      "TopicResponseDTO": {
-        "type": "object",
-        "required": [
-          "id",
-          "title",
-          "course_id",
-          "order_index"
-        ],
-        "properties": {
-          "course_id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "order_index": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "UpsertCourseRequestDTO": {
-        "type": "object",
-        "required": [
-          "name"
-        ],
-        "properties": {
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "UpsertCourseResponseDTO": {
-        "type": "object",
-        "required": [
-          "id",
-          "name",
-          "created_at"
-        ],
-        "properties": {
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "UpsertExamRequestDTO": {
-        "type": "object",
-        "required": [
-          "topic_id",
-          "name",
-          "tries_count",
-          "duration",
-          "type"
-        ],
-        "properties": {
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "duration": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string"
-          },
-          "topic_id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tries_count": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "type": {
-            "$ref": "#/components/schemas/ExamType"
-          }
-        }
-      },
-      "UpsertTaskRequestDTO": {
-        "type": "object",
-        "required": [
-          "title",
-          "task_type",
-          "points",
-          "configuration"
-        ],
-        "properties": {
-          "configuration": {
-            "$ref": "#/components/schemas/TaskConfig"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "points": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "task_type": {
-            "$ref": "#/components/schemas/TaskType"
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "UpsertTopicRequestDTO": {
-        "type": "object",
-        "required": [
-          "title",
-          "course_id",
-          "order_index"
-        ],
-        "properties": {
-          "course_id": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "order_index": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "title": {
-            "type": "string"
-          }
-        }
-      },
-      "UserRole": {
-        "type": "string",
-        "enum": [
-          "Student",
-          "Teacher",
-          "Admin"
-        ]
-      }
-    }
-  }
+	"openapi": "3.1.0",
+	"info": {
+		"title": "utoipa-axum",
+		"description": "Utoipa's axum bindings for seamless integration for the two",
+		"contact": {
+			"name": "Juha Kukkonen",
+			"email": "juha7kukkonen@gmail.com"
+		},
+		"license": {
+			"name": "MIT OR Apache-2.0",
+			"identifier": "MIT OR Apache-2.0"
+		},
+		"version": "0.2.0"
+	},
+	"paths": {
+		"/account": {
+			"get": {
+				"tags": ["Account"],
+				"summary": "Return user object",
+				"operationId": "get_user",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetUserResponseDTO"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/account/avatar": {
+			"put": {
+				"tags": ["Account"],
+				"operationId": "upload_avatar",
+				"responses": {
+					"200": {
+						"description": "Return presigned url to upload avatar",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AvatarUploadResponse"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/auth/logout-all": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Invalidate all refresh tokens",
+				"operationId": "logout_all",
+				"responses": {
+					"200": {
+						"description": "All sessions logged out successfully"
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/auth/logout-session/{jti}": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Revoke refresh token with jti passed to path parameters",
+				"operationId": "logout_session",
+				"parameters": [
+					{
+						"name": "jti",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Session logged out successfully"
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/auth/refresh": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Return new access and refresh tokens",
+				"operationId": "refresh",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RefreshResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Invalid or expired refresh token"
+					}
+				},
+				"security": [
+					{
+						"CookieAuth": []
+					}
+				]
+			}
+		},
+		"/auth/sessions": {
+			"get": {
+				"tags": ["Auth"],
+				"summary": "Return information for all active sessions (refresh tokens)",
+				"operationId": "get_sessions",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/SessionInfo"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					},
+					{
+						"CookieAuth": []
+					}
+				]
+			}
+		},
+		"/basic/login": {
+			"post": {
+				"tags": ["Basic"],
+				"summary": "Login user with email and password",
+				"operationId": "login",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BasicLoginRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Returns access and refresh tokens",
+						"headers": {
+							"Set-Cookie": {
+								"schema": {
+									"type": "string"
+								},
+								"description": "Contains the `refresh_token`"
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BasicLoginResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Wrong email or password"
+					}
+				}
+			}
+		},
+		"/basic/register": {
+			"post": {
+				"tags": ["Basic"],
+				"summary": "Register a new user using email, username and password",
+				"operationId": "register",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/BasicRegisterRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Create new user",
+						"headers": {
+							"Set-Cookie": {
+								"schema": {
+									"type": "string"
+								},
+								"description": "Contains the `refresh_token`"
+							}
+						},
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BasicRegisterResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "User with the same email or name already exists"
+					}
+				}
+			}
+		},
+		"/courses": {
+			"get": {
+				"tags": ["Course"],
+				"summary": "Get all courses",
+				"operationId": "get_all_courses",
+				"responses": {
+					"200": {
+						"description": "Get all courses",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/UpsertCourseResponseDTO"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/courses/new": {
+			"post": {
+				"tags": ["Course"],
+				"summary": "Create a new course",
+				"operationId": "create_course",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertCourseRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Create new course",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpsertCourseResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request body"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "User cannot create courses"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/courses/{course_id}": {
+			"get": {
+				"tags": ["Course"],
+				"summary": "Get course by id",
+				"operationId": "get_course_by_id",
+				"parameters": [
+					{
+						"name": "course_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Get course by id",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpsertCourseResponseDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"404": {
+						"description": "Course not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Course"],
+				"summary": "Edit an existing course",
+				"operationId": "edit_course",
+				"parameters": [
+					{
+						"name": "course_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertCourseRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Edit course",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UpsertCourseResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request body"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "User cannot edit courses"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Course"],
+				"summary": "Delete an existing course",
+				"operationId": "delete_course",
+				"parameters": [
+					{
+						"name": "course_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Delete course"
+					},
+					"400": {
+						"description": "Invalid request body"
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"403": {
+						"description": "User cannot delete courses"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/courses/{course_id}/topics": {
+			"get": {
+				"tags": ["Topic"],
+				"summary": "Retrieves all topics associated with a specific course.",
+				"operationId": "get_all_topics_in_course",
+				"parameters": [
+					{
+						"name": "course_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of topics in the course",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/TopicResponseDTO"
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Course not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/new": {
+			"post": {
+				"tags": ["Exam"],
+				"summary": "Create new exam",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertExamRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Returns created exam's id",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateExamResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to create exams"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}": {
+			"get": {
+				"tags": ["Exam"],
+				"summary": "Get exam by id",
+				"operationId": "get_by_id",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Found exam",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Exam"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Exam"],
+				"summary": "Update exam by id",
+				"operationId": "update_exam",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertExamRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully updated exam"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to update exam"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Exam"],
+				"summary": "Delete exam by id",
+				"operationId": "delete_exam",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successfully deleted exam"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to delete exam"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/attempt/last": {
+			"get": {
+				"tags": ["Exam"],
+				"summary": "Get last attempt",
+				"operationId": "get_last_attempt",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got last attempt",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExamAttemptSchema"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Exam or attempt not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/attempt/list": {
+			"get": {
+				"tags": ["Exam"],
+				"summary": "Get user attempts for exam",
+				"operationId": "get_user_exam_attempts",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got attempts list",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExamAttemptsListDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/attempt/patch": {
+			"patch": {
+				"tags": ["Exam"],
+				"summary": "Change answer for an active attempt",
+				"operationId": "patch_attempt",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskAnswerDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully patched"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Exam or attempt not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/attempt/start": {
+			"post": {
+				"tags": ["Exam"],
+				"summary": "Start new attempt",
+				"operationId": "start_new_attempt",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully started new attempt",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ExamAttemptSchema"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to update exam"
+					},
+					"404": {
+						"description": "Exam not found"
+					},
+					"409": {
+						"description": "User can't start new attempt due to limits or another active attempt"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/attempt/stop": {
+			"post": {
+				"tags": ["Exam"],
+				"summary": "Stop active attempt",
+				"operationId": "stop_attempt",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully stopped an attempt"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Exam or attempt not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/tasks": {
+			"get": {
+				"tags": ["Exam"],
+				"summary": "Get exam tasks (only with active attempt or if exam scores are available or if admin)",
+				"operationId": "get_tasks",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got exam's tasks",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/PublicTaskDTO"
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You have no permission to view tasks"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Exam"],
+				"summary": "Update exam's tasks by id",
+				"operationId": "update_exam_tasks",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "array",
+								"items": {
+									"type": "integer",
+									"format": "int32"
+								}
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully updated exam's tasks"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to update exam"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/oauth/github/callback": {
+			"get": {
+				"tags": ["OAuth"],
+				"summary": "Callback for github oauth provider",
+				"operationId": "callback",
+				"responses": {}
+			}
+		},
+		"/oauth/github/login": {
+			"get": {
+				"tags": ["OAuth"],
+				"summary": "Redirect user to github oauth login page",
+				"operationId": "login",
+				"responses": {}
+			}
+		},
+		"/oauth/yandex/callback": {
+			"get": {
+				"tags": ["OAuth"],
+				"summary": "Callback for yandex oauth provider",
+				"operationId": "callback",
+				"responses": {}
+			}
+		},
+		"/oauth/yandex/login": {
+			"get": {
+				"tags": ["OAuth"],
+				"summary": "Redirect user to yandex oauth login page",
+				"operationId": "login",
+				"responses": {}
+			}
+		},
+		"/task/list": {
+			"get": {
+				"tags": ["Task"],
+				"summary": "List tasks",
+				"description": "List all tasks. Limit <= 20.",
+				"operationId": "list_tasks",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got tasks list"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to view tasks list"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/task/new": {
+			"post": {
+				"tags": ["Task"],
+				"summary": "Create new task",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTaskRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Returns created task's id",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateTaskResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to create tasks"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/task/{task_id}": {
+			"get": {
+				"tags": ["Task"],
+				"summary": "Get task by id",
+				"operationId": "get_by_id",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Found task",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PublicTaskDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Task"],
+				"summary": "Update task by id",
+				"operationId": "update_task",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTaskRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully updated task"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to update task"
+					},
+					"404": {
+						"description": "Task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Task"],
+				"summary": "Delete task by id",
+				"operationId": "delete_task",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successfully deleted task"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to delete task"
+					},
+					"404": {
+						"description": "Task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/task/{task_id}/admin": {
+			"get": {
+				"tags": ["Task"],
+				"summary": "Get task by id (admin view)",
+				"operationId": "get_by_id_admin",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Found task",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Task"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"404": {
+						"description": "Task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/new": {
+			"post": {
+				"tags": ["Topic"],
+				"summary": "Adds a new topic to a course.",
+				"operationId": "add_topic_to_course",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTopicRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Topic added successfully"
+					},
+					"400": {
+						"description": "Invalid request data"
+					},
+					"403": {
+						"description": "Forbidden: User cannot add topics"
+					},
+					"404": {
+						"description": "Course not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/{id}": {
+			"get": {
+				"tags": ["Topic"],
+				"summary": "Retrieves a specific topic by its ID.",
+				"operationId": "get_topic_by_id",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Topic found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TopicResponseDTO"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Topic"],
+				"summary": "Updates a topic by its ID.",
+				"operationId": "update_topic",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTopicRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Topic updated successfully"
+					},
+					"400": {
+						"description": "Invalid request data"
+					},
+					"403": {
+						"description": "Forbidden: User cannot update topics"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Topic"],
+				"summary": "Deletes a topic by its ID.",
+				"operationId": "delete_topic",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Topic deleted successfully"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/{topic_id}/exams": {
+			"get": {
+				"tags": ["Topic"],
+				"summary": "Get topic exams",
+				"operationId": "get_exams",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Exams listed"
+					},
+					"400": {
+						"description": "Invalid request data"
+					},
+					"401": {
+						"description": "No auth data"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/video/new": {
+			"post": {
+				"tags": ["Video"],
+				"summary": "Creates new video entity and return TUS url for uploading",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateVideoRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateVideoResponseDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to upload videos"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/video/{video_id}": {
+			"get": {
+				"tags": ["Video"],
+				"summary": "Return video player url by video id",
+				"operationId": "get_video_url",
+				"parameters": [
+					{
+						"name": "video_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetVideoUrlResponseDTO"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AvatarUploadResponse": {
+				"type": "object",
+				"required": ["url", "fields"],
+				"properties": {
+					"fields": {
+						"type": "object",
+						"additionalProperties": {
+							"type": "string"
+						},
+						"propertyNames": {
+							"type": "string"
+						}
+					},
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"BasicLoginRequest": {
+				"type": "object",
+				"required": ["username", "password"],
+				"properties": {
+					"password": {
+						"type": "string",
+						"example": "Password123"
+					},
+					"username": {
+						"type": "string",
+						"example": "John Doe"
+					}
+				}
+			},
+			"BasicLoginResponse": {
+				"type": "object",
+				"required": ["access_token"],
+				"properties": {
+					"access_token": {
+						"type": "string"
+					}
+				}
+			},
+			"BasicRegisterRequest": {
+				"type": "object",
+				"required": ["username", "email", "password"],
+				"properties": {
+					"email": {
+						"type": "string",
+						"example": "john@example.com"
+					},
+					"password": {
+						"type": "string",
+						"example": "Password123"
+					},
+					"username": {
+						"type": "string",
+						"example": "John Doe"
+					}
+				}
+			},
+			"BasicRegisterResponse": {
+				"type": "object",
+				"required": ["access_token"],
+				"properties": {
+					"access_token": {
+						"type": "string"
+					}
+				}
+			},
+			"CreateExamResponseDTO": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"CreateTaskResponseDTO": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreateVideoRequestDTO": {
+				"type": "object",
+				"required": ["size", "name"],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"size": {
+						"type": "integer",
+						"format": "int64"
+					}
+				}
+			},
+			"CreateVideoResponseDTO": {
+				"type": "object",
+				"required": ["url"],
+				"properties": {
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"Exam": {
+				"type": "object",
+				"required": [
+					"id",
+					"topic_id",
+					"tries_count",
+					"duration",
+					"name",
+					"type"
+				],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"duration": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"name": {
+						"type": "string"
+					},
+					"topic_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"tries_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"type": {
+						"$ref": "#/components/schemas/ExamType"
+					}
+				}
+			},
+			"ExamAnswer": {
+				"type": "object",
+				"required": ["answers"],
+				"properties": {
+					"answers": {
+						"type": "object",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/TaskAnswer"
+						},
+						"propertyNames": {
+							"type": "integer",
+							"minimum": 0
+						}
+					}
+				}
+			},
+			"ExamAttemptSchema": {
+				"type": "object",
+				"required": [
+					"id",
+					"exam_id",
+					"user_id",
+					"started_at",
+					"active",
+					"answer_data",
+					"max_score"
+				],
+				"properties": {
+					"active": {
+						"type": "boolean"
+					},
+					"answer_data": {
+						"$ref": "#/components/schemas/ExamAnswer"
+					},
+					"exam_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"max_score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"score": {
+						"type": ["number", "null"],
+						"format": "double"
+					},
+					"scoring_data": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/ScoringData"
+							}
+						]
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid"
+					}
+				}
+			},
+			"ExamAttemptsListDTO": {
+				"type": "object",
+				"required": ["ran_out_of_attempts", "attempts_left", "attempts"],
+				"properties": {
+					"attempts": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ExamAttemptSchema"
+						}
+					},
+					"attempts_left": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"ran_out_of_attempts": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ExamType": {
+				"type": "string",
+				"enum": ["Instant", "Delayed"]
+			},
+			"GetUserResponseDTO": {
+				"type": "object",
+				"required": ["id", "username", "email", "role"],
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"role": {
+						"$ref": "#/components/schemas/UserRole"
+					},
+					"username": {
+						"type": "string"
+					}
+				}
+			},
+			"GetVideoUrlResponseDTO": {
+				"type": "object",
+				"required": ["url"],
+				"properties": {
+					"url": {
+						"type": "string"
+					}
+				}
+			},
+			"PublicTaskConfig": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["options", "name"],
+						"properties": {
+							"name": {
+								"type": "string",
+								"enum": ["single_choice"]
+							},
+							"options": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["options", "partial_score", "name"],
+						"properties": {
+							"name": {
+								"type": "string",
+								"enum": ["multiple_choice"]
+							},
+							"options": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"partial_score": {
+								"type": "boolean"
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["max_chars_count", "name"],
+						"properties": {
+							"max_chars_count": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["short_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["max_chars_count", "name"],
+						"properties": {
+							"max_chars_count": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["long_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["items", "name"],
+						"properties": {
+							"items": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["ordering"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["max_size", "name"],
+						"properties": {
+							"max_size": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["file_upload"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["task_id", "name"],
+						"properties": {
+							"name": {
+								"type": "string",
+								"enum": ["ctfd"]
+							},
+							"task_id": {
+								"type": "integer",
+								"minimum": 0
+							}
+						}
+					}
+				]
+			},
+			"PublicTaskDTO": {
+				"type": "object",
+				"required": ["id", "title", "task_type", "points", "configuration"],
+				"properties": {
+					"configuration": {
+						"$ref": "#/components/schemas/PublicTaskConfig"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"points": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"task_type": {
+						"$ref": "#/components/schemas/TaskType"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"RefreshResponse": {
+				"type": "object",
+				"required": ["access_token"],
+				"properties": {
+					"access_token": {
+						"type": "string"
+					}
+				}
+			},
+			"ScoringData": {
+				"type": "object",
+				"required": ["show_results", "results"],
+				"properties": {
+					"results": {
+						"type": "object",
+						"additionalProperties": {
+							"$ref": "#/components/schemas/TaskVerdict"
+						},
+						"propertyNames": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"show_results": {
+						"type": "boolean"
+					}
+				}
+			},
+			"SessionInfo": {
+				"type": "object",
+				"required": [
+					"jti",
+					"is_current",
+					"device_id",
+					"last_used",
+					"issued_at"
+				],
+				"properties": {
+					"device_id": {
+						"type": "string"
+					},
+					"is_current": {
+						"type": "boolean"
+					},
+					"issued_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"jti": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"last_used": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"Task": {
+				"type": "object",
+				"required": ["id", "title", "task_type", "points", "configuration"],
+				"properties": {
+					"configuration": {
+						"$ref": "#/components/schemas/TaskConfig"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"points": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"task_type": {
+						"$ref": "#/components/schemas/TaskType"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"TaskAnswer": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["single_choice"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answers", "name"],
+						"properties": {
+							"answers": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["multiple_choice"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["short_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["long_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["ordering"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["file_id", "name"],
+						"properties": {
+							"file_id": {
+								"type": "string",
+								"format": "uuid"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["file_upload"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["name"],
+						"properties": {
+							"name": {
+								"type": "string",
+								"enum": ["ctfd"]
+							}
+						}
+					}
+				]
+			},
+			"TaskAnswerDTO": {
+				"type": "object",
+				"required": ["task_id", "answer"],
+				"properties": {
+					"answer": {
+						"$ref": "#/components/schemas/TaskAnswer"
+					},
+					"task_id": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			},
+			"TaskConfig": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["options", "correct", "shuffle", "name"],
+						"properties": {
+							"correct": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["single_choice"]
+							},
+							"options": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"shuffle": {
+								"type": "boolean"
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": [
+							"options",
+							"correct",
+							"shuffle",
+							"partial_score",
+							"name"
+						],
+						"properties": {
+							"correct": {
+								"type": "array",
+								"items": {
+									"type": "integer",
+									"minimum": 0
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["multiple_choice"]
+							},
+							"options": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"partial_score": {
+								"type": "boolean"
+							},
+							"shuffle": {
+								"type": "boolean"
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["auto_grade", "max_chars_count", "answers", "name"],
+						"properties": {
+							"answers": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"auto_grade": {
+								"type": "boolean"
+							},
+							"max_chars_count": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["short_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["max_chars_count", "name"],
+						"properties": {
+							"max_chars_count": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["long_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["items", "answers", "name"],
+						"properties": {
+							"answers": {
+								"type": "array",
+								"items": {
+									"type": "array",
+									"items": {
+										"type": "integer",
+										"minimum": 0
+									}
+								}
+							},
+							"items": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["ordering"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["max_size", "name"],
+						"properties": {
+							"max_size": {
+								"type": "integer",
+								"minimum": 0
+							},
+							"name": {
+								"type": "string",
+								"enum": ["file_upload"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["task_id", "name"],
+						"properties": {
+							"name": {
+								"type": "string",
+								"enum": ["ctfd"]
+							},
+							"task_id": {
+								"type": "integer",
+								"minimum": 0
+							}
+						}
+					}
+				]
+			},
+			"TaskType": {
+				"type": "string",
+				"enum": [
+					"SingleChoice",
+					"MultipleChoice",
+					"ShortText",
+					"LongText",
+					"Ordering",
+					"FileUpload",
+					"ctfd"
+				]
+			},
+			"TaskVerdict": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["score", "max_score", "verdict"],
+						"properties": {
+							"comment": {
+								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
+							},
+							"score": {
+								"type": "number",
+								"format": "double"
+							},
+							"verdict": {
+								"type": "string",
+								"enum": ["full_score"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["score", "max_score", "verdict"],
+						"properties": {
+							"comment": {
+								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
+							},
+							"score": {
+								"type": "number",
+								"format": "double"
+							},
+							"verdict": {
+								"type": "string",
+								"enum": ["partial_score"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["score", "max_score", "verdict"],
+						"properties": {
+							"comment": {
+								"type": ["string", "null"]
+							},
+							"max_score": {
+								"type": "number",
+								"format": "double"
+							},
+							"score": {
+								"type": "number",
+								"format": "double"
+							},
+							"verdict": {
+								"type": "string",
+								"enum": ["incorrect"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["verdict"],
+						"properties": {
+							"verdict": {
+								"type": "string",
+								"enum": ["on_review"]
+							}
+						}
+					}
+				]
+			},
+			"TopicResponseDTO": {
+				"type": "object",
+				"required": ["id", "title", "course_id", "order_index"],
+				"properties": {
+					"course_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"UpsertCourseRequestDTO": {
+				"type": "object",
+				"required": ["name"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"UpsertCourseResponseDTO": {
+				"type": "object",
+				"required": ["id", "name", "created_at"],
+				"properties": {
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					}
+				}
+			},
+			"UpsertExamRequestDTO": {
+				"type": "object",
+				"required": ["topic_id", "name", "tries_count", "duration", "type"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"duration": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"name": {
+						"type": "string"
+					},
+					"topic_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"tries_count": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"type": {
+						"$ref": "#/components/schemas/ExamType"
+					}
+				}
+			},
+			"UpsertTaskRequestDTO": {
+				"type": "object",
+				"required": ["title", "task_type", "points", "configuration"],
+				"properties": {
+					"configuration": {
+						"$ref": "#/components/schemas/TaskConfig"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"points": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"task_type": {
+						"$ref": "#/components/schemas/TaskType"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"UpsertTopicRequestDTO": {
+				"type": "object",
+				"required": ["title", "course_id", "order_index"],
+				"properties": {
+					"course_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"UserRole": {
+				"type": "string",
+				"enum": ["Student", "Teacher", "Admin"]
+			}
+		}
+	}
 }

@@ -311,7 +311,11 @@ export default function EditTaskDialog({
 			};
 
 			await updateTask(task.id, payload);
-			onUpdated?.({ ...task, description: payloadDescription, configuration: config } as TaskDTO);
+			onUpdated?.({
+				...task,
+				description: payloadDescription,
+				configuration: config,
+			} as TaskDTO);
 			setOpen(false);
 		} finally {
 			setSubmitting(false);
