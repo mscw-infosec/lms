@@ -590,12 +590,8 @@ export default function LearnPage() {
 								>
 									{((cfg as TaskConfig).options as string[]).map(
 										(label, idx) => {
-											const isSelected =
-												typeof selectedIdx === "number" &&
-												selectedIdx.toString() === label;
-											const isCorrect =
-												typeof effectiveCorrectIdx === "number" &&
-												effectiveCorrectIdx.toString() === label;
+											const isSelected = selectedIdx.toString() === label;
+											const isCorrect = effectiveCorrectIdx.toString() === label;
 											const color = isCorrect
 												? "text-green-400"
 												: isSelected
