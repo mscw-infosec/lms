@@ -61,6 +61,30 @@
 				]
 			}
 		},
+		"/account/ctfd": {
+			"get": {
+				"tags": ["Account"],
+				"summary": "Check if user is registered in `CTFd`",
+				"operationId": "check_ctfd",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CtfdStatus"
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/auth/logout-all": {
 			"post": {
 				"tags": ["Auth"],
@@ -1635,6 +1659,15 @@
 				"properties": {
 					"url": {
 						"type": "string"
+					}
+				}
+			},
+			"CtfdStatus": {
+				"type": "object",
+				"required": ["status"],
+				"properties": {
+					"status": {
+						"type": "boolean"
 					}
 				}
 			},

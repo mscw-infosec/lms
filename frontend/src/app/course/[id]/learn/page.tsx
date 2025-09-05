@@ -1,5 +1,6 @@
 "use client";
 
+import { checkCtfdRegistered } from "@/api/account";
 import { getCourseById, getCourseTopics } from "@/api/courses";
 import {
 	type ExamAttempt,
@@ -33,6 +34,13 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import { buildTaskAnswer } from "@/lib/answers";
@@ -76,6 +84,7 @@ export default function LearnPage() {
 	const [selectedExam, setSelectedExam] = useState<ExamDTO | null>(null);
 	const [pendingExam, setPendingExam] = useState<ExamDTO | null>(null);
 	const [reviewMode, setReviewMode] = useState(false);
+	const [ctfdModalOpen, setCtfdModalOpen] = useState(false);
 	const [selectedReviewAttemptId, setSelectedReviewAttemptId] = useState<
 		string | null
 	>(null);
@@ -264,9 +273,20 @@ export default function LearnPage() {
 
 	const switching = (pendingExam?.id ?? null) !== (selectedExam?.id ?? null);
 
-	const handleStart = () => {
+	const handleStart = async () => {
 		if (!selectedExam) return;
 		setReviewMode(false);
+		if (!isStaff) {
+			try {
+				const res = await checkCtfdRegistered();
+				if (!res?.status) {
+					setCtfdModalOpen(true);
+					return;
+				}
+			} catch {
+				// Do not block starting exam on transient errors
+			}
+		}
 		start();
 	};
 
@@ -1538,25 +1558,35 @@ export default function LearnPage() {
 												>
 													{t("select_attempt") ?? "Select attempt"}:
 												</label>
-												<select
-													id="reviewAttemptSelect"
-													className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200"
+												<Select
 													value={
 														selectedReviewAttemptId ??
 														(sortedAttempts[0]
 															? String(sortedAttempts[0].id)
 															: "")
 													}
-													onChange={(e) =>
-														setSelectedReviewAttemptId(e.target.value)
+													onValueChange={(val) =>
+														setSelectedReviewAttemptId(val)
 													}
 												>
-													{sortedAttempts.map((a) => (
-														<option key={a.id} value={String(a.id)}>
-															{new Date(a.started_at).toLocaleString()}
-														</option>
-													))}
-												</select>
+													<SelectTrigger
+														id="reviewAttemptSelect"
+														className="h-8 w-[240px] border-slate-700 bg-slate-900 text-slate-200"
+													>
+														<SelectValue
+															placeholder={
+																t("select_attempt") ?? "Select attempt"
+															}
+														/>
+													</SelectTrigger>
+													<SelectContent className="border border-slate-700 bg-slate-900 text-slate-200">
+														{sortedAttempts.map((a) => (
+															<SelectItem key={a.id} value={String(a.id)}>
+																{new Date(a.started_at).toLocaleString()}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
 											</div>
 										) : null}
 										{(reviewAttempt ?? attempt)?.scoring_data?.show_results ? (
@@ -1739,6 +1769,35 @@ export default function LearnPage() {
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
 			) : null}
+
+			<AlertDialog open={ctfdModalOpen} onOpenChange={setCtfdModalOpen}>
+				<AlertDialogContent className="border-slate-800 bg-slate-900 text-slate-200">
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("ctfd_error_no_account") || "No linked CTFd account found."}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("ctfd_required_to_start") ||
+								"You need a CTFd account to start the exam."}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter className="sm:[&>*:first-child]:mr-auto">
+						<AlertDialogAction asChild className="sm:mr-auto">
+							<a
+								href="https://ctfd.infosec.moscow/login"
+								target="_blank"
+								rel="noopener noreferrer"
+								title="CTFd"
+							>
+								{t("create_account_action") || "Create Account"}
+							</a>
+						</AlertDialogAction>
+						<AlertDialogAction onClick={() => setCtfdModalOpen(false)}>
+							{t("close") || "Close"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }
