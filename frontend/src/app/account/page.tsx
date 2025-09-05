@@ -237,12 +237,6 @@ export default function AccountPage() {
 								>
 									{t("login")}
 								</Button>
-								<Button
-									className="bg-red-600 text-white hover:bg-red-700"
-									onClick={() => setAuthModal("register")}
-								>
-									{t("register")}
-								</Button>
 								<Link href="/">
 									<Button
 										variant="outline"

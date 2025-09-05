@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
-import { KeyRound, ListChecks, Shield, UserPlus } from "lucide-react";
+import { KeyRound, ListChecks, Shield } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -22,7 +22,7 @@ interface HeaderProps {
 	onRegister: () => void;
 }
 
-export function Header({ onLogin, onRegister }: HeaderProps) {
+export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 	const { user, hasToken, loading, avatarSrc, avatarExists } = useUserStore();
 	const { t } = useTranslation("common");
 	const router = useRouter();
@@ -154,15 +154,6 @@ export function Header({ onLogin, onRegister }: HeaderProps) {
 							>
 								<KeyRound className="h-4 w-4 sm:mr-2" />
 								<span className="hidden sm:inline">{t("login")}</span>
-							</Button>
-							<Button
-								size="sm"
-								onClick={onRegister}
-								className="bg-red-600 px-2 text-white hover:bg-red-700 sm:px-4"
-								title={t("register") ?? "Register"}
-							>
-								<UserPlus className="h-4 w-4 sm:mr-2" />
-								<span className="hidden sm:inline">{t("register")}</span>
 							</Button>
 						</>
 					) : (
