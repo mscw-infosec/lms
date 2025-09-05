@@ -525,25 +525,10 @@ export default function LearnPage() {
 							const correctIdx =
 								typeof correctIdxRaw === "number" ? correctIdxRaw : undefined;
 							let selectedLabel: string | undefined = undefined;
-							if (typeof ansRaw === "number") {
-								if (
-									Number.isFinite(ansRaw) &&
-									Array.isArray((cfg as TaskConfig).options)
-								) {
-									selectedLabel =
-										(cfg as TaskConfig).options?.[ansRaw] ?? String(ansRaw);
-								}
-							} else if (typeof ansRaw === "string") {
-								const maybeNum = Number(ansRaw);
-								if (
-									Number.isFinite(maybeNum) &&
-									Array.isArray((cfg as TaskConfig).options)
-								) {
-									selectedLabel =
-										(cfg as TaskConfig).options?.[maybeNum] ?? String(ansRaw);
-								} else {
-									selectedLabel = ansRaw;
-								}
+							if (typeof ansRaw === "string") {
+								selectedLabel = ansRaw;
+							} else {
+								selectedLabel = "";
 							}
 
 							// Determine the correct answer label instead of index
@@ -553,8 +538,7 @@ export default function LearnPage() {
 								Array.isArray(optionsArr) &&
 								optionsArr[correctIdx] !== undefined
 									? optionsArr[correctIdx]
-									: verdict === "full_score" &&
-											typeof selectedLabel === "string"
+									: verdict === "full_score"
 										? selectedLabel
 										: undefined;
 
