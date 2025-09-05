@@ -353,19 +353,14 @@ export function TaskPlayer({
 		hasSavedBaseline,
 	]);
 
-	// If a CTFd task is already synced (from existing answers), show success banner initially
-	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally run this effect on taskId and ctfdAlreadySynced changes to control banner reset; t is stable from i18n provider */
+	// Reset CTFd banners on task switch; do not auto-show success for already synced tasks
 	useEffect(() => {
+		// Explicitly reference taskId so the dependency is meaningful for linters
+		if (typeof taskId !== "number") return;
 		if (getTaskTypeKey() !== "ctfd") return;
-		if (ctfdAlreadySynced) {
-			setCtfdSuccess(t("ctfd_sync_success") || "Synchronized successfully");
-			setCtfdError(null);
-		} else {
-			// reset success when switching tasks or status
-			setCtfdSuccess(null);
-		}
-		// We intentionally depend on taskId and ctfdAlreadySynced
-	}, [taskId, ctfdAlreadySynced]);
+		setCtfdError(null);
+		setCtfdSuccess(null);
+	}, [taskId]);
 
 	if (typeof taskId !== "number") {
 		return null;
