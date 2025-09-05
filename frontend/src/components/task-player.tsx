@@ -24,7 +24,7 @@ import {
 	Type as TypeIcon,
 	Upload,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 type TaskConfig = {
@@ -103,6 +103,15 @@ export function TaskPlayer({
 }: TaskPlayerProps) {
 	const { t } = useTranslation("common");
 	const [answers, setAnswers] = useState<Record<number, AnswerValue>>({});
+	// Track the last "saved" (persisted) answer to compare against
+	const [savedAnswers, setSavedAnswers] = useState<Record<number, AnswerValue>>(
+		{},
+	);
+	// Helper to know if a saved baseline exists for a task id
+	const hasSavedBaseline = useCallback(
+		(tid: number) => Object.prototype.hasOwnProperty.call(savedAnswers, tid),
+		[savedAnswers],
+	);
 	const [canSubmit, setCanSubmit] = useState(true);
 	const [ctfdSyncing, setCtfdSyncing] = useState(false);
 	const [ctfdError, setCtfdError] = useState<string | null>(null);
@@ -113,16 +122,178 @@ export function TaskPlayer({
 
 	const taskId = hasId(task) ? task.id : undefined;
 	const interactionsLocked = disabled;
-	/* biome-ignore lint/correctness/useExhaustiveDependencies: reset when taskId changes intentionally */
+	/* biome-ignore lint/correctness/useExhaustiveDependencies: recompute submit state when task, answers, or saved baselines change */
 	useEffect(() => {
-		setCanSubmit(true);
-	}, [taskId]);
+		if (typeof taskId !== "number") return;
+		const current = answers[taskId];
+		if (current === undefined) {
+			setCanSubmit(false);
+			return;
+		}
+		setCanSubmit(computeCanSubmitFor(taskId, current));
+	}, [taskId, answers, savedAnswers]);
+
+	// Normalization helpers so we can compare answers robustly across representations
+	const normalizeSingle = useCallback((val: unknown): string | undefined => {
+		if (typeof val === "string") return val;
+		if (typeof val === "number" && Array.isArray(cfg?.options)) {
+			const label = cfg?.options?.[val];
+			return typeof label === "string" ? label : undefined;
+		}
+		return undefined;
+	}, []);
+	const normalizeMultiple = useCallback((val: unknown): string[] => {
+		const out: string[] = [];
+		if (Array.isArray(val)) {
+			for (const v of val) {
+				if (typeof v === "string") out.push(v);
+				else if (typeof v === "number" && Array.isArray(cfg?.options)) {
+					const label = cfg?.options?.[v];
+					if (typeof label === "string") out.push(label);
+				}
+			}
+		}
+		// unique + sorted for order-insensitive compare
+		return Array.from(new Set(out)).sort((a, b) => a.localeCompare(b));
+	}, []);
+	const normalizeOrdering = useCallback((val: unknown): string[] => {
+		// We operate with string[] order; also support number[] indices mapping to labels
+		if (Array.isArray(val)) {
+			const arr = val as unknown[];
+			if (arr.every((v) => typeof v === "string")) {
+				return arr as string[];
+			}
+			if (
+				arr.every((v) => typeof v === "number") &&
+				Array.isArray(cfg?.items)
+			) {
+				return (arr as number[])
+					.map((i) => (Array.isArray(cfg?.items) ? cfg?.items?.[i] : undefined))
+					.filter((s): s is string => typeof s === "string");
+			}
+		}
+		// Support legacy map representation: { [itemIdx]: position }
+		if (
+			val &&
+			typeof val === "object" &&
+			!Array.isArray(val) &&
+			Array.isArray(cfg?.items)
+		) {
+			const orderMap = val as Record<string | number, unknown>;
+			const entries: { itemIdx: number; position: number }[] = [];
+			for (const [k, v] of Object.entries(orderMap)) {
+				const itemIdx = Number.parseInt(k);
+				const position = typeof v === "number" ? v : Number(v);
+				if (Number.isFinite(itemIdx) && Number.isFinite(position)) {
+					entries.push({ itemIdx, position });
+				}
+			}
+			entries.sort((a, b) => a.position - b.position);
+			return entries
+				.map((e) => cfg?.items?.[e.itemIdx])
+				.filter((s): s is string => typeof s === "string");
+		}
+		if (Array.isArray(cfg?.items)) return [...(cfg?.items ?? [])];
+		return [];
+	}, []);
+	const normalizeText = useCallback((val: unknown): string => {
+		return typeof val === "string" ? val : "";
+	}, []);
+	const normalize = useCallback(
+		(val: unknown): AnswerValue | undefined => {
+			switch (getTaskTypeKey()) {
+				case "single_choice":
+					return normalizeSingle(val) ?? "";
+				case "multiple_choice":
+					return normalizeMultiple(val);
+				case "short_text":
+					return normalizeText(val);
+				case "long_text":
+					return normalizeText(val);
+				case "ordering":
+					return normalizeOrdering(val);
+				default:
+					return (val as AnswerValue) ?? undefined;
+			}
+		},
+		[normalizeSingle, normalizeMultiple, normalizeText, normalizeOrdering],
+	);
+	const areEqual = useCallback((a: unknown, b: unknown): boolean => {
+		const type = getTaskTypeKey();
+		if (type === "multiple_choice" || type === "ordering") {
+			const aa = Array.isArray(a) ? (a as unknown[]) : [];
+			const bb = Array.isArray(b) ? (b as unknown[]) : [];
+			if (aa.length !== bb.length) return false;
+			for (let i = 0; i < aa.length; i++) if (aa[i] !== bb[i]) return false;
+			return true;
+		}
+		return a === b;
+	}, []);
+	const hasMeaningfulAnswer = useCallback((val: unknown): boolean => {
+		switch (getTaskTypeKey()) {
+			case "single_choice":
+				return typeof val === "string" && val.length > 0;
+			case "multiple_choice":
+				return Array.isArray(val) && val.length > 0;
+			case "short_text":
+			case "long_text":
+				return typeof val === "string" && val.trim().length > 0;
+			case "ordering":
+				return Array.isArray(val) && val.length > 0;
+			default:
+				return true;
+		}
+	}, []);
+	const computeCanSubmitFor = useCallback(
+		(tid: number, currentRaw: unknown) => {
+			const cur = normalize(currentRaw);
+			if (!hasSavedBaseline(tid)) {
+				return hasMeaningfulAnswer(cur);
+			}
+			const saved = normalize(savedAnswers[tid]);
+			return hasMeaningfulAnswer(cur) && !areEqual(cur, saved);
+		},
+		[savedAnswers, areEqual, hasSavedBaseline, normalize, hasMeaningfulAnswer],
+	);
 
 	useEffect(() => {
 		if (typeof taskId !== "number") return;
-		if (initial === undefined || initial === null) return;
-		setAnswers((prev) => ({ ...prev, [taskId]: initial }));
-	}, [taskId, initial]);
+		// If we already have a saved baseline, don't override it from initial.
+		const hasSaved = hasSavedBaseline(taskId);
+		if (initial === undefined || initial === null) {
+			return;
+		}
+		const normalizedInitial = normalize(initial) as AnswerValue;
+
+		// Always seed saved baseline if it's not present yet
+		if (!hasSaved) {
+			setSavedAnswers((prev) => ({ ...prev, [taskId]: normalizedInitial }));
+		}
+
+		// For current answer, prefer initial if we don't have one yet OR if it's just the default ordering
+		const hasCurrent = answers[taskId] !== undefined;
+		const isOrdering =
+			getTaskTypeKey() === "ordering" && Array.isArray(cfg?.items);
+		let isDefaultOrdering = false;
+		if (isOrdering) {
+			const defaultOrder = [...(cfg?.items as string[])];
+			const curNormalized = normalize(answers[taskId]);
+			isDefaultOrdering = areEqual(curNormalized, defaultOrder);
+		}
+		if (!hasCurrent || isDefaultOrdering) {
+			setAnswers((prev) => ({ ...prev, [taskId]: normalizedInitial }));
+			setCanSubmit(computeCanSubmitFor(taskId, normalizedInitial));
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [
+		answers,
+		taskId,
+		initial,
+		computeCanSubmitFor,
+		normalize,
+		areEqual,
+		hasSavedBaseline,
+	]);
 
 	// If a CTFd task is already synced (from existing answers), show success banner initially
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally run this effect on taskId and ctfdAlreadySynced changes to control banner reset; t is stable from i18n provider */
@@ -158,8 +329,18 @@ export function TaskPlayer({
 			setAnswers((prev) => ({ ...prev, [taskId]: defaultOrder }));
 			onProgress?.(taskId, true);
 			onAnswer?.({ name: "ordering", answer: defaultOrder });
+			// Enable submit for ordering when no saved baseline exists and default order is meaningful
+			setCanSubmit(computeCanSubmitFor(taskId, defaultOrder));
 		}
-	}, [taskId, cfgName, cfg?.items, answers, onProgress, onAnswer]);
+	}, [
+		taskId,
+		cfgName,
+		cfg?.items,
+		answers,
+		onProgress,
+		onAnswer,
+		computeCanSubmitFor,
+	]);
 
 	// Helpers for touch dragging on mobile
 	const startTouchDrag = (startIdx: number) => {
@@ -283,8 +464,9 @@ export function TaskPlayer({
 
 	const handleRadio = (value: string) => {
 		if (interactionsLocked) return;
-		setAnswers((prev) => ({ ...prev, [taskId]: value }));
-		setCanSubmit(true);
+		const nextVal = value;
+		setAnswers((prev) => ({ ...prev, [taskId]: nextVal }));
+		setCanSubmit(computeCanSubmitFor(taskId, nextVal));
 		onProgress?.(taskId, !!value);
 		onAnswer?.({ name: "single_choice", answer: value });
 	};
@@ -297,14 +479,14 @@ export function TaskPlayer({
 			? [...currentAnswers, opt]
 			: currentAnswers.filter((i) => i !== opt);
 		setAnswers((prev) => ({ ...prev, [taskId]: nextAnswers }));
-		setCanSubmit(true);
+		setCanSubmit(computeCanSubmitFor(taskId, nextAnswers));
 		onProgress?.(taskId, nextAnswers.length > 0);
 		onAnswer?.({ name: "multiple_choice", answers: nextAnswers });
 	};
 	const handleText = (val: string) => {
 		if (interactionsLocked) return;
 		setAnswers((prev) => ({ ...prev, [taskId]: val }));
-		setCanSubmit(true);
+		setCanSubmit(computeCanSubmitFor(taskId, val));
 		onProgress?.(taskId, val.trim().length > 0);
 
 		if (cfgName === "short_text")
@@ -316,7 +498,7 @@ export function TaskPlayer({
 	const handleOrdering = (newOrder: string[]) => {
 		if (interactionsLocked) return;
 		setAnswers((prev) => ({ ...prev, [taskId]: newOrder }));
-		setCanSubmit(true);
+		setCanSubmit(computeCanSubmitFor(taskId, newOrder));
 		onProgress?.(taskId, true);
 		onAnswer?.({ name: "ordering", answer: newOrder });
 	};
@@ -865,6 +1047,12 @@ export function TaskPlayer({
 								className="bg-red-600 text-white hover:bg-red-700"
 								onClick={() => {
 									onComplete();
+									// After persisting, treat current as saved baseline
+									const cur = answers[taskId];
+									setSavedAnswers((prev) => ({
+										...prev,
+										[taskId]: normalize(cur) as AnswerValue,
+									}));
 									setCanSubmit(false);
 								}}
 								disabled={disabled || !canSubmit}
