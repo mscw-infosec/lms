@@ -1,5 +1,6 @@
 "use client";
 
+import { checkCtfdRegistered } from "@/api/account";
 import { getCourseById, getCourseTopics } from "@/api/courses";
 import {
 	type ExamAttempt,
@@ -76,6 +77,7 @@ export default function LearnPage() {
 	const [selectedExam, setSelectedExam] = useState<ExamDTO | null>(null);
 	const [pendingExam, setPendingExam] = useState<ExamDTO | null>(null);
 	const [reviewMode, setReviewMode] = useState(false);
+	const [ctfdModalOpen, setCtfdModalOpen] = useState(false);
 	const [selectedReviewAttemptId, setSelectedReviewAttemptId] = useState<
 		string | null
 	>(null);
@@ -264,9 +266,20 @@ export default function LearnPage() {
 
 	const switching = (pendingExam?.id ?? null) !== (selectedExam?.id ?? null);
 
-	const handleStart = () => {
+	const handleStart = async () => {
 		if (!selectedExam) return;
 		setReviewMode(false);
+		if (!isStaff) {
+			try {
+				const res = await checkCtfdRegistered();
+				if (!res?.status) {
+					setCtfdModalOpen(true);
+					return;
+				}
+			} catch {
+				// Do not block starting exam on transient errors
+			}
+		}
 		start();
 	};
 
@@ -1739,6 +1752,35 @@ export default function LearnPage() {
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
 			) : null}
+
+			<AlertDialog open={ctfdModalOpen} onOpenChange={setCtfdModalOpen}>
+				<AlertDialogContent className="border-slate-800 bg-slate-900 text-slate-200">
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("ctfd_error_no_account") || "No linked CTFd account found."}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("ctfd_required_to_start") ||
+								"You need a CTFd account to start the exam."}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter className="sm:[&>*:first-child]:mr-auto">
+						<AlertDialogAction asChild className="sm:mr-auto">
+							<a
+								href="https://ctfd.infosec.moscow/login"
+								target="_blank"
+								rel="noopener noreferrer"
+								title="CTFd"
+							>
+								{t("create_account_action") || "Create Account"}
+							</a>
+						</AlertDialogAction>
+						<AlertDialogAction onClick={() => setCtfdModalOpen(false)}>
+							{t("close") || "Close"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

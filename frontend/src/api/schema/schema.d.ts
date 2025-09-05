@@ -37,6 +37,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/ctfd": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check if user is registered in `CTFd` */
+        get: operations["check_ctfd"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout-all": {
         parameters: {
             query?: never;
@@ -622,6 +639,9 @@ export interface components {
         CreateVideoResponseDTO: {
             url: string;
         };
+        CtfdStatus: {
+            status: boolean;
+        };
         Exam: {
             description?: string | null;
             /** Format: int32 */
@@ -937,6 +957,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AvatarUploadResponse"];
+                };
+            };
+        };
+    };
+    check_ctfd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CtfdStatus"];
                 };
             };
         };

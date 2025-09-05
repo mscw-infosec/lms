@@ -64,6 +64,7 @@
 	"ctfd": "CTFd",
 	"ctfd_error_no_account": "No linked CTFd account found.",
 	"ctfd_error_not_solved": "You haven't solved this task yet.",
+	"ctfd_required_to_start": "You need a CTFd account to start this exam. Please create it with Yandex.ID using button below.",
 	"ctfd_sync_success": "Synchronized successfully.",
 	"delete": "Delete",
 	"delete_course": "Delete Course",
