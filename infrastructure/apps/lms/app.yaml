@@ -17,9 +17,7 @@ spec:
     namespace: lms
 
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    automated: {}
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
