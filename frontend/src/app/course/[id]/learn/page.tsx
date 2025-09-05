@@ -541,14 +541,12 @@ export default function LearnPage() {
 							)?.correct;
 							const correctIdx =
 								typeof correctIdxRaw === "number" ? correctIdxRaw : undefined;
-							let selectedIdx: number | undefined = undefined;
 							let selectedLabel: string | undefined = undefined;
 							if (typeof ansRaw === "number") {
 								if (
 									Number.isFinite(ansRaw) &&
 									Array.isArray((cfg as TaskConfig).options)
 								) {
-									selectedIdx = ansRaw;
 									selectedLabel =
 										(cfg as TaskConfig).options?.[ansRaw] ?? String(ansRaw);
 								}
@@ -558,44 +556,35 @@ export default function LearnPage() {
 									Number.isFinite(maybeNum) &&
 									Array.isArray((cfg as TaskConfig).options)
 								) {
-									selectedIdx = maybeNum;
 									selectedLabel =
 										(cfg as TaskConfig).options?.[maybeNum] ?? String(ansRaw);
 								} else {
 									selectedLabel = ansRaw;
-									if (Array.isArray((cfg as TaskConfig).options)) {
-										const i = ((cfg as TaskConfig).options as string[]).indexOf(
-											ansRaw,
-										);
-										if (i >= 0) selectedIdx = i;
-									}
 								}
 							}
 
-							const effectiveCorrectIdx: number | undefined =
-								typeof correctIdx === "number"
-									? correctIdx
-									: verdict === "full_score" && typeof selectedIdx === "number"
-										? selectedIdx
+							// Determine the correct answer label instead of index
+							const optionsArr = (cfg as TaskConfig).options as string[];
+							const effectiveCorrectLabel: string | undefined =
+								typeof correctIdx === "number" &&
+								Array.isArray(optionsArr) &&
+								optionsArr[correctIdx] !== undefined
+									? optionsArr[correctIdx]
+									: verdict === "full_score" &&
+											typeof selectedLabel === "string"
+										? selectedLabel
 										: undefined;
 
 							return (
-								<RadioGroup
-									value={
-										typeof selectedIdx === "number"
-											? String(selectedIdx)
-											: undefined
-									}
-									disabled
-								>
+								<RadioGroup disabled>
 									{((cfg as TaskConfig).options as string[]).map(
 										(label, idx) => {
 											const isSelected =
-												typeof selectedIdx !== "undefined" &&
-												selectedIdx.toString() === label;
+												typeof selectedLabel === "string" &&
+												selectedLabel === label;
 											const isCorrect =
-												typeof effectiveCorrectIdx !== "undefined" &&
-												effectiveCorrectIdx.toString() === label;
+												typeof effectiveCorrectLabel === "string" &&
+												effectiveCorrectLabel === label;
 											const color = isCorrect
 												? "text-green-400"
 												: isSelected
