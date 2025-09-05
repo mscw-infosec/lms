@@ -7,6 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
 	title: "infosec.moscow",
 	description: "Занятия по информационной безопасности для школьников",
+    keywords: ["ВсОШ", "всош", "сборная москвы по иб", "сборная москвы", "сборная москвы по информационной безопасности", "всош иб", "всош по иб", "сборная москвы иб"]
 };
 
 export default function RootLayout({

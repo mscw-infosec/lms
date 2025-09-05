@@ -256,7 +256,7 @@ export default function InfoSecAnnualProgram() {
 								<CardHeader>
 									<div className="flex items-center gap-2">
 										<Shield className="h-6 w-6 text-red-600" />
-										<CardTitle>Защитная кибербезопасность</CardTitle>
+										<CardTitle>Оборонительная кибербезопасность</CardTitle>
 									</div>
 								</CardHeader>
 								<CardContent className="text-gray-600 text-sm">
@@ -309,8 +309,8 @@ export default function InfoSecAnnualProgram() {
 									{/* 1 */}
 									<li className="relative flex min-w-0 flex-col items-center">
 										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-1.5 w-1.5 translate-x-[3px] translate-y-[3px] rounded-full bg-red-600" />
+											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
+												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
 											</span>
 										</span>
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
@@ -324,8 +324,8 @@ export default function InfoSecAnnualProgram() {
 									{/* 2 */}
 									<li className="relative flex min-w-0 flex-col items-center">
 										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-1.5 w-1.5 translate-x-[3px] translate-y-[3px] rounded-full bg-red-600" />
+											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
+												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
 											</span>
 										</span>
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
@@ -339,8 +339,8 @@ export default function InfoSecAnnualProgram() {
 									{/* 3 */}
 									<li className="relative flex min-w-0 flex-col items-center">
 										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-1.5 w-1.5 translate-x-[3px] translate-y-[3px] rounded-full bg-red-600" />
+											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
+												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
 											</span>
 										</span>
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
@@ -348,7 +348,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Проверка теста
 											</div>
-											<div className="text-[10px] text-gray-600">15–24 Сен</div>
+											<div className="text-[10px] text-gray-600">15–20 Сен</div>
 										</div>
 									</li>
 								</ul>
@@ -361,8 +361,8 @@ export default function InfoSecAnnualProgram() {
 									{/* 4 */}
 									<li className="relative flex min-w-0 flex-col items-center">
 										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-1.5 w-1.5 translate-x-[3px] translate-y-[3px] rounded-full bg-red-600" />
+											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
+												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
 											</span>
 										</span>
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
@@ -370,14 +370,14 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Результаты теста
 											</div>
-											<div className="text-[10px] text-gray-600">25 Сен</div>
+											<div className="text-[10px] text-gray-600">до 21 Сен</div>
 										</div>
 									</li>
 									{/* 5 */}
 									<li className="relative flex min-w-0 flex-col items-center">
 										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-3.5 w-3.5 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-1.5 w-1.5 translate-x-[3px] translate-y-[3px] rounded-full bg-red-600" />
+											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
+												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
 											</span>
 										</span>
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
@@ -385,7 +385,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Начало занятий
 											</div>
-											<div className="text-[10px] text-gray-600">29 Сен</div>
+											<div className="text-[10px] text-gray-600">22 Сен</div>
 										</div>
 									</li>
 								</ul>
@@ -402,9 +402,9 @@ export default function InfoSecAnnualProgram() {
 								{[
 									{ title: "Сбор заявок", date: "1–12 Сен" },
 									{ title: "Отборочный тест", date: "14 Сен" },
-									{ title: "Проверка теста", date: "15–24 Сен" },
-									{ title: "Результаты теста", date: "25 Сен" },
-									{ title: "Начало занятий", date: "29 Сен" },
+									{ title: "Проверка теста", date: "15–20 Сен" },
+									{ title: "Результаты теста", date: "до 21 Сен" },
+									{ title: "Начало занятий", date: "22 Сен" },
 								].map((m) => (
 									<li
 										key={m.title}
@@ -619,7 +619,7 @@ export default function InfoSecAnnualProgram() {
 								</summary>
 								<p className="mt-2 text-gray-600 text-sm">
 									Мы проводим одну онлайн-лекцию и несколько очных семинаров
-									каждую неделю. Оффлайн-занятия в Москве.
+									каждую неделю. Очные занятия проводятся в Москве.
 								</p>
 							</details>
 						</div>
