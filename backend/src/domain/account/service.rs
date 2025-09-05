@@ -1,7 +1,11 @@
+use crate::domain::task::service::CTFD_API_URL;
+use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use s3::post_policy::PresignedPost;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use crate::domain::task::model::CtfdUsersReponse;
+use crate::utils::send_and_parse;
 use crate::{
     domain::account::{
         model::UserModel,
@@ -18,6 +22,8 @@ pub struct AccountService {
     cache_repo: repo!(AccountCacheRepository),
     s3: repo!(S3),
     pub redirect_url: String,
+    http_client: reqwest::Client,
+    ctfd_token: String,
 }
 
 impl AccountService {
@@ -26,12 +32,16 @@ impl AccountService {
         cache_repo: repo!(AccountCacheRepository),
         s3: repo!(S3),
         redirect_url: &str,
+        http_client: reqwest::Client,
+        ctfd_token: String,
     ) -> Self {
         Self {
             db_repo,
             cache_repo,
             s3,
             redirect_url: redirect_url.to_string(),
+            http_client,
+            ctfd_token,
         }
     }
 
@@ -56,5 +66,23 @@ impl AccountService {
         let presigned = self.s3.presign_post(&path).await?;
 
         Ok(presigned)
+    }
+
+    pub async fn get_ctfd(&self, email: String) -> Result<bool> {
+        let existent_user = send_and_parse::<CtfdUsersReponse>(
+            self.http_client
+                .get(format!(
+                    "{CTFD_API_URL}/users?view=admin&field=email&q={email}"
+                ))
+                .header(CONTENT_TYPE, "application/json")
+                .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
+            "CTFd user checking",
+        )
+        .await?;
+
+        if existent_user.meta.pagination.total != 0 {
+            return Ok(true);
+        }
+        Ok(false)
     }
 }

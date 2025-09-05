@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use s3::post_policy::PresignedPost;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -13,6 +13,11 @@ pub struct GetUserResponseDTO {
     pub username: String,
     pub email: String,
     pub role: UserRole,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct CtfdStatus {
+    pub status: bool,
 }
 
 impl From<UserModel> for GetUserResponseDTO {

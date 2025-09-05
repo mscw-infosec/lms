@@ -29,6 +29,8 @@ pub fn save_openapi() {
         dummy.clone(),
         dummy.clone(),
         &config.frontend_redirect_url,
+        client.clone(),
+        config.ctfd_token.clone(),
     );
     let basic_auth = BasicAuthService::new(dummy.clone());
     let course = CourseService::new(dummy.clone());

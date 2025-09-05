@@ -89,6 +89,8 @@ async fn main() -> anyhow::Result<()> {
         rdb_repo.clone(),
         s3.clone(),
         &config.frontend_redirect_url,
+        client.clone(),
+        config.ctfd_token.clone(),
     );
     let basic_auth = BasicAuthService::new(db_repo.clone());
     let course = CourseService::new(db_repo.clone());
