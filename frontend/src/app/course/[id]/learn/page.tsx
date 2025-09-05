@@ -94,7 +94,6 @@ export default function LearnPage() {
 		patchProgress,
 		patching,
 		noMoreAttempts,
-		flushNow,
 		refresh,
 		attemptsLeft,
 		ranOut,
@@ -131,14 +130,6 @@ export default function LearnPage() {
 			setSubmittedIds((prev) => new Set(prev).add(taskId));
 		}
 	};
-
-	const submitAllBuffered = useCallback(() => {
-		if (!attempt || !attempt.active) return;
-		const entries = Object.entries(latestAnswersRef.current);
-		for (const [key, dto] of entries) {
-			if (dto) patchProgress(dto);
-		}
-	}, [attempt, patchProgress]);
 
 	// ----- Attempt countdown timer and periodic sync -----
 	const [remainingSec, setRemainingSec] = useState<number | null>(null);
@@ -192,8 +183,7 @@ export default function LearnPage() {
 			finishTriggeredRef.current = true;
 			(async () => {
 				try {
-					submitAllBuffered();
-					await flushNow();
+					// Removed auto patching on stop: only submit button triggers PATCH
 				} finally {
 					stop();
 					setTimeout(() => {
@@ -202,14 +192,7 @@ export default function LearnPage() {
 				}
 			})();
 		}
-	}, [
-		attempt?.active,
-		remainingSec,
-		flushNow,
-		stop,
-		refresh,
-		submitAllBuffered,
-	]);
+	}, [attempt?.active, remainingSec, stop, refresh]);
 
 	const formatTime = (secs: number) => {
 		if (!Number.isFinite(secs)) return "--:--";
@@ -1251,8 +1234,7 @@ export default function LearnPage() {
 												</AlertDialogCancel>
 												<AlertDialogAction
 													onClick={async () => {
-														submitAllBuffered();
-														await flushNow();
+														// Removed auto patching on stop: only submit button triggers PATCH
 														stop();
 														setTimeout(() => {
 															refresh();

@@ -122,6 +122,14 @@ export function TaskPlayer({
 
 	const taskId = hasId(task) ? task.id : undefined;
 	const interactionsLocked = disabled;
+
+	const dto = isDTO(task) ? (task as PublicTaskDTO) : undefined;
+	const cfg: TaskConfig | undefined = dto?.configuration as
+		| TaskConfig
+		| undefined;
+	const cfgName: string | undefined =
+		typeof cfg?.name === "string" ? cfg.name : undefined;
+
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: recompute submit state when task, answers, or saved baselines change */
 	useEffect(() => {
 		if (typeof taskId !== "number") return;
@@ -134,68 +142,79 @@ export function TaskPlayer({
 	}, [taskId, answers, savedAnswers]);
 
 	// Normalization helpers so we can compare answers robustly across representations
-	const normalizeSingle = useCallback((val: unknown): string | undefined => {
-		if (typeof val === "string") return val;
-		if (typeof val === "number" && Array.isArray(cfg?.options)) {
-			const label = cfg?.options?.[val];
-			return typeof label === "string" ? label : undefined;
-		}
-		return undefined;
-	}, []);
-	const normalizeMultiple = useCallback((val: unknown): string[] => {
-		const out: string[] = [];
-		if (Array.isArray(val)) {
-			for (const v of val) {
-				if (typeof v === "string") out.push(v);
-				else if (typeof v === "number" && Array.isArray(cfg?.options)) {
-					const label = cfg?.options?.[v];
-					if (typeof label === "string") out.push(label);
+	const normalizeSingle = useCallback(
+		(val: unknown): string | undefined => {
+			if (typeof val === "string") return val;
+			if (typeof val === "number" && Array.isArray(cfg?.options)) {
+				const label = cfg?.options?.[val];
+				if (typeof label === "string" && label.length > 0) return label;
+			}
+			return undefined;
+		},
+		[cfg],
+	);
+	const normalizeMultiple = useCallback(
+		(val: unknown): string[] => {
+			const out: string[] = [];
+			if (Array.isArray(val)) {
+				for (const v of val) {
+					if (typeof v === "string") out.push(v);
+					else if (typeof v === "number" && Array.isArray(cfg?.options)) {
+						const label = cfg?.options?.[v];
+						if (typeof label === "string") out.push(label);
+					}
 				}
 			}
-		}
-		// unique + sorted for order-insensitive compare
-		return Array.from(new Set(out)).sort((a, b) => a.localeCompare(b));
-	}, []);
-	const normalizeOrdering = useCallback((val: unknown): string[] => {
-		// We operate with string[] order; also support number[] indices mapping to labels
-		if (Array.isArray(val)) {
-			const arr = val as unknown[];
-			if (arr.every((v) => typeof v === "string")) {
-				return arr as string[];
+			// unique + sorted for order-insensitive compare
+			return Array.from(new Set(out)).sort((a, b) => a.localeCompare(b));
+		},
+		[cfg],
+	);
+	const normalizeOrdering = useCallback(
+		(val: unknown): string[] => {
+			// We operate with string[] order; also support number[] indices mapping to labels
+			if (Array.isArray(val)) {
+				const arr = val as unknown[];
+				if (arr.every((v) => typeof v === "string")) {
+					return arr as string[];
+				}
+				if (
+					arr.every((v) => typeof v === "number") &&
+					Array.isArray(cfg?.items)
+				) {
+					return (arr as number[])
+						.map((i) =>
+							Array.isArray(cfg?.items) ? cfg?.items?.[i] : undefined,
+						)
+						.filter((s): s is string => typeof s === "string");
+				}
 			}
+			// Support legacy map representation: { [itemIdx]: position }
 			if (
-				arr.every((v) => typeof v === "number") &&
+				val &&
+				typeof val === "object" &&
+				!Array.isArray(val) &&
 				Array.isArray(cfg?.items)
 			) {
-				return (arr as number[])
-					.map((i) => (Array.isArray(cfg?.items) ? cfg?.items?.[i] : undefined))
+				const orderMap = val as Record<string | number, unknown>;
+				const entries: { itemIdx: number; position: number }[] = [];
+				for (const [k, v] of Object.entries(orderMap)) {
+					const itemIdx = Number.parseInt(k);
+					const position = typeof v === "number" ? v : Number(v);
+					if (Number.isFinite(itemIdx) && Number.isFinite(position)) {
+						entries.push({ itemIdx, position });
+					}
+				}
+				entries.sort((a, b) => a.position - b.position);
+				return entries
+					.map((e) => cfg?.items?.[e.itemIdx])
 					.filter((s): s is string => typeof s === "string");
 			}
-		}
-		// Support legacy map representation: { [itemIdx]: position }
-		if (
-			val &&
-			typeof val === "object" &&
-			!Array.isArray(val) &&
-			Array.isArray(cfg?.items)
-		) {
-			const orderMap = val as Record<string | number, unknown>;
-			const entries: { itemIdx: number; position: number }[] = [];
-			for (const [k, v] of Object.entries(orderMap)) {
-				const itemIdx = Number.parseInt(k);
-				const position = typeof v === "number" ? v : Number(v);
-				if (Number.isFinite(itemIdx) && Number.isFinite(position)) {
-					entries.push({ itemIdx, position });
-				}
-			}
-			entries.sort((a, b) => a.position - b.position);
-			return entries
-				.map((e) => cfg?.items?.[e.itemIdx])
-				.filter((s): s is string => typeof s === "string");
-		}
-		if (Array.isArray(cfg?.items)) return [...(cfg?.items ?? [])];
-		return [];
-	}, []);
+			if (Array.isArray(cfg?.items)) return [...(cfg?.items ?? [])];
+			return [];
+		},
+		[cfg],
+	);
 	const normalizeText = useCallback((val: unknown): string => {
 		return typeof val === "string" ? val : "";
 	}, []);
@@ -229,23 +248,54 @@ export function TaskPlayer({
 		}
 		return a === b;
 	}, []);
-	const hasMeaningfulAnswer = useCallback((val: unknown): boolean => {
-		switch (getTaskTypeKey()) {
-			case "single_choice":
-				return typeof val === "string" && val.length > 0;
-			case "multiple_choice":
-				return Array.isArray(val) && val.length > 0;
-			case "short_text":
-			case "long_text":
-				return typeof val === "string" && val.trim().length > 0;
-			case "ordering":
-				return Array.isArray(val) && val.length > 0;
-			default:
-				return true;
-		}
-	}, []);
+	// For single_choice, compare and validate by option index to avoid label mismatch issues
+	const normalizeSingleIndex = useCallback(
+		(val: unknown): number | undefined => {
+			if (!Array.isArray(cfg?.options)) return undefined;
+			if (typeof val === "number") {
+				return Number.isInteger(val) && val >= 0 && val < cfg.options.length
+					? val
+					: undefined;
+			}
+			if (typeof val === "string") {
+				const idx = cfg.options.indexOf(val);
+				return idx >= 0 ? idx : undefined;
+			}
+			return undefined;
+		},
+		[cfg],
+	);
+
+	const hasMeaningfulAnswer = useCallback(
+		(val: unknown): boolean => {
+			switch (getTaskTypeKey()) {
+				case "single_choice":
+					return normalizeSingleIndex(val) !== undefined;
+				case "multiple_choice":
+					return Array.isArray(val) && val.length > 0;
+				case "short_text":
+				case "long_text":
+					return typeof val === "string" && val.trim().length > 0;
+				case "ordering":
+					return Array.isArray(val) && val.length > 0;
+				default:
+					return true;
+			}
+		},
+		[normalizeSingleIndex],
+	);
 	const computeCanSubmitFor = useCallback(
 		(tid: number, currentRaw: unknown) => {
+			// Special handling for single_choice: compare by option indices
+			if (getTaskTypeKey() === "single_choice") {
+				const curIdx = normalizeSingleIndex(currentRaw);
+				if (!hasSavedBaseline(tid)) {
+					return curIdx !== undefined; // meaningful if it maps to an option
+				}
+				const savedIdx = normalizeSingleIndex(savedAnswers[tid]);
+				return curIdx !== undefined && curIdx !== savedIdx;
+			}
+			// Default path for other types uses normalized value and areEqual
 			const cur = normalize(currentRaw);
 			if (!hasSavedBaseline(tid)) {
 				return hasMeaningfulAnswer(cur);
@@ -253,7 +303,14 @@ export function TaskPlayer({
 			const saved = normalize(savedAnswers[tid]);
 			return hasMeaningfulAnswer(cur) && !areEqual(cur, saved);
 		},
-		[savedAnswers, areEqual, hasSavedBaseline, normalize, hasMeaningfulAnswer],
+		[
+			savedAnswers,
+			areEqual,
+			hasSavedBaseline,
+			normalize,
+			hasMeaningfulAnswer,
+			normalizeSingleIndex,
+		],
 	);
 
 	useEffect(() => {
@@ -286,6 +343,7 @@ export function TaskPlayer({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
+		cfg,
 		answers,
 		taskId,
 		initial,
@@ -295,30 +353,18 @@ export function TaskPlayer({
 		hasSavedBaseline,
 	]);
 
-	// If a CTFd task is already synced (from existing answers), show success banner initially
-	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally run this effect on taskId and ctfdAlreadySynced changes to control banner reset; t is stable from i18n provider */
+	// Reset CTFd banners on task switch; do not auto-show success for already synced tasks
 	useEffect(() => {
+		// Explicitly reference taskId so the dependency is meaningful for linters
+		if (typeof taskId !== "number") return;
 		if (getTaskTypeKey() !== "ctfd") return;
-		if (ctfdAlreadySynced) {
-			setCtfdSuccess(t("ctfd_sync_success") || "Synchronized successfully");
-			setCtfdError(null);
-		} else {
-			// reset success when switching tasks or status
-			setCtfdSuccess(null);
-		}
-		// We intentionally depend on taskId and ctfdAlreadySynced
-	}, [taskId, ctfdAlreadySynced]);
+		setCtfdError(null);
+		setCtfdSuccess(null);
+	}, [taskId]);
 
 	if (typeof taskId !== "number") {
 		return null;
 	}
-
-	const dto = isDTO(task) ? (task as PublicTaskDTO) : undefined;
-	const cfg: TaskConfig | undefined = dto?.configuration as
-		| TaskConfig
-		| undefined;
-	const cfgName: string | undefined =
-		typeof cfg?.name === "string" ? cfg.name : undefined;
 
 	useEffect(() => {
 		if (typeof taskId !== "number") return;
