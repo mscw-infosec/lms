@@ -286,7 +286,7 @@ export function TaskPlayer({
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		answers[taskId],
+		answers,
 		taskId,
 		initial,
 		computeCanSubmitFor,
