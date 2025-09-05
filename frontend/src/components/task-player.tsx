@@ -237,17 +237,27 @@ export function TaskPlayer({
 		},
 		[normalizeSingle, normalizeMultiple, normalizeText, normalizeOrdering],
 	);
-	const areEqual = useCallback((a: unknown, b: unknown): boolean => {
-		const type = getTaskTypeKey();
-		if (type === "multiple_choice" || type === "ordering") {
-			const aa = Array.isArray(a) ? (a as unknown[]) : [];
-			const bb = Array.isArray(b) ? (b as unknown[]) : [];
-			if (aa.length !== bb.length) return false;
-			for (let i = 0; i < aa.length; i++) if (aa[i] !== bb[i]) return false;
-			return true;
-		}
-		return a === b;
-	}, []);
+	const areEqual = useCallback(
+		(a: unknown, b: unknown): boolean => {
+			const type = getTaskTypeKey();
+			if (type === "multiple_choice") {
+				const aa = normalizeMultiple(a);
+				const bb = normalizeMultiple(b);
+				if (aa.length !== bb.length) return false;
+				for (let i = 0; i < aa.length; i++) if (aa[i] !== bb[i]) return false;
+				return true;
+			}
+			if (type === "ordering") {
+				const aa = normalizeOrdering(a);
+				const bb = normalizeOrdering(b);
+				if (aa.length !== bb.length) return false;
+				for (let i = 0; i < aa.length; i++) if (aa[i] !== bb[i]) return false;
+				return true;
+			}
+			return a === b;
+		},
+		[normalizeMultiple, normalizeOrdering],
+	);
 	// For single_choice, compare and validate by option index to avoid label mismatch issues
 	const normalizeSingleIndex = useCallback(
 		(val: unknown): number | undefined => {
@@ -521,9 +531,11 @@ export function TaskPlayer({
 		const currentAnswers = Array.isArray(answers[taskId])
 			? (answers[taskId] as string[])
 			: [];
-		const nextAnswers = checked
+		const nextAnswersRaw = checked
 			? [...currentAnswers, opt]
 			: currentAnswers.filter((i) => i !== opt);
+		// Normalize to ensure stable, order-insensitive storage for comparison consistency across envs
+		const nextAnswers = normalizeMultiple(nextAnswersRaw);
 		setAnswers((prev) => ({ ...prev, [taskId]: nextAnswers }));
 		setCanSubmit(computeCanSubmitFor(taskId, nextAnswers));
 		onProgress?.(taskId, nextAnswers.length > 0);
