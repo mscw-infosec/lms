@@ -940,6 +940,16 @@ export default function LearnPage() {
 			} else if (cfgName === "short_text" || cfgName === "long_text") {
 				const v = src?.answer;
 				if (typeof v === "string") initial = v;
+			} else if (cfgName === "ordering") {
+				const raw = (src as { answer?: unknown })?.answer;
+				if (Array.isArray(raw)) {
+					const converted: (string | number)[] = [];
+					for (const v of raw as unknown[]) {
+						if (typeof v === "number" && Number.isFinite(v)) converted.push(v);
+						else if (typeof v === "string") converted.push(v);
+					}
+					if (converted.length > 0) initial = converted;
+				}
 			}
 		} catch {
 			// ignore
