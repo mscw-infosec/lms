@@ -34,6 +34,13 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import { buildTaskAnswer } from "@/lib/answers";
@@ -1551,25 +1558,35 @@ export default function LearnPage() {
 												>
 													{t("select_attempt") ?? "Select attempt"}:
 												</label>
-												<select
-													id="reviewAttemptSelect"
-													className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-slate-200"
+												<Select
 													value={
 														selectedReviewAttemptId ??
 														(sortedAttempts[0]
 															? String(sortedAttempts[0].id)
 															: "")
 													}
-													onChange={(e) =>
-														setSelectedReviewAttemptId(e.target.value)
+													onValueChange={(val) =>
+														setSelectedReviewAttemptId(val)
 													}
 												>
-													{sortedAttempts.map((a) => (
-														<option key={a.id} value={String(a.id)}>
-															{new Date(a.started_at).toLocaleString()}
-														</option>
-													))}
-												</select>
+													<SelectTrigger
+														id="reviewAttemptSelect"
+														className="h-8 w-[240px] border-slate-700 bg-slate-900 text-slate-200"
+													>
+														<SelectValue
+															placeholder={
+																t("select_attempt") ?? "Select attempt"
+															}
+														/>
+													</SelectTrigger>
+													<SelectContent className="border border-slate-700 bg-slate-900 text-slate-200">
+														{sortedAttempts.map((a) => (
+															<SelectItem key={a.id} value={String(a.id)}>
+																{new Date(a.started_at).toLocaleString()}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
 											</div>
 										) : null}
 										{(reviewAttempt ?? attempt)?.scoring_data?.show_results ? (
