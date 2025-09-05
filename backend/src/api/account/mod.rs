@@ -23,5 +23,6 @@ pub fn configure(account_service: AccountService, jwt: Arc<JWT>) -> OpenApiRoute
     OpenApiRouter::new()
         .routes(routes!(get_user))
         .routes(routes!(upload_avatar))
+        .routes(routes!(check_ctfd))
         .with_state(state)
 }

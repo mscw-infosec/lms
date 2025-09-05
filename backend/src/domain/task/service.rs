@@ -49,8 +49,11 @@ impl TaskService {
                 .header(AUTHORIZATION, format!("Token {}", self.ctfd_token)),
             "CTFd task check",
         )
-            .await;
-        ctfd_task.map_or_else(|_| Err(LMSError::NotFound("Task not found in CTFd".to_string())), Ok)
+        .await;
+        ctfd_task.map_or_else(
+            |_| Err(LMSError::NotFound("Task not found in CTFd".to_string())),
+            Ok,
+        )
     }
 
     pub async fn get_task(&self, task_id: i32) -> Result<Task> {
