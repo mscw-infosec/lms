@@ -241,6 +241,8 @@
 	"username": "Username",
 	"username_taken": "This username is already taken",
 	"watch_attempts": "Watch attempts",
+	"results_pending_title": "Results will be available soon",
+	"results_pending_desc": "Your attempt has been submitted. Once grading is completed, results will appear at the exam page.",
 	"welcome_back": "Welcome Back",
 	"yes": "Yes",
 	"zero_based_comma_separated": "0-based, comma separated",
