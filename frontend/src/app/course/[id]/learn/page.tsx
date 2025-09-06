@@ -1733,9 +1733,9 @@ export default function LearnPage() {
 										onClick={() => setTaskIndex(idx)}
 										className={`flex h-8 w-8 items-center justify-center rounded ${
 											isSubmitted
-												? "bg-red-600 text-white"
+												? "bg-indigo-500 text-white"
 												: "bg-slate-700 text-slate-300"
-										} ${idx === taskIndex ? "ring-2 ring-red-400" : ""}`}
+										} ${idx === taskIndex ? "ring-2 ring-indigo-400" : ""}`}
 										title={`${t("task") || "Task"} #${idx + 1}`}
 									>
 										<span className="font-semibold text-[11px]">{idx + 1}</span>
@@ -1788,7 +1788,7 @@ export default function LearnPage() {
 						{t("progress") || "Progress"}
 					</div>
 					<div className="flex items-center justify-center">
-						<div className="max-w-full overflow-x-auto">
+						<div className="max-w-full overflow-x-auto px-2 py-1">
 							<div className="flex items-center gap-2">
 								{tasks.map((tTask, idx) => {
 									const id = tTask.id;
@@ -1800,9 +1800,9 @@ export default function LearnPage() {
 											onClick={() => setTaskIndex(idx)}
 											className={`flex h-8 w-8 items-center justify-center rounded ${
 												isSubmitted
-													? "bg-red-600 text-white"
+													? "bg-indigo-500 text-white"
 													: "bg-slate-700 text-slate-300"
-											} ${idx === taskIndex ? "ring-2 ring-red-500 ring-offset-2 ring-offset-slate-900" : ""}`}
+											} ${idx === taskIndex ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900" : ""}`}
 											title={`${t("task") || "Task"} #${idx + 1}`}
 										>
 											<span className="font-semibold text-[11px]">
