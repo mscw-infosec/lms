@@ -61,7 +61,7 @@ import {
 } from "lucide-react";
 import { Info } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -72,6 +72,7 @@ type TaskConfig = {
 };
 
 export default function LearnPage() {
+	const router = useRouter();
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
 	const params = useParams<{ id: string }>();
@@ -182,6 +183,15 @@ export default function LearnPage() {
 		return () => window.clearInterval(iv);
 	}, [attempt?.active, refresh]);
 
+	const handleAfterFinish = useCallback(() => {
+		if (!selectedExam) return;
+		if (selectedExam.type === "Instant") {
+			setReviewMode(true);
+		} else {
+			router.push(`/course/${courseId}/learn/pending`);
+		}
+	}, [selectedExam, router, courseId]);
+
 	useEffect(() => {
 		if (!attempt?.active) return;
 		if (
@@ -197,11 +207,12 @@ export default function LearnPage() {
 					stop();
 					setTimeout(() => {
 						refresh();
+						handleAfterFinish();
 					}, 300);
 				}
 			})();
 		}
-	}, [attempt?.active, remainingSec, stop, refresh]);
+	}, [attempt?.active, remainingSec, stop, refresh, handleAfterFinish]);
 
 	const formatTime = (secs: number) => {
 		if (!Number.isFinite(secs)) return "--:--";
@@ -1280,6 +1291,7 @@ export default function LearnPage() {
 														stop();
 														setTimeout(() => {
 															refresh();
+															handleAfterFinish();
 														}, 300);
 													}}
 													className="bg-red-600 text-white hover:bg-red-700"
