@@ -1,10 +1,6 @@
 name: Frontend CI
 
 on:
-  push:
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
   pull_request:
     paths:
       - "frontend/**"

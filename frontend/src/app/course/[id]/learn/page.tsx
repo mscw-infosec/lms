@@ -1193,8 +1193,6 @@ export default function LearnPage() {
 									size="sm"
 									disabled={!canNext}
 									onClick={() => {
-										const cur = tasks[taskIndex];
-										if (cur) submitBufferedForTask(cur.id);
 										setTaskIndex(Math.min(tasks.length - 1, taskIndex + 1));
 									}}
 									className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
@@ -1258,7 +1256,7 @@ export default function LearnPage() {
 
 					{/* Content */}
 					<div
-						className={`max-w-full flex-1 overflow-x-hidden p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
+						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
 					>
 						{!selectedExam ? (
 							<div className="space-y-4">
@@ -1781,7 +1779,7 @@ export default function LearnPage() {
 								"You need a CTFd account to start the exam."}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter className="sm:[&>*:first-child]:mr-auto">
+					<AlertDialogFooter className="gap-2 sm:gap-0 sm:[&>*:first-child]:mr-auto">
 						<AlertDialogAction asChild className="sm:mr-auto">
 							<a
 								href="https://ctfd.infosec.moscow/login"

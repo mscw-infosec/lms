@@ -64,7 +64,9 @@ export default function HomePage() {
 				{!authLoading && hasToken && (
 					<div className="mb-8">
 						<div className="mb-4 flex items-center justify-between">
-							<h1 className="font-bold text-4xl text-white">Курсы</h1>
+							<h1 className="font-bold text-4xl text-white">
+								{t("courses") ?? "Courses"}
+							</h1>
 							{canCreateCourse && (
 								<Link href="/courses/new">
 									<Button className="bg-red-600 text-white hover:bg-red-700">

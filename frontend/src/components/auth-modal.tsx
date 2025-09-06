@@ -226,7 +226,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 		} catch (err) {
 			setErrors((prev) => ({
 				...prev,
-				root: (err as Error).message || t("auth_failed"),
+				root: t("auth_failed"),
 			}));
 		}
 	};
@@ -507,17 +507,18 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						<Button
 							type="button"
 							variant="outline"
-							size="sm"
+							size="lg"
 							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
 							onClick={() => handleOAuth("yandex")}
 							title={t("sign_in_with_yandex")}
 						>
 							<svg
 								className="h-4 w-4"
-								viewBox="0 0 24 24"
+								viewBox="4 4 16 16"
 								fill="currentColor"
 								role="img"
 								aria-labelledby="yandex-title"
+								overflow={"visible"}
 							>
 								<title id="yandex-title">{t("sign_in_with_yandex")}</title>
 								<path
