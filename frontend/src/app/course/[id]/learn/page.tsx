@@ -1193,8 +1193,6 @@ export default function LearnPage() {
 									size="sm"
 									disabled={!canNext}
 									onClick={() => {
-										const cur = tasks[taskIndex];
-										if (cur) submitBufferedForTask(cur.id);
 										setTaskIndex(Math.min(tasks.length - 1, taskIndex + 1));
 									}}
 									className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
