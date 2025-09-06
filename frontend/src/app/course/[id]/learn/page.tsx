@@ -1779,7 +1779,7 @@ export default function LearnPage() {
 								"You need a CTFd account to start the exam."}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
-					<AlertDialogFooter className="sm:[&>*:first-child]:mr-auto">
+					<AlertDialogFooter className="gap-2 sm:gap-0 sm:[&>*:first-child]:mr-auto">
 						<AlertDialogAction asChild className="sm:mr-auto">
 							<a
 								href="https://ctfd.infosec.moscow/login"
