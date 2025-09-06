@@ -126,12 +126,18 @@
 
 html,
 body {
-	overflow-x: hidden;
 	width: 100%;
+	min-height: 100%;
+	background-color: #0f172a; /* Match page bg (slate-950) for overscroll */
+	overflow-x: hidden; /* Hide horizontal scroll by default */
 }
 
 /* Prevent modal content from causing horizontal scroll */
 @media (max-width: 640px) {
+	html,
+	body {
+		overflow-x: auto; /* Enable horizontal scroll on mobile */
+	}
 	.modal-content {
 		max-width: calc(100vw - 2rem);
 		margin: 1rem;

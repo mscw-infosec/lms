@@ -1256,7 +1256,7 @@ export default function LearnPage() {
 
 					{/* Content */}
 					<div
-						className={`max-w-full flex-1 overflow-x-hidden p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
+						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
 					>
 						{!selectedExam ? (
 							<div className="space-y-4">

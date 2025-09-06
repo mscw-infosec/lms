@@ -226,7 +226,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 		} catch (err) {
 			setErrors((prev) => ({
 				...prev,
-				root: (err as Error).message || t("auth_failed"),
+				root: t("auth_failed"),
 			}));
 		}
 	};

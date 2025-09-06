@@ -15,7 +15,7 @@
 	"attempt_score": "Attempt score",
 	"attempts_up_to": "up to {{count}}x attempts",
 	"attempts_up_to_infty": "up to infinite attempts",
-	"auth_failed": "Authentication failed",
+	"auth_failed": "Authentication failed: incorrect username or password.",
 	"auto_grade": "Auto grade",
 	"avatar_updated": "Avatar updated",
 	"avatar_uploaded_successfully": "Your avatar was uploaded successfully.",
