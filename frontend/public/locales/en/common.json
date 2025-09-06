@@ -52,6 +52,7 @@
 	"course_not_found": "Course not found or failed to load.",
 	"course_structure": "Course Structure",
 	"course_structure_modules_lessons": "{{modules}} modules • {{lessons}} lessons",
+	"courses": "Courses",
 	"create": "Create",
 	"create_account_action": "Create Account",
 	"create_account_title": "Create Account",

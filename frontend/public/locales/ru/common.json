@@ -52,6 +52,7 @@
 	"course_not_found": "Курс не найден или не удалось загрузить.",
 	"course_structure": "Структура курса",
 	"course_structure_modules_lessons": "Модулей: {{modules}} • Уроков: {{lessons}}",
+	"courses": "Курсы",
 	"create": "Создать",
 	"create_account_action": "Создать аккаунт",
 	"create_account_title": "Создать аккаунт",
