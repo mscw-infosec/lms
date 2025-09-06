@@ -1011,14 +1011,29 @@ export default function LearnPage() {
 		return (
 			<>
 				<div className="flex items-center justify-between border-slate-800 border-b p-4">
-					<h2 className="font-semibold text-white">{t("course_structure")}</h2>
+					<h2
+						className={`font-semibold text-white ${sidebarOpen ? "" : "sm:hidden"}`}
+					>
+						{t("course_structure")}
+					</h2>
 					<Button
 						variant="ghost"
 						size="sm"
-						onClick={() => setSidebarOpen(false)}
-						className="text-slate-400 hover:text-white sm:hidden"
+						onClick={() => {
+							if (typeof window !== "undefined" && window.innerWidth < 640) {
+								setSidebarOpen(false);
+							} else {
+								setSidebarOpen(!sidebarOpen);
+							}
+						}}
+						className="text-slate-400 hover:text-white"
+						title="Toggle sidebar"
 					>
-						<X className="h-4 w-4" />
+						{sidebarOpen ? (
+							<Menu className="h-4 w-4" />
+						) : (
+							<Menu className="h-4 w-4" />
+						)}
 					</Button>
 				</div>
 				<div className="h-[calc(100vh-80px)] space-y-4 overflow-y-auto p-4">
@@ -1040,25 +1055,43 @@ export default function LearnPage() {
 								: "text-slate-300 hover:bg-slate-700"
 						}`}
 					>
-						<div className="flex flex-1 items-center">
-							<Info className="mr-2 h-4 w-4 flex-shrink-0 text-sky-400" />
-							<span className="truncate text-sm">
+						<div
+							className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+						>
+							<Info
+								className={`h-4 w-4 flex-shrink-0 text-sky-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+							/>
+							<span
+								className={`truncate text-sm ${sidebarOpen ? "" : "sm:hidden"}`}
+							>
 								{t("course_info") ?? "Course info"}
 							</span>
 						</div>
 					</button>
 					{(topicsQuery.data ?? []).map((topic) => (
 						<Collapsible key={topic.id} defaultOpen>
-							<CollapsibleTrigger className="group flex w-full items-center justify-between overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700">
-								<div className="flex min-w-0 items-center">
-									<BookOpen className="mr-2 h-4 w-4 text-slate-400" />
-									<span className="truncate font-medium text-sm text-white">
+							<CollapsibleTrigger
+								className={`group flex w-full items-center overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700 ${sidebarOpen ? "justify-between" : "sm:justify-center"}`}
+							>
+								<div
+									className={`flex min-w-0 items-center ${sidebarOpen ? "" : "sm:w-full sm:justify-center"}`}
+								>
+									<BookOpen
+										className={`${sidebarOpen ? "mr-2" : "mr-0"} h-4 w-4 text-slate-400`}
+									/>
+									<span
+										className={`truncate font-medium text-sm text-white ${sidebarOpen ? "" : "sm:hidden"}`}
+									>
 										{topic.title}
 									</span>
 								</div>
-								<ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+								<ChevronDown
+									className={`h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180 ${sidebarOpen ? "" : "sm:hidden"}`}
+								/>
 							</CollapsibleTrigger>
-							<CollapsibleContent className="mt-2 w-full space-y-1 overflow-x-hidden">
+							<CollapsibleContent
+								className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
+							>
 								{(examsByTopicQuery.data?.[topic.id] ?? []).map((exam) => (
 									<button
 										type="button"
@@ -1081,9 +1114,15 @@ export default function LearnPage() {
 												: "text-slate-300 hover:bg-slate-700"
 										}`}
 									>
-										<div className="flex flex-1 items-center">
-											<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
-											<div className="min-w-0 overflow-hidden">
+										<div
+											className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+										>
+											<HelpCircle
+												className={`h-4 w-4 flex-shrink-0 self-center text-orange-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+											/>
+											<div
+												className={`min-w-0 overflow-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
+											>
 												<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
 													{exam.name}
 												</div>
@@ -1137,9 +1176,11 @@ export default function LearnPage() {
 
 				{/* Desktop Sidebar (collapsible rail) */}
 				<div
-					className={`hidden sm:flex ${sidebarOpen ? "w-80" : "w-0"} shrink-0 overflow-hidden border-slate-800 border-r bg-slate-900 transition-[width] duration-300`}
+					className={`hidden sm:flex ${sidebarOpen ? "w-80" : "w-16"} shrink-0 overflow-hidden border-slate-800 border-r bg-slate-900 transition-[width] duration-300`}
 				>
-					<div className="w-80">{renderSidebarContent()}</div>
+					<div className={`${sidebarOpen ? "w-80" : "w-16"}`}>
+						{renderSidebarContent()}
+					</div>
 				</div>
 
 				{/* Main Content */}
@@ -1147,18 +1188,17 @@ export default function LearnPage() {
 					{/* Header */}
 					<div className="flex items-center justify-between border-slate-800 border-b bg-slate-900 p-3 lg:p-4">
 						<div className="flex min-w-0 flex-1 items-center">
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={() => setSidebarOpen(!sidebarOpen)}
-								className="mr-2 flex-shrink-0 text-slate-400 hover:text-white lg:mr-4"
-							>
-								{sidebarOpen ? (
-									<X className="h-4 w-4 lg:h-5 lg:w-5" />
-								) : (
-									<Menu className="h-4 w-4 lg:h-5 lg:w-5" />
-								)}
-							</Button>
+							{!sidebarOpen ? (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setSidebarOpen(true)}
+									className="mr-2 flex-shrink-0 text-slate-400 hover:text-white sm:hidden lg:mr-4"
+									title="Open sidebar"
+								>
+									<Menu className="h-4 w-4" />
+								</Button>
+							) : null}
 							<Link href={`/course/${courseId}`}>
 								<Button
 									variant="ghost"
