@@ -518,7 +518,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 								fill="currentColor"
 								role="img"
 								aria-labelledby="yandex-title"
-                                overflow={"visible"}
+								overflow={"visible"}
 							>
 								<title id="yandex-title">{t("sign_in_with_yandex")}</title>
 								<path
