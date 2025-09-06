@@ -109,7 +109,7 @@ impl RefreshTokenRepository for RepositoryRedis {
                 sessions.push(SessionInfo {
                     jti,
                     is_current: jti == current_jti,
-                    device_id: token_data.device_id,
+                    device_id: token_data.device_id.clone(),
                     last_used: token_data.last_used,
                     issued_at: token_data.issued_at,
                 });
