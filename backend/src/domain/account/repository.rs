@@ -3,13 +3,15 @@ use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
 use super::model::UserModel;
+use crate::domain::account::model::Attributes;
 use crate::errors::Result;
 use crate::gen_openapi::DummyRepository;
 
-#[impl_unimplemented(DummyRepository)]
 #[async_trait]
+#[impl_unimplemented(DummyRepository)]
 pub trait AccountRepository {
     async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>>;
+    async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes>;
 }
 
 #[impl_unimplemented(DummyRepository)]
@@ -20,4 +22,5 @@ pub trait AccountCacheRepository {
         Self: Sized;
     async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>>;
     async fn store_user(&self, user: &UserModel) -> Result<()>;
+    async fn update_attributes(&self, id: Uuid, attributes: Attributes) -> Result<()>;
 }

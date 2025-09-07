@@ -21,6 +21,11 @@ pub fn configure(account_service: AccountService, jwt: Arc<JWT>) -> OpenApiRoute
     };
 
     OpenApiRouter::new()
+        .routes(routes!(
+            get_user_attributes,
+            upsert_user_attributes,
+            delete_user_attribute
+        ))
         .routes(routes!(get_user))
         .routes(routes!(upload_avatar))
         .routes(routes!(check_ctfd))

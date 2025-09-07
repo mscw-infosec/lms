@@ -1,12 +1,15 @@
-use crate::dto::account::CtfdStatus;
 use crate::{
     api::account::AccountState,
-    domain::account::model::UserModel,
-    dto::account::{AvatarUploadResponse, GetUserResponseDTO},
+    domain::account::model::{Attributes, UserModel, UserRole},
+    dto::account::{AvatarUploadResponse, CtfdStatus, GetUserResponseDTO},
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
 };
-use axum::{Json, extract::State};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
+use uuid::Uuid;
 
 /// Return user object
 #[utoipa::path(
@@ -24,6 +27,110 @@ pub async fn get_user(user: UserModel) -> Result<Json<GetUserResponseDTO>, LMSEr
     Ok(Json(user.into()))
 }
 
+/// Return user attributes (only for admins)
+#[utoipa::path(
+    get,
+    path = "/{user_id}/attributes",
+    tag = "Account",
+    params(
+        ("user_id" = Uuid, Path)
+    ),
+    responses(
+        (status = 200, body = Attributes),
+        (status = 403, description = "Only admins can view user attributes"),
+        (status = 404, description = "No user was found with that id")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn get_user_attributes(
+    AccessTokenClaim { role, .. }: AccessTokenClaim,
+    Path(user_id): Path<Uuid>,
+    State(state): State<AccountState>,
+) -> Result<Json<Attributes>, LMSError> {
+    if role != UserRole::Admin {
+        return Err(LMSError::Forbidden(
+            "Only admins can view user attributes".into(),
+        ));
+    }
+
+    let user = state.account_service.get_user(user_id).await?;
+    Ok(Json(user.attributes))
+}
+
+/// Upsert attributes to user (only for admins)
+#[utoipa::path(
+    patch,
+    path = "/{user_id}/attributes",
+    tag = "Account",
+    responses(
+        (status = 200, body = Attributes),
+        (status = 403, description = "Only admins can update user attributes"),
+        (status = 404, description = "No user found with that ID")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn upsert_user_attributes(
+    AccessTokenClaim { role, .. }: AccessTokenClaim,
+    Path(user_id): Path<Uuid>,
+    State(state): State<AccountState>,
+    Json(attributes): Json<Attributes>,
+) -> Result<Json<Attributes>, LMSError> {
+    if role != UserRole::Admin {
+        return Err(LMSError::Forbidden(
+            "Only admins can update user attributes".into(),
+        ));
+    }
+
+    let attributes = state
+        .account_service
+        .upsert_attributes(user_id, attributes)
+        .await?;
+
+    Ok(Json(attributes))
+}
+
+/// Delete attribute from user (only for admins)
+#[utoipa::path(
+    delete,
+    path = "/{user_id}/attributes/{key}",
+    tag = "Account",
+    params(
+        ("user_id" = Uuid, Path),
+        ("key" = String, Path)
+    ),
+    responses(
+        (status = 204, description = "Attribute deleted successfully"),
+        (status = 403, description = "Only admins can delete user attributes"),
+        (status = 404, description = "No attribute found with that key")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn delete_user_attribute(
+    AccessTokenClaim { role, .. }: AccessTokenClaim,
+    Path((user_id, key)): Path<(Uuid, String)>,
+    State(state): State<AccountState>,
+) -> Result<(), LMSError> {
+    if role != UserRole::Admin {
+        return Err(LMSError::Forbidden(
+            "Only admins can delete user attributes".into(),
+        ));
+    }
+
+    state
+        .account_service
+        .delete_attribute(user_id, &key)
+        .await?;
+
+    Ok(())
+}
+
+/// Generate presigned url to upload avatar
 #[utoipa::path(
     put,
     path = "/avatar",

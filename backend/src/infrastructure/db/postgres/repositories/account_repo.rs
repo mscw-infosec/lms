@@ -3,12 +3,12 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use uuid::Uuid;
 
-use crate::errors::Result;
 use crate::{
     domain::account::{
-        model::{UserModel, UserRole},
+        model::{Attributes, UserModel, UserRole},
         repository::AccountRepository,
     },
+    errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
 };
 
@@ -28,8 +28,8 @@ impl AccountRepository for RepositoryPostgres {
         .fetch_all(tx.as_mut())
         .await
         .map(|x| {
-            x.iter()
-                .map(|row| (row.key.clone(), row.value.clone()))
+            x.into_iter()
+                .map(|row| (row.key, row.value))
                 .collect::<HashMap<String, String>>()
         })?;
 
@@ -56,5 +56,45 @@ impl AccountRepository for RepositoryPostgres {
         });
 
         Ok(user)
+    }
+
+    async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes> {
+        let (keys, values): (Vec<String>, Vec<String>) = attributes.into_iter().unzip();
+
+        let _ = sqlx::query!(
+            r#"
+                INSERT INTO attributes (user_id, key, value)
+                SELECT $1, key, value
+                FROM UNNEST($2::text[], $3::text[]) AS x(key, value)
+                ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value
+            "#,
+            id,
+            &keys,
+            &values
+        )
+        .execute(&self.pool)
+        .await
+        .map_err(|err| match err {
+            sqlx::Error::Database(e) if e.is_foreign_key_violation() => {
+                LMSError::NotFound("No user was found with that id.".to_string())
+            }
+            _ => LMSError::DatabaseError(err),
+        })?;
+
+        let attributes = sqlx::query!(
+            r#"
+                SELECT key, value
+                FROM attributes
+                WHERE user_id = $1
+            "#,
+            id
+        )
+        .fetch_all(&self.pool)
+        .await?
+        .into_iter()
+        .map(|row| (row.key, row.value))
+        .collect::<HashMap<String, String>>();
+
+        Ok(attributes)
     }
 }

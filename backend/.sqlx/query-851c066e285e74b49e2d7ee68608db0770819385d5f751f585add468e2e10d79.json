@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO attributes (user_id, key, value)\n                SELECT $1, key, value\n                FROM UNNEST($2::text[], $3::text[]) AS x(key, value)\n                ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "TextArray",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "851c066e285e74b49e2d7ee68608db0770819385d5f751f585add468e2e10d79"
+}

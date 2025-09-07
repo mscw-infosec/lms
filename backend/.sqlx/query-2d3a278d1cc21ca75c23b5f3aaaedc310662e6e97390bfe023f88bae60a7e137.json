@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id, title, description, created_at\n                FROM courses\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                SELECT id, title, description, created_at,\n                       access_filter as \"access_filter: AttributeFilter\"\n                FROM courses\n                ORDER BY created_at DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "access_filter: AttributeFilter",
+        "type_info": "Jsonb"
       }
     ],
     "parameters": {
@@ -31,8 +36,9 @@
       false,
       false,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "6d0863e69007aaac48c093272fd544112be4110a54bbf6f1e3d819b75217b45e"
+  "hash": "2d3a278d1cc21ca75c23b5f3aaaedc310662e6e97390bfe023f88bae60a7e137"
 }

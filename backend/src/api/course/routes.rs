@@ -130,10 +130,10 @@ pub async fn delete_course(
     ),
 )]
 pub async fn get_all_courses(
-    _: AccessTokenClaim,
+    AccessTokenClaim { sub, role, .. }: AccessTokenClaim,
     State(state): State<CourseState>,
 ) -> Result<Json<Vec<UpsertCourseResponseDTO>>, LMSError> {
-    let courses = state.course_service.get_all_courses().await?;
+    let courses = state.course_service.get_all_courses(sub, role).await?;
     Ok(Json(courses.into_iter().map(Into::into).collect()))
 }
 
@@ -155,10 +155,13 @@ pub async fn get_all_courses(
     ),
 )]
 pub async fn get_course_by_id(
-    _: AccessTokenClaim,
+    AccessTokenClaim { sub, role, .. }: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
 ) -> Result<Json<UpsertCourseResponseDTO>, LMSError> {
-    let course = state.course_service.get_course_by_id(course_id).await?;
+    let course = state
+        .course_service
+        .get_course_by_id(sub, role, course_id)
+        .await?;
     Ok(Json(course.into()))
 }

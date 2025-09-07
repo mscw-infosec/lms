@@ -1,5 +1,8 @@
 use crate::{
-    domain::account::{model::UserModel, repository::AccountCacheRepository},
+    domain::account::{
+        model::{Attributes, UserModel},
+        repository::AccountCacheRepository,
+    },
     errors::Result,
     infrastructure::db::redis::RepositoryRedis,
 };
@@ -31,6 +34,17 @@ impl AccountCacheRepository for RepositoryRedis {
             .expire(key, 24 * 60 * 60);
 
         pipe.query_async::<()>(&mut conn).await?;
+
+        Ok(())
+    }
+
+    async fn update_attributes(&self, id: Uuid, attributes: Attributes) -> Result<()> {
+        let mut conn = self.conn();
+        let key = Self::user_key(id);
+
+        let _ = conn
+            .json_set::<_, _, _, ()>(&key, "$.attributes", &attributes)
+            .await;
 
         Ok(())
     }
