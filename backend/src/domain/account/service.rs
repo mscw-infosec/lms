@@ -1,3 +1,4 @@
+use crate::domain::account::model::Attributes;
 use crate::domain::task::service::CTFD_API_URL;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use s3::post_policy::PresignedPost;
@@ -59,6 +60,29 @@ impl AccountService {
         self.cache_repo.store_user(&user).await?;
 
         Ok(user)
+    }
+
+    pub async fn upsert_attributes(&self, id: Uuid, attrs: Attributes) -> Result<Attributes> {
+        let attributes = self.db_repo.upsert_attributes(id, attrs).await?;
+        self.cache_repo
+            .update_attributes(id, attributes.clone())
+            .await?;
+
+        Ok(attributes)
+    }
+
+    pub async fn delete_attribute(&self, id: Uuid, key: &str) -> Result<()> {
+        let mut attributes = self.get_user(id).await?.attributes;
+        if attributes.remove(key).is_none() {
+            return Err(LMSError::NotFound(format!(
+                "No attribute found with key: {key}"
+            )));
+        }
+
+        let attributes = self.db_repo.upsert_attributes(id, attributes).await?;
+        self.cache_repo.update_attributes(id, attributes).await?;
+
+        Ok(())
     }
 
     pub async fn presigned_url(&self, id: Uuid) -> Result<PresignedPost> {
