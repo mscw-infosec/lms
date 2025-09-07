@@ -79,7 +79,7 @@ impl AccountRepository for RepositoryPostgres {
                 LMSError::NotFound("No user was found with that id.".to_string())
             }
             _ => LMSError::DatabaseError(err),
-        });
+        })?;
 
         let attributes = sqlx::query!(
             r#"
