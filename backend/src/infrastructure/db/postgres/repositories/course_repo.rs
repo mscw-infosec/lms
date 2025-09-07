@@ -2,7 +2,10 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::{
-    domain::courses::{model::CourseModel, repository::CourseRepository},
+    domain::courses::{
+        model::{AttributeFilter, CourseModel},
+        repository::CourseRepository,
+    },
     dto::course::UpsertCourseRequestDTO,
     errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
@@ -47,6 +50,7 @@ impl CourseRepository for RepositoryPostgres {
             id: course_id,
             title: course.name,
             description: course.description,
+            access_filter: None,
             created_at,
         };
 
@@ -91,7 +95,8 @@ impl CourseRepository for RepositoryPostgres {
                 UPDATE courses
                 SET title = $1, description = $2
                 WHERE id = $3
-                RETURNING id, title, description, created_at
+                RETURNING id, title, description, created_at,
+                          access_filter as "access_filter: AttributeFilter"
             "#,
             course.name,
             course.description,
@@ -155,7 +160,8 @@ impl CourseRepository for RepositoryPostgres {
         let courses = sqlx::query_as!(
             CourseModel,
             r#"
-                SELECT id, title, description, created_at
+                SELECT id, title, description, created_at,
+                       access_filter as "access_filter: AttributeFilter"
                 FROM courses
                 ORDER BY created_at DESC
             "#
@@ -170,7 +176,8 @@ impl CourseRepository for RepositoryPostgres {
         let course = sqlx::query_as!(
             CourseModel,
             r#"
-                SELECT id, title, description, created_at
+                SELECT id, title, description, created_at,
+                       access_filter as "access_filter: AttributeFilter"
                 FROM courses
                 WHERE id = $1
             "#,

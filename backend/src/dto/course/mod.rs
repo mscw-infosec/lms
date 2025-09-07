@@ -3,9 +3,47 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::domain::courses::model::CourseModel;
+use crate::domain::courses::model::{AttributeFilter, CourseModel};
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
+#[schema(example = json!({
+    "name": "Course name",
+    "description": "Course description",
+    "access_filter": {
+        "type": "And",
+        "content": [
+            {
+                "type": "Condition",
+                "content": {
+                    "key": "enrollment_year",
+                    "op": "eq",
+                    "value": "2025"
+                }
+            },
+            {
+                "type": "Or",
+                "content": [
+                    {
+                        "type": "Condition",
+                        "content": {
+                            "key": "class",
+                            "op": "gte",
+                            "value": 10
+                        }
+                    },
+                    {
+                        "type": "Condition",
+                        "content": {
+                            "key": "foo",
+                            "op": "eq",
+                            "value": "bar"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}))]
 pub struct UpsertCourseRequestDTO {
     #[validate(length(
         min = 1,
@@ -19,6 +57,9 @@ pub struct UpsertCourseRequestDTO {
         message = "Description must be at most 500 characters long."
     ))]
     pub description: Option<String>,
+
+    #[schema(no_recursion)]
+    pub access_filter: Option<AttributeFilter>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]

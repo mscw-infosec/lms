@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                UPDATE courses\n                SET title = $1, description = $2\n                WHERE id = $3\n                RETURNING id, title, description, created_at\n            ",
+  "query": "\n                UPDATE courses\n                SET title = $1, description = $2\n                WHERE id = $3\n                RETURNING id, title, description, created_at,\n                          access_filter as \"access_filter: AttributeFilter\"\n            ",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "created_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "access_filter: AttributeFilter",
+        "type_info": "Jsonb"
       }
     ],
     "parameters": {
@@ -35,8 +40,9 @@
       false,
       false,
       true,
-      false
+      false,
+      true
     ]
   },
-  "hash": "03efb0872a58cee486c48de705024723c5947045e7864e9700d60c2756d7a7a5"
+  "hash": "0bce7dfe899c1250b8cac973044e8740a465436396db66006f8ee18f92b57fbe"
 }
