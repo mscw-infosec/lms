@@ -1,0 +1,4 @@
+ALTER TABLE attempts
+    ADD COLUMN ends_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE attempts
+    DROP COLUMN active;

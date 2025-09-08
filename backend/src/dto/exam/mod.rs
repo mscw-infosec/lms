@@ -38,7 +38,7 @@ pub struct ExamAttempt {
     pub exam_id: Uuid,
     pub user_id: Uuid,
     pub started_at: DateTime<Utc>,
-    pub active: bool,
+    pub ends_at: DateTime<Utc>,
     pub answer_data: Json<ExamAnswer>,
     pub scoring_data: Json<ScoringData>,
 }
@@ -82,7 +82,7 @@ impl From<ExamAttempt> for ExamAttemptSchema {
             exam_id: value.exam_id,
             user_id: value.user_id,
             started_at: value.started_at,
-            active: value.active,
+            active: value.ends_at > Utc::now(),
             answer_data: value.answer_data.into(),
             scoring_data: Some(value.scoring_data.into()),
             ..Default::default()

@@ -1,0 +1,4 @@
+ALTER TABLE attempts
+    DROP COLUMN ends_at;
+ALTER TABLE attempts
+    ADD COLUMN active BOOLEAN NOT NULL DEFAULT TRUE;

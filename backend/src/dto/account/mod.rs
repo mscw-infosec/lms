@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::domain::account::model::{UserModel, UserRole};
+use crate::domain::account::model::{Attributes, UserModel, UserRole};
 
 #[derive(Serialize, ToSchema)]
 pub struct GetUserResponseDTO {
@@ -44,4 +44,14 @@ impl From<PresignedPost> for AvatarUploadResponse {
             fields: value.fields,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct CtfdAccountData {
+    pub attributes: Attributes,
+    pub active_attempt_task_ids: Vec<usize>,
+}
+
+pub struct CtfdToken {
+    pub token: String,
 }

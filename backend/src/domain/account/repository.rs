@@ -11,7 +11,9 @@ use crate::gen_openapi::DummyRepository;
 #[impl_unimplemented(DummyRepository)]
 pub trait AccountRepository {
     async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>>;
+    async fn get_user_by_email(&self, email: String) -> Result<Option<UserModel>>;
     async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes>;
+    async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>>;
 }
 
 #[impl_unimplemented(DummyRepository)]
