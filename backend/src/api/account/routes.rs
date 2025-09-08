@@ -1,3 +1,4 @@
+use crate::dto::account::{CtfdAccountData, CtfdToken};
 use crate::{
     api::account::AccountState,
     domain::account::model::{Attributes, UserModel, UserRole},
@@ -57,6 +58,38 @@ pub async fn get_user_attributes(
 
     let user = state.account_service.get_user(user_id).await?;
     Ok(Json(user.attributes))
+}
+
+/// Return user attributes (for `CTFd` integration)
+#[utoipa::path(
+    get,
+    path = "/{user_email}/ctfd-data",
+    tag = "Account",
+    params(
+        ("user_email" = String, Path)
+    ),
+    responses(
+        (status = 200, body = CtfdAccountData),
+        (status = 403, description = "Only admins can view user attributes"),
+        (status = 404, description = "No user was found with that id")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn get_user_ctfd_data(
+    _: CtfdToken, // need for ctfd auth, don't remove
+    Path(user_email): Path<String>,
+    State(state): State<AccountState>,
+) -> Result<Json<CtfdAccountData>, LMSError> {
+    let user = state.account_service.get_user_by_email(user_email).await?;
+    Ok(Json(CtfdAccountData {
+        attributes: user.attributes,
+        active_attempt_task_ids: state
+            .account_service
+            .get_user_active_ctfd_tasks(user.id)
+            .await?,
+    }))
 }
 
 /// Upsert attributes to user (only for admins)

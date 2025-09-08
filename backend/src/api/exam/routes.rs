@@ -13,6 +13,7 @@ use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use chrono::Utc;
 use rand::prelude::SliceRandom;
 use rand::rng;
 use std::cmp::max;
@@ -401,7 +402,7 @@ pub async fn get_tasks(
         .exam_service
         .get_user_attempts(exam_id, claims.sub)
         .await?;
-    if attempts.iter().any(|att| att.active)
+    if attempts.iter().any(|att| att.ends_at > Utc::now())
         || attempts.iter().any(|att| att.scoring_data.show_results)
         || matches!(claims.role, UserRole::Admin | UserRole::Teacher)
     {

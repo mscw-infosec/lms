@@ -29,7 +29,10 @@ pub struct Config {
     #[validate(url)]
     pub frontend_redirect_url: String,
 
+    // used for auth in LMS -> CTFd
     pub ctfd_token: String,
+    // used for auth in CTFd -> LMS
+    pub ctfd_auth_token: String,
 }
 
 pub fn env(key: &str) -> String {
@@ -63,6 +66,7 @@ impl Config {
 
             frontend_redirect_url: env("FRONTEND_REDIRECT_URL"),
             ctfd_token: env("CTFD_TOKEN"),
+            ctfd_auth_token: env("CTFD_AUTH_TOKEN"),
         };
 
         if let Err(validation_errors) = config.validate() {

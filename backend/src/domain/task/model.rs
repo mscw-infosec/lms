@@ -93,6 +93,10 @@ pub enum TaskConfig {
     },
 }
 
+pub struct TaskConfigStruct {
+    pub configuration: TaskConfig,
+}
+
 impl TaskConfig {
     pub fn validate(&self) -> Result<(), ValidationErrors> {
         let mut errors = ValidationErrors::new();

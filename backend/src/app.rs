@@ -38,7 +38,11 @@ pub fn generate_router(
         .route("/health", get(|| async { StatusCode::OK }))
         .nest(
             "/account",
-            api::account::configure(svcs.account.clone(), jwt.clone()),
+            api::account::configure(
+                svcs.account.clone(),
+                jwt.clone(),
+                config.ctfd_auth_token.clone(),
+            ),
         )
         .nest(
             "/auth",

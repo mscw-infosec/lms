@@ -10,7 +10,8 @@ use crate::errors::{LMSError, Result};
 use crate::repo;
 use crate::utils::send_and_parse;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
-use chrono::{Duration, Utc};
+use chrono::Utc;
+use sqlx::types::Json;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -73,62 +74,35 @@ impl ExamService {
         exam_id: Uuid,
         user_id: Uuid,
     ) -> Result<Vec<ExamAttempt>> {
-        let exam = self.get_exam(exam_id).await?;
         let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
-        self.update_attempts_status(i64::from(exam.duration), &mut attempts)
-            .await?;
+        for attempt in &mut attempts {
+            if attempt.ends_at <= Utc::now() && attempt.scoring_data.results.is_empty() {
+                let scoring = self.score_attempt(attempt.clone()).await?;
+                attempt.scoring_data = Json(scoring);
+            }
+        }
         Ok(attempts)
     }
 
     pub async fn get_user_last_attempt(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        let exam = self.get_exam(exam_id).await?;
         let mut attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
-        let () = self
-            .update_attempt_status(i64::from(exam.duration), &mut attempt)
-            .await?;
-
+        if attempt.ends_at <= Utc::now() && attempt.scoring_data.results.is_empty() {
+            let scoring = self.score_attempt(attempt.clone()).await?;
+            attempt.scoring_data = Json(scoring);
+        }
         Ok(attempt)
     }
 
-    pub async fn update_attempts_status(
-        &self,
-        exam_duration: i64,
-        attempts: &mut Vec<ExamAttempt>,
-    ) -> Result<()> {
-        for attempt in attempts {
-            let () = self.update_attempt_status(exam_duration, attempt).await?;
-        }
-        Ok(())
-    }
-
-    pub async fn update_attempt_status(
-        &self,
-        exam_duration: i64,
-        attempt: &mut ExamAttempt,
-    ) -> Result<()> {
-        if attempt.active
-            && exam_duration != 0
-            && attempt.started_at + Duration::seconds(exam_duration) < Utc::now()
-        {
-            attempt.active = false;
-            let () = self.repo.stop_attempt(attempt.id).await?;
-            let _ = self.score_attempt(attempt.clone()).await?;
-        }
-        Ok(())
-    }
-
     pub async fn start_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        let exam = self.get_exam(exam_id).await?;
-        let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
-        let () = self
-            .update_attempts_status(i64::from(exam.duration), &mut attempts)
-            .await?;
         self.repo.start_exam(exam_id, user_id).await
     }
 
     pub async fn stop_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<()> {
         let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
-        if !attempt.active {
+        if attempt.ends_at <= Utc::now() {
+            if attempt.scoring_data.results.is_empty() {
+                let _ = self.score_attempt(attempt).await?;
+            }
             return Err(LMSError::NotFound(
                 "You have no active attempts".to_string(),
             ));
@@ -147,7 +121,7 @@ impl ExamService {
         user_answer: TaskAnswer,
     ) -> Result<ExamAttempt> {
         let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
-        if !attempt.active {
+        if attempt.ends_at <= Utc::now() {
             return Err(LMSError::NotFound(
                 "You have no active attempts".to_string(),
             ));

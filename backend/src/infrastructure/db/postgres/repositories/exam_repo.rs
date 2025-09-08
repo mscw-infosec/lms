@@ -9,6 +9,7 @@ use crate::dto::exam::{ExamAnswer, ExamAttempt, UpsertExamRequestDTO};
 use crate::errors::{LMSError, Result};
 use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
+use chrono::{Duration, Utc};
 use serde_json::to_value;
 use sqlx::types::Json;
 use std::collections::HashMap;
@@ -224,7 +225,7 @@ impl ExamRepository for RepositoryPostgres {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
             r#"
-                SELECT id, exam_id, user_id, started_at, active,
+                SELECT id, exam_id, user_id, started_at, ends_at,
                 answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
                 FROM attempts
                 WHERE exam_id = $1 AND user_id = $2
@@ -243,7 +244,7 @@ impl ExamRepository for RepositoryPostgres {
         let attempt = sqlx::query_as!(
             ExamAttempt,
             r#"
-                SELECT id, exam_id, user_id, started_at, active,
+                SELECT id, exam_id, user_id, started_at, ends_at,
                 answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
                 FROM attempts
                 WHERE exam_id = $1 AND user_id = $2
@@ -267,7 +268,7 @@ impl ExamRepository for RepositoryPostgres {
         let _ = sqlx::query!(
             r#"
                 UPDATE attempts
-                SET active = false
+                SET ends_at = NOW()
                 WHERE id = $1
             "#,
             attempt_id
@@ -287,7 +288,7 @@ impl ExamRepository for RepositoryPostgres {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
             r#"
-                SELECT id, exam_id, user_id, started_at, active,
+                SELECT id, exam_id, user_id, started_at, ends_at,
                 answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
                 FROM attempts
                 WHERE exam_id = $1 AND user_id = $2
@@ -298,7 +299,7 @@ impl ExamRepository for RepositoryPostgres {
             .fetch_all(tx.as_mut())
             .await?;
 
-        if attempts.iter().any(|att| att.active)
+        if attempts.iter().any(|att| att.ends_at > Utc::now())
             || (attempts.len() >= exam.tries_count as usize && exam.tries_count != 0)
         {
             return Err(LMSError::Conflict(
@@ -312,15 +313,17 @@ impl ExamRepository for RepositoryPostgres {
         let attempt: ExamAttempt = sqlx::query_as!(
             ExamAttempt,
             r#"
-                INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data)
-                VALUES ($1, $2, $3, $4)
-                RETURNING id, exam_id, user_id, started_at, active,
+                INSERT INTO attempts (exam_id, user_id, answer_data, scoring_data, started_at, ends_at)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING id, exam_id, user_id, started_at, ends_at,
                 answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
             "#,
             id,
             user_id,
             to_value(empty_answer_data).expect("Something bad happened with ExamAnswer data"),
             to_value(empty_scoring_data).expect("Something bad happened with ScoringData"),
+            Utc::now(),
+            Utc::now() + Duration::seconds(i64::from(exam.duration))
         )
             .fetch_one(tx.as_mut())
             .await?;
@@ -338,7 +341,7 @@ impl ExamRepository for RepositoryPostgres {
         answer: TaskAnswer,
     ) -> Result<ExamAttempt> {
         let mut attempts = self.get_user_attempts(exam_id, user_id).await?;
-        if let Some(active_attempt) = attempts.iter_mut().find(|a| a.active) {
+        if let Some(active_attempt) = attempts.iter_mut().find(|a| a.ends_at > Utc::now()) {
             let mut answer_data = active_attempt.answer_data.clone();
             answer_data.answers.insert(task_id, answer);
             active_attempt.answer_data = answer_data;

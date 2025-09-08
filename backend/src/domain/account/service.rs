@@ -62,6 +62,22 @@ impl AccountService {
         Ok(user)
     }
 
+    pub async fn get_user_by_email(&self, email: String) -> Result<UserModel> {
+        let user = self
+            .db_repo
+            .get_user_by_email(email)
+            .await?
+            .ok_or_else(|| LMSError::NotFound("No user was found with that id.".to_string()))?;
+
+        self.cache_repo.store_user(&user).await?;
+
+        Ok(user)
+    }
+
+    pub async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>> {
+        self.db_repo.get_user_active_ctfd_tasks(user_id).await
+    }
+
     pub async fn upsert_attributes(&self, id: Uuid, attrs: Attributes) -> Result<Attributes> {
         let attributes = self.db_repo.upsert_attributes(id, attrs).await?;
         self.cache_repo
