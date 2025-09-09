@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                INSERT INTO courses (title, description)\n                VALUES ($1, $2)\n                RETURNING id, created_at\n            ",
+  "query": "\n                INSERT INTO courses (title, description, access_filter)\n                VALUES ($1, $2, $3)\n                RETURNING id, created_at\n            ",
   "describe": {
     "columns": [
       {
@@ -17,7 +17,8 @@
     "parameters": {
       "Left": [
         "Varchar",
-        "Varchar"
+        "Varchar",
+        "Jsonb"
       ]
     },
     "nullable": [
@@ -25,5 +26,5 @@
       false
     ]
   },
-  "hash": "7424ee6f35d5bd3a79affb901054a167d0f494b5ceca808c70a51d0595ca4931"
+  "hash": "04e6c9672e2466838ef2e57ede7bf6b38c0a3a1987c8569e6bf7b337a89f92b5"
 }
