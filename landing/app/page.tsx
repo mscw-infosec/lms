@@ -613,6 +613,23 @@ export default function InfoSecAnnualProgram() {
 									старта таймер на экзамен нельзя будет остановить.
 								</p>
 							</details>
+                            <details className="group rounded-lg border p-4">
+                                <summary className="cursor-pointer list-none font-medium text-gray-900">
+                                    Как подготовиться к экзамену?
+                                </summary>
+                                <p className="mt-2 text-gray-600 text-sm">
+                                    Краткий ответ - учиться решать задачи в формате CTF.
+                                    <br/>
+                                    Полный ответ - учиться решать задачи на уязвимости в web-приложениях,
+                                    изучать основы криптографии (и математики в целом) и программирования на любом языке.
+                                    <br/>
+                                    <br/>
+                                    Полезные материалы, которые помогут подготовиться к отбору:
+                                    <br/>
+                                    1. <a className={"text-red-600"} href={"https://course.ugractf.ru"} target={"_blank"}>Курс от команды [team Team]</a>.
+                                    Мы считаем, что этот курс позволяет полностью подготовиться к практической части отбора.
+                                </p>
+                            </details>
 							<details className="group rounded-lg border p-4">
 								<summary className="cursor-pointer list-none font-medium text-gray-900">
 									Как будут проводиться занятия?
