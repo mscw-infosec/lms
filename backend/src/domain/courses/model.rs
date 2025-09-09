@@ -25,7 +25,9 @@ pub enum AttributeFilter {
         op: ConditionOp,
         value: serde_json::Value,
     },
+    #[schema(no_recursion)]
     And(Vec<AttributeFilter>),
+    #[schema(no_recursion)]
     Or(Vec<AttributeFilter>),
 }
 
