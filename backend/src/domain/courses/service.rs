@@ -40,7 +40,7 @@ impl CourseService {
         let courses_promise = self.repo.get_all_courses();
         let (user, courses) = tokio::try_join!(user_promise, courses_promise)?;
 
-        let filtered_courses: Vec<CourseModel> = courses
+        let mut filtered_courses: Vec<CourseModel> = courses
             .into_iter()
             .filter(|course| {
                 if course.access_filter.is_none() {
@@ -54,6 +54,10 @@ impl CourseService {
                 true
             })
             .collect();
+
+        for course in &mut filtered_courses {
+            course.access_filter = None;
+        }
 
         Ok(filtered_courses)
     }
@@ -70,7 +74,7 @@ impl CourseService {
 
         let user_promise = self.account_service.get_user(user_id);
         let course_promise = self.repo.get_course_by_id(course_id);
-        let (user, course) = tokio::try_join!(user_promise, course_promise)?;
+        let (user, mut course) = tokio::try_join!(user_promise, course_promise)?;
 
         if course.access_filter.is_none() {
             return Ok(course);
@@ -83,6 +87,7 @@ impl CourseService {
                 "You do not have access to this course.".to_string(),
             ));
         }
+        course.access_filter = None;
 
         Ok(course)
     }

@@ -67,6 +67,7 @@ pub struct UpsertCourseResponseDTO {
     pub name: String,
     pub description: Option<String>,
     pub created_at: DateTime<Utc>,
+    pub access_filter: Option<AttributeFilter>,
 }
 
 impl From<CourseModel> for UpsertCourseResponseDTO {
@@ -76,6 +77,7 @@ impl From<CourseModel> for UpsertCourseResponseDTO {
             name: course.title,
             description: course.description,
             created_at: course.created_at,
+            access_filter: course.access_filter,
         }
     }
 }
