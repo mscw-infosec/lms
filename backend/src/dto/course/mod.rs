@@ -58,7 +58,6 @@ pub struct UpsertCourseRequestDTO {
     ))]
     pub description: Option<String>,
 
-    #[schema(no_recursion)]
     pub access_filter: Option<AttributeFilter>,
 }
 
