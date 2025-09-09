@@ -1,6 +1,9 @@
 "use client";
 
 import { type UpsertCourseRequestDTO, createCourse } from "@/api/courses";
+import AttributeFilterEditor, {
+	type AttributeFilter,
+} from "@/components/attribute-filter-editor";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +34,9 @@ export default function NewCoursePage() {
 		name: "",
 		description: "",
 	});
+	const [accessFilter, setAccessFilter] = useState<AttributeFilter | null>(
+		null,
+	);
 
 	const canCreateCourse = user?.role === "Teacher" || user?.role === "Admin";
 
@@ -64,6 +70,7 @@ export default function NewCoursePage() {
 		mutate({
 			name: formData.name.trim(),
 			description: formData.description?.trim() || null,
+			access_filter: accessFilter ?? null,
 		});
 	};
 
@@ -148,6 +155,13 @@ export default function NewCoursePage() {
 										{t("course_description_help")}
 									</p>
 								</div>
+
+								{/* Access Filter Editor */}
+								<AttributeFilterEditor
+									value={accessFilter}
+									onChange={setAccessFilter}
+									className="mt-6"
+								/>
 
 								<div className="flex gap-4 pt-4">
 									<Button

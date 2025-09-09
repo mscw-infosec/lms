@@ -17,6 +17,9 @@ import {
 } from "@/api/exam";
 import type { components } from "@/api/schema/schema";
 import { createTopic, deleteTopic, updateTopic } from "@/api/topics";
+import AttributeFilterEditor, {
+	type AttributeFilter as LocalAttributeFilter,
+} from "@/components/attribute-filter-editor";
 import { AuthModal } from "@/components/auth-modal";
 import ConfirmDialog from "@/components/common/confirm-dialog";
 import CourseHeaderActions from "@/components/course/course-header-actions";
@@ -124,6 +127,9 @@ export default function CoursePage() {
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState<string | null>("");
+	const [accessFilter, setAccessFilter] = useState<LocalAttributeFilter | null>(
+		null,
+	);
 
 	const nextOrderIndex = useMemo(() => {
 		const list = topicsQuery.data ?? [];
@@ -223,6 +229,11 @@ export default function CoursePage() {
 		if (courseQuery.data && !isEditing) {
 			setName(courseQuery.data.name ?? "");
 			setDescription(courseQuery.data.description ?? "");
+			// Initialize access filter from server response if present
+			setAccessFilter(
+				((courseQuery.data as UpsertCourseResponseDTO)?.access_filter ??
+					null) as LocalAttributeFilter | null,
+			);
 		}
 	}, [courseQuery.data, isEditing]);
 
@@ -231,6 +242,7 @@ export default function CoursePage() {
 			editCourse(courseId, {
 				name: name.trim(),
 				description: description?.trim() || undefined,
+				access_filter: accessFilter ?? null,
 			}),
 		onSuccess: async () => {
 			toast({ description: t("saved_successfully") || "Saved" });
@@ -367,6 +379,11 @@ export default function CoursePage() {
 												setIsEditing(false);
 												setName(courseQuery.data?.name ?? "");
 												setDescription(courseQuery.data?.description ?? "");
+												setAccessFilter(
+													((courseQuery.data as UpsertCourseResponseDTO)
+														?.access_filter ??
+														null) as LocalAttributeFilter | null,
+												);
 											}}
 											onDelete={() => deleteMutation.mutate()}
 											deletePending={deleteMutation.isPending}
@@ -420,6 +437,11 @@ export default function CoursePage() {
 													setIsEditing(false);
 													setName(courseQuery.data?.name ?? "");
 													setDescription(courseQuery.data?.description ?? "");
+													setAccessFilter(
+														((courseQuery.data as UpsertCourseResponseDTO)
+															?.access_filter ??
+															null) as LocalAttributeFilter | null,
+													);
 												}}
 												onDelete={() => deleteMutation.mutate()}
 												deletePending={deleteMutation.isPending}
@@ -448,14 +470,21 @@ export default function CoursePage() {
 						</CardHeader>
 						<CardContent>
 							{isEditing ? (
-								<Textarea
-									value={description ?? ""}
-									onChange={(e) => setDescription(e.target.value)}
-									placeholder={
-										t("course_description_placeholder") ?? "Description"
-									}
-									className="min-h-32 border-slate-700 bg-slate-800 text-white"
-								/>
+								<>
+									<Textarea
+										value={description ?? ""}
+										onChange={(e) => setDescription(e.target.value)}
+										placeholder={
+											t("course_description_placeholder") ?? "Description"
+										}
+										className="min-h-32 border-slate-700 bg-slate-800 text-white"
+									/>
+									<AttributeFilterEditor
+										value={accessFilter}
+										onChange={setAccessFilter}
+										className="mt-6"
+									/>
+								</>
 							) : (
 								<div className="text-slate-300">
 									{courseQuery.data.description ? (
