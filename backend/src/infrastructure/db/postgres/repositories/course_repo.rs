@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use serde_json::to_value;
 use uuid::Uuid;
 
 use crate::{
@@ -22,12 +23,14 @@ impl CourseRepository for RepositoryPostgres {
 
         let (course_id, created_at) = sqlx::query!(
             r#"
-                INSERT INTO courses (title, description)
-                VALUES ($1, $2)
+                INSERT INTO courses (title, description, access_filter)
+                VALUES ($1, $2, $3)
                 RETURNING id, created_at
             "#,
             course.name,
-            course.description
+            course.description,
+            to_value(&course.access_filter)
+                .expect("Something bad happened while serializing filter")
         )
         .fetch_one(tx.as_mut())
         .await
@@ -50,7 +53,7 @@ impl CourseRepository for RepositoryPostgres {
             id: course_id,
             title: course.name,
             description: course.description,
-            access_filter: None,
+            access_filter: course.access_filter,
             created_at,
         };
 
@@ -93,13 +96,15 @@ impl CourseRepository for RepositoryPostgres {
             CourseModel,
             r#"
                 UPDATE courses
-                SET title = $1, description = $2
-                WHERE id = $3
+                SET title = $1, description = $2, access_filter = $3
+                WHERE id = $4
                 RETURNING id, title, description, created_at,
                           access_filter as "access_filter: AttributeFilter"
             "#,
             course.name,
             course.description,
+            to_value(&course.access_filter)
+                .expect("Something bad happened while serializing filter"),
             course_id
         )
         .fetch_one(tx.as_mut())

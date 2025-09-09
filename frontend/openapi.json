@@ -41,6 +41,7 @@
 		"/account/avatar": {
 			"put": {
 				"tags": ["Account"],
+				"summary": "Generate presigned url to upload avatar",
 				"operationId": "upload_avatar",
 				"responses": {
 					"200": {
@@ -76,6 +77,178 @@
 								}
 							}
 						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/account/{user_email}/ctfd-data": {
+			"get": {
+				"tags": ["Account"],
+				"summary": "Return user attributes (for `CTFd` integration)",
+				"operationId": "get_user_ctfd_data",
+				"parameters": [
+					{
+						"name": "user_email",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CtfdAccountData"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can view user attributes"
+					},
+					"404": {
+						"description": "No user was found with that id"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/account/{user_id}/attributes": {
+			"get": {
+				"tags": ["Account"],
+				"summary": "Return user attributes (only for admins)",
+				"operationId": "get_user_attributes",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HashMap"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can view user attributes"
+					},
+					"404": {
+						"description": "No user was found with that id"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"patch": {
+				"tags": ["Account"],
+				"summary": "Upsert attributes to user (only for admins)",
+				"operationId": "upsert_user_attributes",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/HashMap"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HashMap"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can update user attributes"
+					},
+					"404": {
+						"description": "No user found with that ID"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/account/{user_id}/attributes/{key}": {
+			"delete": {
+				"tags": ["Account"],
+				"summary": "Delete attribute from user (only for admins)",
+				"operationId": "delete_user_attribute",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "key",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Attribute deleted successfully"
+					},
+					"403": {
+						"description": "Only admins can delete user attributes"
+					},
+					"404": {
+						"description": "No attribute found with that key"
 					}
 				},
 				"security": [
@@ -1552,6 +1725,65 @@
 	},
 	"components": {
 		"schemas": {
+			"AttributeFilter": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["content", "type"],
+						"properties": {
+							"content": {
+								"type": "object",
+								"required": ["key", "op", "value"],
+								"properties": {
+									"key": {
+										"type": "string"
+									},
+									"op": {
+										"$ref": "#/components/schemas/ConditionOp"
+									},
+									"value": {}
+								}
+							},
+							"type": {
+								"type": "string",
+								"enum": ["Condition"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["content", "type"],
+						"properties": {
+							"content": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AttributeFilter"
+								}
+							},
+							"type": {
+								"type": "string",
+								"enum": ["And"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["content", "type"],
+						"properties": {
+							"content": {
+								"type": "array",
+								"items": {
+									"$ref": "#/components/schemas/AttributeFilter"
+								}
+							},
+							"type": {
+								"type": "string",
+								"enum": ["Or"]
+							}
+						}
+					}
+				]
+			},
 			"AvatarUploadResponse": {
 				"type": "object",
 				"required": ["url", "fields"],
@@ -1620,6 +1852,10 @@
 					}
 				}
 			},
+			"ConditionOp": {
+				"type": "string",
+				"enum": ["eq", "neq", "gt", "gte", "lt", "lte", "in", "nin"]
+			},
 			"CreateExamResponseDTO": {
 				"type": "object",
 				"required": ["id"],
@@ -1659,6 +1895,22 @@
 				"properties": {
 					"url": {
 						"type": "string"
+					}
+				}
+			},
+			"CtfdAccountData": {
+				"type": "object",
+				"required": ["attributes", "active_attempt_task_ids"],
+				"properties": {
+					"active_attempt_task_ids": {
+						"type": "array",
+						"items": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"attributes": {
+						"$ref": "#/components/schemas/HashMap"
 					}
 				}
 			},
@@ -1828,6 +2080,15 @@
 					"url": {
 						"type": "string"
 					}
+				}
+			},
+			"HashMap": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "string"
+				},
+				"propertyNames": {
+					"type": "string"
 				}
 			},
 			"PublicTaskConfig": {
@@ -2430,18 +2691,76 @@
 				"type": "object",
 				"required": ["name"],
 				"properties": {
+					"access_filter": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/AttributeFilter"
+							}
+						]
+					},
 					"description": {
 						"type": ["string", "null"]
 					},
 					"name": {
 						"type": "string"
 					}
+				},
+				"example": {
+					"access_filter": {
+						"content": [
+							{
+								"content": {
+									"key": "enrollment_year",
+									"op": "eq",
+									"value": "2025"
+								},
+								"type": "Condition"
+							},
+							{
+								"content": [
+									{
+										"content": {
+											"key": "class",
+											"op": "gte",
+											"value": 10
+										},
+										"type": "Condition"
+									},
+									{
+										"content": {
+											"key": "foo",
+											"op": "eq",
+											"value": "bar"
+										},
+										"type": "Condition"
+									}
+								],
+								"type": "Or"
+							}
+						],
+						"type": "And"
+					},
+					"description": "Course description",
+					"name": "Course name"
 				}
 			},
 			"UpsertCourseResponseDTO": {
 				"type": "object",
 				"required": ["id", "name", "created_at"],
 				"properties": {
+					"access_filter": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/AttributeFilter"
+							}
+						]
+					},
 					"created_at": {
 						"type": "string",
 						"format": "date-time"

@@ -29,6 +29,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        /** Generate presigned url to upload avatar */
         put: operations["upload_avatar"];
         post?: never;
         delete?: never;
@@ -49,6 +50,58 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/{user_email}/ctfd-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return user attributes (for `CTFd` integration) */
+        get: operations["get_user_ctfd_data"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/{user_id}/attributes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return user attributes (only for admins) */
+        get: operations["get_user_attributes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Upsert attributes to user (only for admins) */
+        patch: operations["upsert_user_attributes"];
+        trace?: never;
+    };
+    "/account/{user_id}/attributes/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete attribute from user (only for admins) */
+        delete: operations["delete_user_attribute"];
         options?: never;
         head?: never;
         patch?: never;
@@ -597,6 +650,23 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AttributeFilter: {
+            content: {
+                key: string;
+                op: components["schemas"]["ConditionOp"];
+                value: unknown;
+            };
+            /** @enum {string} */
+            type: "Condition";
+        } | {
+            content: components["schemas"]["AttributeFilter"][];
+            /** @enum {string} */
+            type: "And";
+        } | {
+            content: components["schemas"]["AttributeFilter"][];
+            /** @enum {string} */
+            type: "Or";
+        };
         AvatarUploadResponse: {
             fields: {
                 [key: string]: string;
@@ -623,6 +693,8 @@ export interface components {
         BasicRegisterResponse: {
             access_token: string;
         };
+        /** @enum {string} */
+        ConditionOp: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "in" | "nin";
         CreateExamResponseDTO: {
             /** Format: uuid */
             id: string;
@@ -638,6 +710,10 @@ export interface components {
         };
         CreateVideoResponseDTO: {
             url: string;
+        };
+        CtfdAccountData: {
+            active_attempt_task_ids: number[];
+            attributes: components["schemas"]["HashMap"];
         };
         CtfdStatus: {
             status: boolean;
@@ -694,6 +770,9 @@ export interface components {
         };
         GetVideoUrlResponseDTO: {
             url: string;
+        };
+        HashMap: {
+            [key: string]: string;
         };
         PublicTaskConfig: {
             /** @enum {string} */
@@ -873,11 +952,51 @@ export interface components {
             order_index: number;
             title: string;
         };
+        /** @example {
+         *       "access_filter": {
+         *         "content": [
+         *           {
+         *             "content": {
+         *               "key": "enrollment_year",
+         *               "op": "eq",
+         *               "value": "2025"
+         *             },
+         *             "type": "Condition"
+         *           },
+         *           {
+         *             "content": [
+         *               {
+         *                 "content": {
+         *                   "key": "class",
+         *                   "op": "gte",
+         *                   "value": 10
+         *                 },
+         *                 "type": "Condition"
+         *               },
+         *               {
+         *                 "content": {
+         *                   "key": "foo",
+         *                   "op": "eq",
+         *                   "value": "bar"
+         *                 },
+         *                 "type": "Condition"
+         *               }
+         *             ],
+         *             "type": "Or"
+         *           }
+         *         ],
+         *         "type": "And"
+         *       },
+         *       "description": "Course description",
+         *       "name": "Course name"
+         *     } */
         UpsertCourseRequestDTO: {
+            access_filter?: null | components["schemas"]["AttributeFilter"];
             description?: string | null;
             name: string;
         };
         UpsertCourseResponseDTO: {
+            access_filter?: null | components["schemas"]["AttributeFilter"];
             /** Format: date-time */
             created_at: string;
             description?: string | null;
@@ -977,6 +1096,150 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CtfdStatus"];
                 };
+            };
+        };
+    };
+    get_user_ctfd_data: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_email: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CtfdAccountData"];
+                };
+            };
+            /** @description Only admins can view user attributes */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No user was found with that id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_user_attributes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HashMap"];
+                };
+            };
+            /** @description Only admins can view user attributes */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No user was found with that id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upsert_user_attributes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HashMap"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HashMap"];
+                };
+            };
+            /** @description Only admins can update user attributes */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No user found with that ID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_user_attribute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attribute deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can delete user attributes */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No attribute found with that key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
