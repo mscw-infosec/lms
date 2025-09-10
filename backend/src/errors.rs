@@ -79,6 +79,9 @@ pub enum LMSError {
     /// General server error
     #[error("{0}")]
     ServerError(String),
+
+    #[error("You've sent your request not in allowed timespan: {0}")]
+    NotInTime(String),
 }
 
 impl IntoResponse for LMSError {
@@ -99,7 +102,9 @@ impl IntoResponse for LMSError {
             | Self::ServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unimplemented => StatusCode::NOT_IMPLEMENTED,
             Self::Forbidden(_) | Self::InvalidToken(_) => StatusCode::FORBIDDEN,
-            Self::Conflict(_) | Self::VerificationError => StatusCode::CONFLICT,
+            Self::Conflict(_) | Self::VerificationError | Self::NotInTime(_) => {
+                StatusCode::CONFLICT
+            }
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
         };

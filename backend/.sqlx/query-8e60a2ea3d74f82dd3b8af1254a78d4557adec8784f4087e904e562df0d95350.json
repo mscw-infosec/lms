@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                INSERT INTO exams\n                (topic_id, tries_count, duration, type, description, name)\n                VALUES ($1, $2, $3, $4, $5, $6)\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\", name, description\n            ",
+  "query": "\n                INSERT INTO exams\n                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\", name, description, starts_at, ends_at\n            ",
   "describe": {
     "columns": [
       {
@@ -47,6 +47,16 @@
         "ordinal": 6,
         "name": "description",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "starts_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "ends_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -66,7 +76,9 @@
           }
         },
         "Text",
-        "Text"
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -76,8 +88,10 @@
       false,
       false,
       false,
+      true,
+      true,
       true
     ]
   },
-  "hash": "32f3515bec4fe28def41111b138c2fe67726c8bbe713ec0cb3a98a2a050234b4"
+  "hash": "8e60a2ea3d74f82dd3b8af1254a78d4557adec8784f4087e904e562df0d95350"
 }

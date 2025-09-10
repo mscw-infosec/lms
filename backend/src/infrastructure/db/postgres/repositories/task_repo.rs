@@ -60,7 +60,7 @@ impl TaskRepository for RepositoryPostgres {
             Exam,
             r#"
                 SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS "type: ExamType",
-                       e.description, e.name
+                       e.description, e.name, e.starts_at, e.ends_at
                 FROM exam_tasks et
                 LEFT JOIN exams e ON e.id = et.exam_id
                 WHERE et.task_id = $1

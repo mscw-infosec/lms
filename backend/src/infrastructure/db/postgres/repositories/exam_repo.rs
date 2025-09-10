@@ -9,9 +9,10 @@ use crate::dto::exam::{ExamAnswer, ExamAttempt, UpsertExamRequestDTO};
 use crate::errors::{LMSError, Result};
 use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde_json::to_value;
 use sqlx::types::Json;
+use std::cmp::min;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -24,9 +25,9 @@ impl ExamRepository for RepositoryPostgres {
             Exam,
             r#"
                 INSERT INTO exams
-                (topic_id, tries_count, duration, type, description, name)
-                VALUES ($1, $2, $3, $4, $5, $6)
-                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType", name, description
+                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType", name, description, starts_at, ends_at
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
@@ -34,6 +35,8 @@ impl ExamRepository for RepositoryPostgres {
             exam_data.r#type as ExamType,
             exam_data.description,
             exam_data.name,
+            exam_data.starts_at,
+            exam_data.ends_at
         )
         .fetch_one(tx.as_mut())
         .await
@@ -80,7 +83,7 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, name, description, tries_count, duration, type AS "type: ExamType"
+                SELECT id, topic_id, name, description, tries_count, duration, type AS "type: ExamType", starts_at, ends_at
                 FROM exams
                 WHERE id = $1
             "#,
@@ -108,9 +111,11 @@ impl ExamRepository for RepositoryPostgres {
                     duration = $3,
                     type = $4,
                     name = $5,
-                    description = $6
-                WHERE id = $7
-                RETURNING id, topic_id, tries_count, name, description, duration, type AS "type: ExamType"
+                    description = $6,
+                    starts_at = $7,
+                    ends_at = $8
+                WHERE id = $9
+                RETURNING id, topic_id, tries_count, name, description, duration, type AS "type: ExamType", starts_at, ends_at
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
@@ -118,6 +123,8 @@ impl ExamRepository for RepositoryPostgres {
             exam_data.r#type as ExamType,
             exam_data.name,
             exam_data.description,
+            exam_data.starts_at,
+            exam_data.ends_at,
             id
         )
         .fetch_one(&self.pool)
@@ -323,7 +330,7 @@ impl ExamRepository for RepositoryPostgres {
             to_value(empty_answer_data).expect("Something bad happened with ExamAnswer data"),
             to_value(empty_scoring_data).expect("Something bad happened with ScoringData"),
             Utc::now(),
-            Utc::now() + Duration::seconds(i64::from(exam.duration))
+            min(Utc::now() + Duration::seconds(i64::from(exam.duration)), exam.ends_at.unwrap_or(DateTime::<Utc>::MAX_UTC))
         )
             .fetch_one(tx.as_mut())
             .await?;

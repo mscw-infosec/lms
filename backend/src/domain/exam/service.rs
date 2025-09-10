@@ -94,6 +94,17 @@ impl ExamService {
     }
 
     pub async fn start_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+        let exam = self.get_exam(exam_id).await?;
+        if let Some(starts_at) = exam.starts_at
+            && starts_at > Utc::now()
+        {
+            return Err(LMSError::NotInTime("Exam hasn't started yet".to_string()));
+        }
+        if let Some(ends_at) = exam.ends_at
+            && ends_at <= Utc::now()
+        {
+            return Err(LMSError::NotInTime("Exam has ended".to_string()));
+        }
         self.repo.start_exam(exam_id, user_id).await
     }
 
