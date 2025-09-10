@@ -124,6 +124,22 @@ export default function CoursePage() {
 
 	const canEdit = user?.role === "Teacher" || user?.role === "Admin";
 
+	const toLocalInputValue = (iso?: string | null): string => {
+		if (!iso) return "";
+		try {
+			const d = new Date(iso);
+			const pad = (n: number) => String(n).padStart(2, "0");
+			const yyyy = d.getFullYear();
+			const mm = pad(d.getMonth() + 1);
+			const dd = pad(d.getDate());
+			const hh = pad(d.getHours());
+			const mi = pad(d.getMinutes());
+			return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+		} catch {
+			return "";
+		}
+	};
+
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState<string | null>("");
@@ -154,6 +170,8 @@ export default function CoursePage() {
 		duration: number;
 		tries_count: number;
 		topic_id: number;
+		starts_at?: string | null;
+		ends_at?: string | null;
 		tasks?: PublicTaskDTO[];
 	};
 	const [topicExams, setTopicExams] = useState<Record<number, ExamLite[]>>({});
@@ -168,6 +186,8 @@ export default function CoursePage() {
 	const [editExamDescription, setEditExamDescription] = useState<string>("");
 	const [editExamDuration, setEditExamDuration] = useState<number>(0);
 	const [editExamTries, setEditExamTries] = useState<number>(1);
+	const [editExamStartsAt, setEditExamStartsAt] = useState<string>("");
+	const [editExamEndsAt, setEditExamEndsAt] = useState<string>("");
 
 	useEffect(() => {
 		async function loadExams() {
@@ -186,6 +206,8 @@ export default function CoursePage() {
 									duration: e.duration,
 									tries_count: e.tries_count,
 									topic_id: e.topic_id,
+									starts_at: e.starts_at ?? null,
+									ends_at: e.ends_at ?? null,
 									tasks: await getExamTasks(e.id).catch(() => []),
 								})),
 							);
@@ -714,6 +736,16 @@ export default function CoursePage() {
 																				);
 																				setEditExamDuration(exam.duration ?? 0);
 																				setEditExamTries(exam.tries_count ?? 1);
+																				setEditExamStartsAt(
+																					toLocalInputValue(
+																						exam.starts_at ?? null,
+																					),
+																				);
+																				setEditExamEndsAt(
+																					toLocalInputValue(
+																						exam.ends_at ?? null,
+																					),
+																				);
 																			}}
 																			className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
 																		>
@@ -792,6 +824,8 @@ export default function CoursePage() {
 						setEditExamDescription("");
 						setEditExamDuration(0);
 						setEditExamTries(1);
+						setEditExamStartsAt("");
+						setEditExamEndsAt("");
 					}
 				}}
 			>
@@ -847,6 +881,38 @@ export default function CoursePage() {
 								/>
 							</div>
 						</div>
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<div className="flex flex-col gap-1">
+								<label
+									className="text-slate-300 text-sm"
+									htmlFor="edit-exam-starts"
+								>
+									{t("starts_at") || "Starts at (optional)"}
+								</label>
+								<Input
+									id="edit-exam-starts"
+									type="datetime-local"
+									value={editExamStartsAt}
+									onChange={(e) => setEditExamStartsAt(e.target.value)}
+									className="border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+							<div className="flex flex-col gap-1">
+								<label
+									className="text-slate-300 text-sm"
+									htmlFor="edit-exam-ends"
+								>
+									{t("ends_at") || "Ends at (optional)"}
+								</label>
+								<Input
+									id="edit-exam-ends"
+									type="datetime-local"
+									value={editExamEndsAt}
+									onChange={(e) => setEditExamEndsAt(e.target.value)}
+									className="border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+						</div>
 						<DialogFooter>
 							<div className="flex w-full justify-end gap-2 pt-2">
 								<Button
@@ -877,6 +943,12 @@ export default function CoursePage() {
 											type: prevExam.type,
 											duration: Number(editExamDuration) || 0,
 											tries_count: Number(editExamTries) || 0,
+											starts_at: editExamStartsAt
+												? new Date(editExamStartsAt).toISOString()
+												: undefined,
+											ends_at: editExamEndsAt
+												? new Date(editExamEndsAt).toISOString()
+												: undefined,
 											topic_id: prevExam.topic_id,
 										} as components["schemas"]["UpsertExamRequestDTO"];
 										try {
@@ -897,6 +969,8 @@ export default function CoursePage() {
 														duration: payload.duration,
 														tries_count: payload.tries_count,
 														topic_id: curr.topic_id,
+														starts_at: payload.starts_at ?? null,
+														ends_at: payload.ends_at ?? null,
 														tasks: curr.tasks,
 													};
 													next[idx] = updatedExam;
@@ -913,6 +987,8 @@ export default function CoursePage() {
 											setEditExamDescription("");
 											setEditExamDuration(0);
 											setEditExamTries(1);
+											setEditExamStartsAt("");
+											setEditExamEndsAt("");
 										} catch (_) {
 											toast({
 												description: t("save_failed") || "Failed to save",

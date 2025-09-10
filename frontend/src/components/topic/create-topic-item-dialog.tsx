@@ -64,6 +64,8 @@ export default function CreateTopicItemDialog({
 			tries_count: 1,
 			topic_id: topicId,
 		});
+		setStartsAtLocal("");
+		setEndsAtLocal("");
 	};
 
 	const [examState, setExamState] = useState<UpsertExamRequestDTO>({
@@ -75,12 +77,19 @@ export default function CreateTopicItemDialog({
 		topic_id: topicId,
 	});
 
+	// Local datetime inputs (optional)
+	const [startsAtLocal, setStartsAtLocal] = useState<string>("");
+	const [endsAtLocal, setEndsAtLocal] = useState<string>("");
+
 	const examMutation = useMutation({
 		mutationFn: async () =>
 			createExam({
 				...examState,
 				topic_id: topicId,
-
+				starts_at: startsAtLocal
+					? new Date(startsAtLocal).toISOString()
+					: undefined,
+				ends_at: endsAtLocal ? new Date(endsAtLocal).toISOString() : undefined,
 				duration: Number(examState.duration) * 60,
 			}),
 		onSuccess: (res) => {
@@ -105,12 +114,18 @@ export default function CreateTopicItemDialog({
 	});
 
 	const canSubmit = () => {
-		if (kind === "exam")
+		if (kind === "exam") {
+			const hasBoth = !!startsAtLocal && !!endsAtLocal;
+			const invalidRange = hasBoth
+				? new Date(endsAtLocal).getTime() < new Date(startsAtLocal).getTime()
+				: false;
 			return (
 				!!String(examState.name ?? "").trim() &&
 				examState.duration >= 0 &&
-				examState.tries_count >= 0
+				examState.tries_count >= 0 &&
+				!invalidRange
 			);
+		}
 		return false;
 	};
 
@@ -248,6 +263,30 @@ export default function CreateTopicItemDialog({
 												tries_count: Number(e.target.value),
 											}))
 										}
+										className="border-slate-700 bg-slate-800 text-white"
+									/>
+								</div>
+							</div>
+							<div className="grid grid-cols-2 gap-4">
+								<div className="flex flex-col gap-1">
+									<Label className="text-slate-300">
+										{t("starts_at") || "Starts at (optional)"}
+									</Label>
+									<Input
+										type="datetime-local"
+										value={startsAtLocal}
+										onChange={(e) => setStartsAtLocal(e.target.value)}
+										className="border-slate-700 bg-slate-800 text-white"
+									/>
+								</div>
+								<div className="flex flex-col gap-1">
+									<Label className="text-slate-300">
+										{t("ends_at") || "Ends at (optional)"}
+									</Label>
+									<Input
+										type="datetime-local"
+										value={endsAtLocal}
+										onChange={(e) => setEndsAtLocal(e.target.value)}
 										className="border-slate-700 bg-slate-800 text-white"
 									/>
 								</div>

@@ -30,6 +30,7 @@
 	"attribute_value": "Value",
 	"auth_failed": "Authentication failed: incorrect username or password.",
 	"auto_grade": "Auto grade",
+	"case_sensitive": "Case sensitive",
 	"avatar_updated": "Avatar updated",
 	"avatar_uploaded_successfully": "Your avatar was uploaded successfully.",
 	"back": "Back",
@@ -98,6 +99,7 @@
 	"edit_exam": "Edit exam",
 	"email": "Email",
 	"email_taken": "This email is already registered",
+	"ends_at": "Ends at (in your timezone)",
 	"error_load_failed": "Failed to load courses. Try again later.",
 	"error_login_prompt": "Please login to view courses.",
 	"exam": "Exam",
@@ -235,6 +237,7 @@
 	"start_course": "Open Course",
 	"start_exam": "Start attempt",
 	"started_at": "Started at",
+	"starts_at": "Starts at (in your timezone)",
 	"submit": "Submit",
 	"sync_solution": "Synchronize solution",
 	"synced_success": "Solution synchronized",
@@ -266,5 +269,9 @@
 	"welcome_back": "Welcome Back",
 	"yes": "Yes",
 	"zero_based_comma_separated": "0-based, comma separated",
-	"zero_based_do_not_add_one": "0-based, do not add +1"
+	"zero_based_do_not_add_one": "0-based, do not add +1",
+	"timespan_error_title": "Exam is not available now",
+	"timespan_error_between": "You can take this exam between {{starts}} and {{ends}}.",
+	"timespan_error_starts": "This exam will be available starting at {{starts}}.",
+	"timespan_error_ends": "This exam is no longer available. It ended at {{ends}}."
 }

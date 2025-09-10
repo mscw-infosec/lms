@@ -31,6 +31,10 @@ export interface UseAttemptResult {
 	flushNow: () => Promise<void>;
 	attemptsLeft?: number;
 	ranOut?: boolean;
+	// start attempt error surface
+	startErrorMsg?: string | null;
+	timespanError?: boolean;
+	clearStartError: () => void;
 }
 
 export function useAttempt(
@@ -89,6 +93,9 @@ export function useAttempt(
 		setTaskIndex(0);
 	}, [examId, tasks.length]);
 
+	const [startErrorMsg, setStartErrorMsg] = useState<string | null>(null);
+	const [timespanError, setTimespanError] = useState(false);
+
 	const startAttemptMutation = useMutation({
 		mutationFn: async () => {
 			if (!examId) throw new Error("no examId");
@@ -127,9 +134,15 @@ export function useAttempt(
 			});
 			await qc.invalidateQueries({ queryKey: ["exam", examId, "tasks"] });
 
-			toast({
-				description: msg ?? (t("failed_operation") || "Operation failed"),
-			});
+			const m = msg ?? (t("failed_operation") || "Operation failed");
+			const timespanMatch =
+				typeof m === "string" && /not in allowed timespan/i.test(m);
+			if (timespanMatch) {
+				setTimespanError(true);
+				setStartErrorMsg(m);
+				return;
+			}
+			toast({ description: m });
 		},
 	});
 
@@ -202,6 +215,11 @@ export function useAttempt(
 		startAttemptMutation.mutate();
 	}, [examId, startAttemptMutation]);
 
+	const clearStartError = useCallback(() => {
+		setStartErrorMsg(null);
+		setTimespanError(false);
+	}, []);
+
 	const stop = useCallback(() => {
 		if (!examId || stopAttemptMutation.isPending) return;
 		stopAttemptMutation.mutate();
@@ -242,6 +260,9 @@ export function useAttempt(
 			flushNow,
 			attemptsLeft: attemptsListQuery.data?.attempts_left,
 			ranOut: attemptsListQuery.data?.ran_out_of_attempts,
+			startErrorMsg,
+			timespanError,
+			clearStartError,
 		}),
 		[
 			attempt,
@@ -260,6 +281,9 @@ export function useAttempt(
 			flushNow,
 			attemptsListQuery.data?.attempts_left,
 			attemptsListQuery.data?.ran_out_of_attempts,
+			startErrorMsg,
+			timespanError,
+			clearStartError,
 		],
 	);
 }

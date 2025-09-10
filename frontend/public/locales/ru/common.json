@@ -30,6 +30,7 @@
 	"attribute_value": "Значение",
 	"auth_failed": "Ошибка аутентификации: неверный логин или пароль",
 	"auto_grade": "Автопроверка",
+	"case_sensitive": "Учитывать регистр",
 	"avatar_updated": "Аватар обновлён",
 	"avatar_uploaded_successfully": "Ваш аватар успешно загружен.",
 	"back": "Назад",
@@ -98,6 +99,7 @@
 	"edit_exam": "Редактировать экзамен",
 	"email": "Email",
 	"email_taken": "Этот email уже зарегистрирован",
+	"ends_at": "Заканчивается (в вашем часовом поясе)",
 	"error_load_failed": "Не удалось загрузить курсы. Попробуйте позже.",
 	"error_login_prompt": "Пожалуйста, войдите, чтобы просматривать курсы.",
 	"exam": "Экзамен",
@@ -235,6 +237,7 @@
 	"start_course": "Открыть курс",
 	"start_exam": "Начать попытку",
 	"started_at": "Начато",
+	"starts_at": "Начинается (в вашем часовом поясе)",
 	"submit": "Отправить",
 	"sync_solution": "Синхронизировать решение",
 	"synced_success": "Решение синхронизировано",
@@ -266,5 +269,9 @@
 	"welcome_back": "С возвращением",
 	"yes": "Да",
 	"zero_based_comma_separated": "От 0, через запятую",
-	"zero_based_do_not_add_one": "От 0, не прибавляйте +1"
+	"zero_based_do_not_add_one": "От 0, не прибавляйте +1",
+	"timespan_error_title": "Экзамен сейчас недоступен",
+	"timespan_error_between": "Пройти экзамен можно с {{starts}} до {{ends}}.",
+	"timespan_error_starts": "Экзамен будет доступен с {{starts}}.",
+	"timespan_error_ends": "Экзамен больше недоступен. Он завершился {{ends}}."
 }

@@ -1141,7 +1141,7 @@
 						"description": "Exam not found"
 					},
 					"409": {
-						"description": "User can't start new attempt due to limits or another active attempt"
+						"description": "User can't start new attempt due to limits or another active attempt or due to exam starts_at/ends_at timespan"
 					}
 				},
 				"security": [
@@ -2049,12 +2049,20 @@
 						"type": "integer",
 						"format": "int32"
 					},
+					"ends_at": {
+						"type": ["string", "null"],
+						"format": "date-time"
+					},
 					"id": {
 						"type": "string",
 						"format": "uuid"
 					},
 					"name": {
 						"type": "string"
+					},
+					"starts_at": {
+						"type": ["string", "null"],
+						"format": "date-time"
 					},
 					"topic_id": {
 						"type": "integer",
@@ -2616,7 +2624,13 @@
 					},
 					{
 						"type": "object",
-						"required": ["auto_grade", "max_chars_count", "answers", "name"],
+						"required": [
+							"auto_grade",
+							"max_chars_count",
+							"case_sensitive",
+							"answers",
+							"name"
+						],
 						"properties": {
 							"answers": {
 								"type": "array",
@@ -2625,6 +2639,9 @@
 								}
 							},
 							"auto_grade": {
+								"type": "boolean"
+							},
+							"case_sensitive": {
 								"type": "boolean"
 							},
 							"max_chars_count": {
@@ -2927,8 +2944,16 @@
 						"type": "integer",
 						"format": "int32"
 					},
+					"ends_at": {
+						"type": ["string", "null"],
+						"format": "date-time"
+					},
 					"name": {
 						"type": "string"
+					},
+					"starts_at": {
+						"type": ["string", "null"],
+						"format": "date-time"
 					},
 					"topic_id": {
 						"type": "integer",

@@ -107,6 +107,9 @@ export default function LearnPage() {
 		refresh,
 		attemptsLeft,
 		ranOut,
+		startErrorMsg,
+		timespanError,
+		clearStartError,
 	} = useAttempt(selectedExam?.id ?? null, isStaff, selectedExam?.tries_count);
 
 	const unlimitedAttempts = (selectedExam?.tries_count ?? -1) === 0;
@@ -151,14 +154,23 @@ export default function LearnPage() {
 			try {
 				const started = new Date(attempt.started_at).getTime();
 				// duration is stored in seconds; convert to milliseconds
-				const endAt = started + Number(selectedExam.duration) * 1_000;
+				const attemptEndAt = started + Number(selectedExam.duration) * 1_000;
+				const examEndsAt = selectedExam?.ends_at
+					? new Date(selectedExam.ends_at).getTime()
+					: Number.POSITIVE_INFINITY;
+				const endAt = Math.min(attemptEndAt, examEndsAt);
 				const secs = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
 				return secs;
 			} catch {
 				return null;
 			}
 		};
-	}, [attempt?.active, attempt?.started_at, selectedExam?.duration]);
+	}, [
+		attempt?.active,
+		attempt?.started_at,
+		selectedExam?.duration,
+		selectedExam?.ends_at,
+	]);
 
 	useEffect(() => {
 		finishTriggeredRef.current = false;
@@ -1464,6 +1476,22 @@ export default function LearnPage() {
 												<Markdown content={selectedExam.description} />
 											</div>
 										) : null}
+										{selectedExam.starts_at || selectedExam.ends_at ? (
+											<div className="mt-2 space-y-1 text-slate-400 text-sm">
+												{selectedExam.starts_at ? (
+													<div>
+														{`${t("starts_at") ?? "Starts at"}: `}
+														{new Date(selectedExam.starts_at).toLocaleString()}
+													</div>
+												) : null}
+												{selectedExam.ends_at ? (
+													<div>
+														{`${t("ends_at") ?? "Ends at"}: `}
+														{new Date(selectedExam.ends_at).toLocaleString()}
+													</div>
+												) : null}
+											</div>
+										) : null}
 									</div>
 									<div className="my-3 h-px bg-slate-800" />
 									<div className="text-slate-400 text-sm">
@@ -1516,6 +1544,22 @@ export default function LearnPage() {
 												content={selectedExam.description}
 												className="markdown-body mt-1 max-w-none text-slate-300 text-sm"
 											/>
+										) : null}
+										{selectedExam.starts_at || selectedExam.ends_at ? (
+											<div className="mt-2 space-y-1 text-slate-400 text-sm">
+												{selectedExam.starts_at ? (
+													<div>
+														{`${t("starts_at") ?? "Starts at"}: `}
+														{new Date(selectedExam.starts_at).toLocaleString()}
+													</div>
+												) : null}
+												{selectedExam.ends_at ? (
+													<div>
+														{`${t("ends_at") ?? "Ends at"}: `}
+														{new Date(selectedExam.ends_at).toLocaleString()}
+													</div>
+												) : null}
+											</div>
 										) : null}
 										<div className="my-3 h-px bg-slate-800" />
 									</div>
@@ -1819,6 +1863,56 @@ export default function LearnPage() {
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />
 			) : null}
+
+			{/* Timespan error dialog */}
+			<AlertDialog
+				open={!!timespanError}
+				onOpenChange={(v) => {
+					if (!v) clearStartError();
+				}}
+			>
+				<AlertDialogContent className="border-slate-800 bg-slate-900 text-slate-200">
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("timespan_error_title") || "Exam is not available now"}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{(() => {
+								const s = selectedExam?.starts_at
+									? new Date(selectedExam.starts_at).toLocaleString()
+									: null;
+								const e = selectedExam?.ends_at
+									? new Date(selectedExam.ends_at).toLocaleString()
+									: null;
+								if (s && e)
+									return (
+										t("timespan_error_between", { starts: s, ends: e }) ||
+										`You can take this exam between ${s} and ${e}.`
+									);
+								if (s)
+									return (
+										t("timespan_error_starts", { starts: s }) ||
+										`This exam will be available starting at ${s}.`
+									);
+								if (e)
+									return (
+										t("timespan_error_ends", { ends: e }) ||
+										`This exam is no longer available. It ended at ${e}.`
+									);
+								return (
+									startErrorMsg ||
+									"You've sent your request not in allowed timespan."
+								);
+							})()}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogAction onClick={clearStartError}>
+							{t("close") || "Close"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			<AlertDialog open={ctfdModalOpen} onOpenChange={setCtfdModalOpen}>
 				<AlertDialogContent className="border-slate-800 bg-slate-900 text-slate-200">

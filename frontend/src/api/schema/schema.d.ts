@@ -759,9 +759,13 @@ export interface components {
             description?: string | null;
             /** Format: int32 */
             duration: number;
+            /** Format: date-time */
+            ends_at?: string | null;
             /** Format: uuid */
             id: string;
             name: string;
+            /** Format: date-time */
+            starts_at?: string | null;
             /** Format: int32 */
             topic_id: number;
             /** Format: int32 */
@@ -937,6 +941,7 @@ export interface components {
         } | {
             answers: string[];
             auto_grade: boolean;
+            case_sensitive: boolean;
             max_chars_count: number;
             /** @enum {string} */
             name: "short_text";
@@ -1056,7 +1061,11 @@ export interface components {
             description?: string | null;
             /** Format: int32 */
             duration: number;
+            /** Format: date-time */
+            ends_at?: string | null;
             name: string;
+            /** Format: date-time */
+            starts_at?: string | null;
             /** Format: int32 */
             topic_id: number;
             /** Format: int32 */
@@ -2123,7 +2132,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description User can't start new attempt due to limits or another active attempt */
+            /** @description User can't start new attempt due to limits or another active attempt or due to exam starts_at/ends_at timespan */
             409: {
                 headers: {
                     [name: string]: unknown;

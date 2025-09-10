@@ -60,6 +60,9 @@ export default function CreateTaskDialog({
 
 	const [stAnswers, setStAnswers] = useState<string>("");
 	const [stAuto, setStAuto] = useState<"true" | "false">("true");
+	const [stCaseSensitive, setStCaseSensitive] = useState<"true" | "false">(
+		"false",
+	);
 	const [stMaxChars, setStMaxChars] = useState<number>(256);
 
 	const [ltMaxChars, setLtMaxChars] = useState<number>(2000);
@@ -170,6 +173,7 @@ export default function CreateTaskDialog({
 						name: "short_text",
 						answers,
 						auto_grade: stAuto === "true",
+						case_sensitive: stCaseSensitive === "true",
 						max_chars_count: stMaxChars,
 					};
 					break;
@@ -247,6 +251,7 @@ export default function CreateTaskDialog({
 			setMcShuffle("true");
 			setStAnswers("");
 			setStAuto("true");
+			setStCaseSensitive("false");
 			setStMaxChars(256);
 			setLtMaxChars(2000);
 			setOrdItems("");
@@ -477,7 +482,7 @@ export default function CreateTaskDialog({
 								className="mt-1 border-slate-700 bg-slate-800 text-white"
 								rows={4}
 							/>
-							<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+							<div className="grid grid-cols-1 gap-3 md:grid-cols-3">
 								<div>
 									<Label className="text-slate-300">
 										{t("auto_grade") || "Auto grade"}
@@ -485,6 +490,25 @@ export default function CreateTaskDialog({
 									<Select
 										value={stAuto}
 										onValueChange={(v: "true" | "false") => setStAuto(v)}
+									>
+										<SelectTrigger className="mt-1 border-slate-700 bg-slate-800 text-white">
+											<SelectValue placeholder={t("select") || "Select"} />
+										</SelectTrigger>
+										<SelectContent className="border-slate-700 bg-slate-900 text-white">
+											<SelectItem value="true">{t("yes") || "Yes"}</SelectItem>
+											<SelectItem value="false">{t("no") || "No"}</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div>
+									<Label className="text-slate-300">
+										{t("case_sensitive") || "Case sensitive"}
+									</Label>
+									<Select
+										value={stCaseSensitive}
+										onValueChange={(v: "true" | "false") =>
+											setStCaseSensitive(v)
+										}
 									>
 										<SelectTrigger className="mt-1 border-slate-700 bg-slate-800 text-white">
 											<SelectValue placeholder={t("select") || "Select"} />
