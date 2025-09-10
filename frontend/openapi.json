@@ -86,6 +86,60 @@
 				]
 			}
 		},
+		"/account/list": {
+			"get": {
+				"tags": ["Account"],
+				"summary": "List accounts with public data and attributes (admin only)",
+				"description": "List all accounts. Limit <= 20.",
+				"operationId": "list_accounts",
+				"parameters": [
+					{
+						"name": "limit",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got accounts list",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/PublicAccountDTO"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "Only admins can list accounts"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/account/{user_email}/ctfd-data": {
 			"get": {
 				"tags": ["Account"],
@@ -249,6 +303,60 @@
 					},
 					"404": {
 						"description": "No attribute found with that key"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/account/{user_id}/role": {
+			"patch": {
+				"tags": ["Account"],
+				"summary": "Update a user's role (admin only)",
+				"operationId": "update_user_role",
+				"parameters": [
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateUserRoleDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully updated user role",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/GetUserResponseDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "Only admins can manage user roles"
+					},
+					"404": {
+						"description": "No user found with that ID"
 					}
 				},
 				"security": [
@@ -2091,6 +2199,28 @@
 					"type": "string"
 				}
 			},
+			"PublicAccountDTO": {
+				"type": "object",
+				"required": ["id", "username", "email", "role", "attributes"],
+				"properties": {
+					"attributes": {
+						"$ref": "#/components/schemas/HashMap"
+					},
+					"email": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"role": {
+						"$ref": "#/components/schemas/UserRole"
+					},
+					"username": {
+						"type": "string"
+					}
+				}
+			},
 			"PublicTaskConfig": {
 				"oneOf": [
 					{
@@ -2684,6 +2814,15 @@
 					},
 					"title": {
 						"type": "string"
+					}
+				}
+			},
+			"UpdateUserRoleDTO": {
+				"type": "object",
+				"required": ["role"],
+				"properties": {
+					"role": {
+						"$ref": "#/components/schemas/UserRole"
 					}
 				}
 			},

@@ -6,6 +6,7 @@ import "katex/dist/katex.min.css";
 import AuthRerenderBoundary from "@/components/auth-rerender-boundary";
 import { I18nProvider } from "@/components/i18n-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { Toaster } from "@/components/ui/toaster";
 import { UserProvider } from "@/store/user";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ html {
 					<QueryProvider>
 						<UserProvider>
 							<AuthRerenderBoundary>{children}</AuthRerenderBoundary>
+							<Toaster />
 						</UserProvider>
 					</QueryProvider>
 				</I18nProvider>

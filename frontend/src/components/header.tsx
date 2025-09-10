@@ -1,6 +1,5 @@
 "use client";
 
-import type { GetUserResponseDTO } from "@/api/auth";
 import { logoutAllSessions } from "@/api/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
-import { KeyRound, ListChecks, Shield } from "lucide-react";
+import { KeyRound, ListChecks, Shield, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -48,6 +47,19 @@ export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 				</Link>
 
 				<div className="flex items-center space-x-3">
+					{user && user.role === "Admin" ? (
+						<Link href="/admin/users">
+							<Button
+								variant="outline"
+								size="sm"
+								className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
+								title={t("user_management") ?? "User management"}
+							>
+								<Users className="h-4 w-4 sm:mr-2" />
+								<span className="hidden sm:inline">{t("user_management")}</span>
+							</Button>
+						</Link>
+					) : null}
 					{user && (user.role === "Teacher" || user.role === "Admin") ? (
 						<Link href="/tasks">
 							<Button

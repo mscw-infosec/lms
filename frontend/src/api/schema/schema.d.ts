@@ -55,6 +55,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List accounts with public data and attributes (admin only)
+         * @description List all accounts. Limit <= 20.
+         */
+        get: operations["list_accounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/{user_email}/ctfd-data": {
         parameters: {
             query?: never;
@@ -105,6 +125,23 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/account/{user_id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a user's role (admin only) */
+        patch: operations["update_user_role"];
         trace?: never;
     };
     "/auth/logout-all": {
@@ -774,6 +811,14 @@ export interface components {
         HashMap: {
             [key: string]: string;
         };
+        PublicAccountDTO: {
+            attributes: components["schemas"]["HashMap"];
+            email: string;
+            /** Format: uuid */
+            id: string;
+            role: components["schemas"]["UserRole"];
+            username: string;
+        };
         PublicTaskConfig: {
             /** @enum {string} */
             name: "single_choice";
@@ -952,6 +997,9 @@ export interface components {
             order_index: number;
             title: string;
         };
+        UpdateUserRoleDTO: {
+            role: components["schemas"]["UserRole"];
+        };
         /** @example {
          *       "access_filter": {
          *         "content": [
@@ -1099,6 +1147,43 @@ export interface operations {
             };
         };
     };
+    list_accounts: {
+        parameters: {
+            query: {
+                limit: number;
+                offset: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully got accounts list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAccountDTO"][];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can list accounts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_user_ctfd_data: {
         parameters: {
             query?: never;
@@ -1235,6 +1320,53 @@ export interface operations {
                 content?: never;
             };
             /** @description No attribute found with that key */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_user_role: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserRoleDTO"];
+            };
+        };
+        responses: {
+            /** @description Successfully updated user role */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserResponseDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can manage user roles */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No user found with that ID */
             404: {
                 headers: {
                     [name: string]: unknown;
