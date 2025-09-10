@@ -101,6 +101,7 @@ export default function EditTaskDialog({
 			items?: unknown;
 			max_size?: unknown;
 			task_id?: unknown;
+			case_sensitive?: unknown;
 		};
 		const cfg = task.configuration as unknown as LooseCfg;
 		switch (task.task_type) {
