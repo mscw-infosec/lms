@@ -125,4 +125,8 @@ impl AccountService {
         }
         Ok(false)
     }
+
+    pub async fn list_accounts(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
+        self.db_repo.list_users(limit, offset).await
+    }
 }
