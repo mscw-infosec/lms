@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id, title, description, created_at,\n                       access_filter as \"access_filter: AttributeFilter\"\n                FROM courses\n                ORDER BY created_at DESC\n            ",
+  "query": "\n                SELECT id, title, description, created_at,\n                       NULLIF(access_filter, 'null'::jsonb) as \"access_filter: AttributeFilter\"\n                FROM courses\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -30,15 +30,17 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Int4"
+      ]
     },
     "nullable": [
       false,
       false,
       true,
       false,
-      true
+      null
     ]
   },
-  "hash": "2d3a278d1cc21ca75c23b5f3aaaedc310662e6e97390bfe023f88bae60a7e137"
+  "hash": "c3c7e8b9d16e65fbdc8163999199f6b13277bf84c5c06d1aeeccbfb902f6bee1"
 }

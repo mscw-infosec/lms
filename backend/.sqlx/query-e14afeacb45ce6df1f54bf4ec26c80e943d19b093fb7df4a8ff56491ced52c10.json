@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id, title, description, created_at,\n                       access_filter as \"access_filter: AttributeFilter\"\n                FROM courses\n                WHERE id = $1\n            ",
+  "query": "\n                UPDATE courses\n                SET title = $1, description = $2, access_filter = $3\n                WHERE id = $4\n                RETURNING id, title, description, created_at,\n                          NULLIF(access_filter, 'null'::jsonb) as \"access_filter: AttributeFilter\"\n            ",
   "describe": {
     "columns": [
       {
@@ -31,6 +31,9 @@
     ],
     "parameters": {
       "Left": [
+        "Varchar",
+        "Varchar",
+        "Jsonb",
         "Int4"
       ]
     },
@@ -39,8 +42,8 @@
       false,
       true,
       false,
-      true
+      null
     ]
   },
-  "hash": "f86cd9918a0a306ce3c132dd7caf3c3ca704cc61d130fa636c545a31afeb91cc"
+  "hash": "e14afeacb45ce6df1f54bf4ec26c80e943d19b093fb7df4a8ff56491ced52c10"
 }
