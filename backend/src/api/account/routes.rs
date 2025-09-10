@@ -2,9 +2,11 @@ use crate::dto::account::{CtfdAccountData, CtfdToken};
 use crate::{
     api::account::AccountState,
     domain::account::model::{Attributes, UserModel, UserRole},
-    dto::account::{AvatarUploadResponse, CtfdStatus, GetUserResponseDTO},
+    dto::account::{AvatarUploadResponse, CtfdStatus, GetUserResponseDTO, PublicAccountDTO},
+    dto::task::LimitOffsetDTO,
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
+    utils::ValidatedQuery,
 };
 use axum::{
     Json,
@@ -202,4 +204,40 @@ pub async fn check_ctfd(
     Ok(Json(CtfdStatus {
         status: state.account_service.get_ctfd(user.email).await?,
     }))
+}
+
+/// List accounts with public data and attributes (admin only)
+#[utoipa::path(
+    get,
+    tag = "Account",
+    path = "/list",
+    description = "List all accounts. Limit <= 20.",
+    params(
+        ("limit" = i32, Query),
+        ("offset" = i32, Query)
+    ),
+    responses(
+        (status = 200, description = "Successfully got accounts list", body = [PublicAccountDTO]),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "Only admins can list accounts")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn list_accounts(
+    AccessTokenClaim { role, .. }: AccessTokenClaim,
+    State(state): State<AccountState>,
+    ValidatedQuery(query): ValidatedQuery<LimitOffsetDTO>,
+) -> Result<Json<Vec<PublicAccountDTO>>, LMSError> {
+    if role != UserRole::Admin {
+        return Err(LMSError::Forbidden("Only admins can list accounts".into()));
+    }
+
+    let users = state
+        .account_service
+        .list_accounts(query.limit, query.offset)
+        .await?;
+
+    Ok(Json(users.into_iter().map(Into::into).collect()))
 }

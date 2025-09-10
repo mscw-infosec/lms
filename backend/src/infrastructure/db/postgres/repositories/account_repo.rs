@@ -171,4 +171,64 @@ impl AccountRepository for RepositoryPostgres {
 
         Ok(tasks)
     }
+
+    async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
+        let mut tx = self.pool.begin().await?;
+
+        let mut users = sqlx::query!(
+            r#"
+                SELECT u.id, u.username, u.email, u.created_at,
+                       u.role as "role: UserRole", ac.password_hash as password
+                FROM users u
+                LEFT JOIN auth_credentials ac ON ac.user_id = u.id
+                ORDER BY u.created_at DESC
+                LIMIT $1 OFFSET $2
+            "#,
+            i64::from(limit),
+            i64::from(offset)
+        )
+        .fetch_all(tx.as_mut())
+        .await?
+        .into_iter()
+        .map(|x| UserModel {
+            id: x.id,
+            username: x.username,
+            email: x.email,
+            role: x.role,
+            password: x.password,
+            attributes: Attributes::default(),
+            created_at: x.created_at,
+        })
+        .collect::<Vec<UserModel>>();
+
+        let ids: Vec<Uuid> = users.iter().map(|u| u.id).collect();
+        if !ids.is_empty() {
+            let rows = sqlx::query!(
+                r#"
+                    SELECT user_id, key, value
+                    FROM attributes
+                    WHERE user_id = ANY($1)
+                "#,
+                &ids
+            )
+            .fetch_all(tx.as_mut())
+            .await?;
+
+            let mut attr_map: HashMap<Uuid, HashMap<String, String>> = HashMap::new();
+            for row in rows {
+                if let Some(uid) = row.user_id {
+                    attr_map.entry(uid).or_default().insert(row.key, row.value);
+                }
+            }
+
+            for user in &mut users {
+                if let Some(attrs) = attr_map.remove(&user.id) {
+                    user.attributes = attrs;
+                }
+            }
+        }
+
+        tx.commit().await?;
+        Ok(users)
+    }
 }

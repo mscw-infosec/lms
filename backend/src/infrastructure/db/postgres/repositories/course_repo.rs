@@ -99,7 +99,7 @@ impl CourseRepository for RepositoryPostgres {
                 SET title = $1, description = $2, access_filter = $3
                 WHERE id = $4
                 RETURNING id, title, description, created_at,
-                          access_filter as "access_filter: AttributeFilter"
+                          NULLIF(access_filter, 'null'::jsonb) as "access_filter: AttributeFilter"
             "#,
             course.name,
             course.description,
@@ -166,7 +166,7 @@ impl CourseRepository for RepositoryPostgres {
             CourseModel,
             r#"
                 SELECT id, title, description, created_at,
-                       access_filter as "access_filter: AttributeFilter"
+                       NULLIF(access_filter, 'null'::jsonb) as "access_filter: AttributeFilter"
                 FROM courses
                 ORDER BY created_at DESC
             "#
@@ -182,7 +182,7 @@ impl CourseRepository for RepositoryPostgres {
             CourseModel,
             r#"
                 SELECT id, title, description, created_at,
-                       access_filter as "access_filter: AttributeFilter"
+                       NULLIF(access_filter, 'null'::jsonb) as "access_filter: AttributeFilter"
                 FROM courses
                 WHERE id = $1
             "#,

@@ -74,13 +74,6 @@ impl TaskService {
         task_id: i32,
         mut task_data: UpsertTaskRequestDTO,
     ) -> Result<Task> {
-        if !self.repo.get_exams(task_id).await?.is_empty() {
-            // I'm not sure how messy things can get if user would edit task answers so
-            // that there will be attempts with non-existent answers in database
-            return Err(LMSError::Conflict(
-                "You should remove this task from all the exams before editing it".to_string(),
-            ));
-        }
         if let TaskConfig::CTFd { task_id } = task_data.configuration {
             let ctfd_task = self.get_ctfd_task_data(task_id).await?;
             if !ctfd_task.success {

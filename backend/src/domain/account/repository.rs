@@ -14,6 +14,7 @@ pub trait AccountRepository {
     async fn get_user_by_email(&self, email: String) -> Result<Option<UserModel>>;
     async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes>;
     async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>>;
+    async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>>;
 }
 
 #[impl_unimplemented(DummyRepository)]

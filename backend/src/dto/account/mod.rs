@@ -15,6 +15,15 @@ pub struct GetUserResponseDTO {
     pub role: UserRole,
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct PublicAccountDTO {
+    pub id: Uuid,
+    pub username: String,
+    pub email: String,
+    pub role: UserRole,
+    pub attributes: Attributes,
+}
+
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct CtfdStatus {
     pub status: bool,
@@ -27,6 +36,18 @@ impl From<UserModel> for GetUserResponseDTO {
             username: value.username,
             email: value.email,
             role: value.role,
+        }
+    }
+}
+
+impl From<UserModel> for PublicAccountDTO {
+    fn from(value: UserModel) -> Self {
+        Self {
+            id: value.id,
+            username: value.username,
+            email: value.email,
+            role: value.role,
+            attributes: value.attributes,
         }
     }
 }

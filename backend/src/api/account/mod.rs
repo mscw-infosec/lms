@@ -43,5 +43,6 @@ pub fn configure(
         .routes(routes!(upload_avatar))
         .routes(routes!(check_ctfd))
         .routes(routes!(get_user_ctfd_data))
+        .routes(routes!(list_accounts))
         .with_state(state)
 }
