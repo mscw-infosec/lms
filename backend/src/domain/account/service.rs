@@ -9,7 +9,7 @@ use crate::domain::task::model::CtfdUsersReponse;
 use crate::utils::send_and_parse;
 use crate::{
     domain::account::{
-        model::UserModel,
+        model::{UserModel, UserRole},
         repository::{AccountCacheRepository, AccountRepository},
     },
     errors::{LMSError, Result},
@@ -128,5 +128,17 @@ impl AccountService {
 
     pub async fn list_accounts(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
         self.db_repo.list_users(limit, offset).await
+    }
+
+    pub async fn set_user_role(&self, id: Uuid, role: UserRole) -> Result<UserModel> {
+        self.db_repo.update_user_role(id, role).await?;
+        // Fetch from DB to get fresh data and then refresh cache
+        let user = self
+            .db_repo
+            .get_user_by_id(id)
+            .await?
+            .ok_or_else(|| LMSError::NotFound("No user was found with that id.".to_string()))?;
+        self.cache_repo.store_user(&user).await?;
+        Ok(user)
     }
 }

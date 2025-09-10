@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE users\n                SET role = $1\n                WHERE id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "userrole",
+            "kind": {
+              "Enum": [
+                "Student",
+                "Teacher",
+                "Admin"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1975eae5e69b70c35a51a5f4b034692167bb1b1a227db76855d728e2d0e00eda"
+}

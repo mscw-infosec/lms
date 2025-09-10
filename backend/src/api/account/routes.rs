@@ -2,7 +2,9 @@ use crate::dto::account::{CtfdAccountData, CtfdToken};
 use crate::{
     api::account::AccountState,
     domain::account::model::{Attributes, UserModel, UserRole},
-    dto::account::{AvatarUploadResponse, CtfdStatus, GetUserResponseDTO, PublicAccountDTO},
+    dto::account::{
+        AvatarUploadResponse, CtfdStatus, GetUserResponseDTO, PublicAccountDTO, UpdateUserRoleDTO,
+    },
     dto::task::LimitOffsetDTO,
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
@@ -163,6 +165,45 @@ pub async fn delete_user_attribute(
         .await?;
 
     Ok(())
+}
+
+/// Update a user's role (admin only)
+#[utoipa::path(
+    patch,
+    path = "/{user_id}/role",
+    tag = "Account",
+    params(
+        ("user_id" = Uuid, Path)
+    ),
+    request_body = UpdateUserRoleDTO,
+    responses(
+        (status = 200, body = GetUserResponseDTO, description = "Successfully updated user role"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "Only admins can manage user roles"),
+        (status = 404, description = "No user found with that ID")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn update_user_role(
+    AccessTokenClaim { role, .. }: AccessTokenClaim,
+    Path(user_id): Path<Uuid>,
+    State(state): State<AccountState>,
+    Json(payload): Json<UpdateUserRoleDTO>,
+) -> Result<Json<GetUserResponseDTO>, LMSError> {
+    if role != UserRole::Admin {
+        return Err(LMSError::Forbidden(
+            "Only admins can manage user roles".into(),
+        ));
+    }
+
+    let user = state
+        .account_service
+        .set_user_role(user_id, payload.role)
+        .await?;
+
+    Ok(Json(user.into()))
 }
 
 /// Generate presigned url to upload avatar

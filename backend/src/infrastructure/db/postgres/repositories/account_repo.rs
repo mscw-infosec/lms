@@ -172,6 +172,28 @@ impl AccountRepository for RepositoryPostgres {
         Ok(tasks)
     }
 
+    async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()> {
+        let result = sqlx::query!(
+            r#"
+                UPDATE users
+                SET role = $1
+                WHERE id = $2
+            "#,
+            role as UserRole,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(LMSError::NotFound(
+                "No user was found with that id.".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
     async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
         let mut tx = self.pool.begin().await?;
 

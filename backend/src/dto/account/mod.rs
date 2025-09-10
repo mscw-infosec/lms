@@ -7,6 +7,11 @@ use uuid::Uuid;
 
 use crate::domain::account::model::{Attributes, UserModel, UserRole};
 
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct UpdateUserRoleDTO {
+    pub role: UserRole,
+}
+
 #[derive(Serialize, ToSchema)]
 pub struct GetUserResponseDTO {
     pub id: Uuid,
