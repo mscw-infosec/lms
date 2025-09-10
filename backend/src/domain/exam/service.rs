@@ -332,6 +332,7 @@ impl ExamService {
                     TaskConfig::ShortText {
                         answers,
                         auto_grade,
+                        case_sensitive,
                         ..
                     },
                 ) => {
@@ -339,25 +340,44 @@ impl ExamService {
                         scoring_data.results.insert(task_id, TaskVerdict::OnReview);
                         continue;
                     }
-                    if answers.contains(&answer) {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::FullScore {
-                                comment: None,
-                                score: task.points as f64,
-                                max_score: task.points as f64,
-                            },
-                        );
+                    if *case_sensitive {
+                        if answers.contains(&answer) {
+                            scoring_data.results.insert(
+                                task_id,
+                                TaskVerdict::FullScore {
+                                    comment: None,
+                                    score: task.points as f64,
+                                    max_score: task.points as f64,
+                                },
+                            );
+                            continue;
+                        }
                     } else {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::Incorrect {
-                                comment: None,
-                                score: 0f64,
-                                max_score: task.points as f64,
-                            },
-                        );
+                        let answer = answer.to_lowercase();
+                        if answers
+                            .iter()
+                            .map(|x| x.to_lowercase())
+                            .any(|x| x == answer)
+                        {
+                            scoring_data.results.insert(
+                                task_id,
+                                TaskVerdict::FullScore {
+                                    comment: None,
+                                    score: task.points as f64,
+                                    max_score: task.points as f64,
+                                },
+                            );
+                            continue;
+                        }
                     }
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::Incorrect {
+                            comment: None,
+                            score: 0f64,
+                            max_score: task.points as f64,
+                        },
+                    );
                 }
 
                 (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {

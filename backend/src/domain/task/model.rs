@@ -75,6 +75,7 @@ pub enum TaskConfig {
     ShortText {
         auto_grade: bool,
         max_chars_count: usize,
+        case_sensitive: bool,
         answers: Vec<String>,
     },
     LongText {
@@ -148,6 +149,7 @@ impl TaskConfig {
                 auto_grade,
                 max_chars_count,
                 answers,
+                ..
             } => {
                 if *auto_grade && answers.is_empty() {
                     let mut error = ValidationError::new("empty_options");
