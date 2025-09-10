@@ -76,7 +76,10 @@ impl ExamService {
     ) -> Result<Vec<ExamAttempt>> {
         let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
         for attempt in &mut attempts {
-            if attempt.ends_at <= Utc::now() && attempt.scoring_data.results.is_empty() {
+            if attempt.ends_at <= Utc::now()
+                && attempt.scoring_data.results.is_empty()
+                && !attempt.answer_data.answers.is_empty()
+            {
                 let scoring = self.score_attempt(attempt.clone()).await?;
                 attempt.scoring_data = Json(scoring);
             }
@@ -86,7 +89,10 @@ impl ExamService {
 
     pub async fn get_user_last_attempt(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
         let mut attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
-        if attempt.ends_at <= Utc::now() && attempt.scoring_data.results.is_empty() {
+        if attempt.ends_at <= Utc::now()
+            && attempt.scoring_data.results.is_empty()
+            && !attempt.answer_data.answers.is_empty()
+        {
             let scoring = self.score_attempt(attempt.clone()).await?;
             attempt.scoring_data = Json(scoring);
         }

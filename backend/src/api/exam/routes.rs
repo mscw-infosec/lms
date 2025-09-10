@@ -418,6 +418,9 @@ pub async fn get_tasks(
                 } if *shuffle => {
                     options.shuffle(&mut rng());
                 }
+                TaskConfig::Ordering { items, .. } => {
+                    items.shuffle(&mut rng());
+                }
                 _ => {}
             }
             public_tasks.push(task.into());
