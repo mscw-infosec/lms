@@ -3,7 +3,7 @@ use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
 use super::model::UserModel;
-use crate::domain::account::model::Attributes;
+use crate::domain::account::model::{Attributes, UserRole};
 use crate::errors::Result;
 use crate::gen_openapi::DummyRepository;
 
@@ -15,6 +15,7 @@ pub trait AccountRepository {
     async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes>;
     async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>>;
     async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>>;
+    async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()>;
 }
 
 #[impl_unimplemented(DummyRepository)]
