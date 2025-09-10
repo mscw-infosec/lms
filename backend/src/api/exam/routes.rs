@@ -193,7 +193,7 @@ pub async fn update_exam_tasks(
         (status = 401, description = "No auth data found"),
         (status = 403, description = "User has no permission to update exam"),
         (status = 404, description = "Exam not found"),
-        (status = 409, description = "User can't start new attempt due to limits or another active attempt")
+        (status = 409, description = "User can't start new attempt due to limits or another active attempt or due to exam starts_at/ends_at timespan")
     ),
     security(
         ("BearerAuth" = [])

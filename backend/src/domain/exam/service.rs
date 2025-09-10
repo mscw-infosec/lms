@@ -94,6 +94,17 @@ impl ExamService {
     }
 
     pub async fn start_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+        let exam = self.get_exam(exam_id).await?;
+        if let Some(starts_at) = exam.starts_at
+            && starts_at > Utc::now()
+        {
+            return Err(LMSError::NotInTime("Exam hasn't started yet".to_string()));
+        }
+        if let Some(ends_at) = exam.ends_at
+            && ends_at <= Utc::now()
+        {
+            return Err(LMSError::NotInTime("Exam has ended".to_string()));
+        }
         self.repo.start_exam(exam_id, user_id).await
     }
 
@@ -321,6 +332,7 @@ impl ExamService {
                     TaskConfig::ShortText {
                         answers,
                         auto_grade,
+                        case_sensitive,
                         ..
                     },
                 ) => {
@@ -328,25 +340,44 @@ impl ExamService {
                         scoring_data.results.insert(task_id, TaskVerdict::OnReview);
                         continue;
                     }
-                    if answers.contains(&answer) {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::FullScore {
-                                comment: None,
-                                score: task.points as f64,
-                                max_score: task.points as f64,
-                            },
-                        );
+                    if *case_sensitive {
+                        if answers.contains(&answer) {
+                            scoring_data.results.insert(
+                                task_id,
+                                TaskVerdict::FullScore {
+                                    comment: None,
+                                    score: task.points as f64,
+                                    max_score: task.points as f64,
+                                },
+                            );
+                            continue;
+                        }
                     } else {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::Incorrect {
-                                comment: None,
-                                score: 0f64,
-                                max_score: task.points as f64,
-                            },
-                        );
+                        let answer = answer.to_lowercase();
+                        if answers
+                            .iter()
+                            .map(|x| x.to_lowercase())
+                            .any(|x| x == answer)
+                        {
+                            scoring_data.results.insert(
+                                task_id,
+                                TaskVerdict::FullScore {
+                                    comment: None,
+                                    score: task.points as f64,
+                                    max_score: task.points as f64,
+                                },
+                            );
+                            continue;
+                        }
                     }
+                    scoring_data.results.insert(
+                        task_id,
+                        TaskVerdict::Incorrect {
+                            comment: None,
+                            score: 0f64,
+                            max_score: task.points as f64,
+                        },
+                    );
                 }
 
                 (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {

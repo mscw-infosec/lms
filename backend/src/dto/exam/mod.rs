@@ -19,6 +19,8 @@ pub struct UpsertExamRequestDTO {
     pub tries_count: i32,
     pub duration: i32,
     pub r#type: ExamType,
+    pub starts_at: Option<DateTime<Utc>>,
+    pub ends_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, FromRow)]

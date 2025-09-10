@@ -1,0 +1,4 @@
+ALTER TABLE exams
+    DROP COLUMN IF EXISTS starts_at;
+ALTER TABLE exams
+    DROP COLUMN IF EXISTS ends_at;

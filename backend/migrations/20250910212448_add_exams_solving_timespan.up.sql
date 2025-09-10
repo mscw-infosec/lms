@@ -1,0 +1,4 @@
+ALTER TABLE exams
+    ADD COLUMN starts_at TIMESTAMPTZ;
+ALTER TABLE exams
+    ADD COLUMN ends_at TIMESTAMPTZ;
