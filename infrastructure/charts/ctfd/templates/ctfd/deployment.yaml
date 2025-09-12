@@ -15,10 +15,12 @@ spec:
     spec:
       initContainers:
         - name: copy-ssh
-          image: busybox:1.36
+          image: alpine:3.22.1
           command: ["/bin/sh", "-c"]
           args:
             - |
+              apk update
+              apk install openssh-client
               cp -aL /ssh-secret/* /ssh/ && \
               chmod 600 /ssh/*.key || true && \
               chmod 644 /ssh/*.pub || true && \
