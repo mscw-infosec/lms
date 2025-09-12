@@ -237,7 +237,7 @@
 	"start_course": "Open Course",
 	"start_exam": "Start attempt",
 	"started_at": "Started at",
-	"starts_at": "Starts at (in your timezone)",
+	"starts_at": "Starts at (in UTC+3)",
 	"submit": "Submit",
 	"sync_solution": "Synchronize solution",
 	"synced_success": "Solution synchronized",

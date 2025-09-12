@@ -1481,13 +1481,19 @@ export default function LearnPage() {
 												{selectedExam.starts_at ? (
 													<div>
 														{`${t("starts_at") ?? "Starts at"}: `}
-														{new Date(selectedExam.starts_at).toLocaleString()}
+														{new Date(selectedExam.starts_at).toLocaleString(
+															"ru-RU",
+															{ timeZone: "Europe/Moscow" },
+														)}
 													</div>
 												) : null}
 												{selectedExam.ends_at ? (
 													<div>
 														{`${t("ends_at") ?? "Ends at"}: `}
-														{new Date(selectedExam.ends_at).toLocaleString()}
+														{new Date(selectedExam.ends_at).toLocaleString(
+															"ru-RU",
+															{ timeZone: "Europe/Moscow" },
+														)}
 													</div>
 												) : null}
 											</div>
@@ -1550,13 +1556,19 @@ export default function LearnPage() {
 												{selectedExam.starts_at ? (
 													<div>
 														{`${t("starts_at") ?? "Starts at"}: `}
-														{new Date(selectedExam.starts_at).toLocaleString()}
+														{new Date(selectedExam.starts_at).toLocaleString(
+															"ru-RU",
+															{ timeZone: "Europe/Moscow" },
+														)}
 													</div>
 												) : null}
 												{selectedExam.ends_at ? (
 													<div>
 														{`${t("ends_at") ?? "Ends at"}: `}
-														{new Date(selectedExam.ends_at).toLocaleString()}
+														{new Date(selectedExam.ends_at).toLocaleString(
+															"ru-RU",
+															{ timeZone: "Europe/Moscow" },
+														)}
 													</div>
 												) : null}
 											</div>
