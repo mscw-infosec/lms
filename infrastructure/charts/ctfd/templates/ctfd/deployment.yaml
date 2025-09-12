@@ -24,7 +24,7 @@ spec:
               cp -aL /ssh-secret/* /ssh/ && \
               chmod 600 /ssh/*.key || true && \
               chmod 700 /ssh && \
-              ssh-keyscan -F /ssh/config ctfd-worker >> /ssh/.known_hosts && \
+              ssh-keyscan worker.ctfd.infosec.moscow >> /ssh/.known_hosts && \
               chown -R 1001:1001 /ssh
 
           volumeMounts:
