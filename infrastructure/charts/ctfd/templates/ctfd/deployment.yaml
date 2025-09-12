@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ctfd
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.ctfd.replicas }}
+  selector:
+    matchLabels:
+      app: ctfd
+
+  template:
+    metadata:
+      labels:
+        app: ctfd
+    spec:
+      containers:
+        - name: ctfd
+          image: cr.yandex/crpi7be6fcnum9d5jo38/ctfd:v4
+          envFrom:
+            - configMapRef:
+                name: ctfd
+            - secretRef:
+                name: ctfd
+            - secretRef:
+                name: ctfd-mariadb
+          volumeMounts:
+            - name: ssh
+              mountPath: /home/ctfd/.ssh
+              readOnly: true
+
+      volumes:
+        - name: ssh
+          secret:
+            secretName: ctfd-docker-worker

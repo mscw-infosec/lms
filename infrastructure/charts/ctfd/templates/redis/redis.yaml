@@ -1,0 +1,20 @@
+---
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: redis
+spec:
+  kubernetesConfig:
+    image: redis:4
+    imagePullPolicy: IfNotPresent
+  storage:
+    volumeClaimTemplate:
+      spec:
+        # storageClassName: standard
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000

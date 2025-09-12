@@ -1,0 +1,13 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: grant-ctfd
+  namespace: {{ .Release.Namespace }}
+spec:
+  mariaDbRef:
+    name: ctfd-mariadb
+  privileges:
+    - "ALL PRIVILEGES"
+  database: ctfd
+  table: "*"
+  username: ctfd
