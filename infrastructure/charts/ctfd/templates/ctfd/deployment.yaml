@@ -60,6 +60,10 @@ spec:
         - name: ssh
           emptyDir: {}
         - name: ctfd-tasks
-          hostPath: /mnt/ctfd-tasks
+          hostPath:
+            path: /mnt/ctfd-tasks
+            type: Directory
         - name: user-task-folders
-          hostPath: /mnt/user-dirs
+          hostPath:
+            path: /mnt/user-dirs
+            type: Directory
