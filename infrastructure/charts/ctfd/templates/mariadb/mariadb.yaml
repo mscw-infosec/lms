@@ -9,6 +9,11 @@ spec:
     key: root-password
     generate: true
 
+  maxScale:
+    enabled: true
+    auth:
+      generate: true
+
   image: docker.io/library/mariadb:10.11
   replicas: 1
   port: 3306

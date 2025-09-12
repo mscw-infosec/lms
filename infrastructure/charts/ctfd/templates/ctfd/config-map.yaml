@@ -9,7 +9,7 @@ data:
   WORKERS: "4"
   LMS_BASE_URL: https://lms.infosec.moscow/api
   REDIS_HOST: redis://redis:6379
-  DATABASE_HOST: ctfd-mariadb
+  DATABASE_HOST: ctfd-mariadb-maxscale
   DATABASE_PROTOCOL: mysql+pymysql
   DATABASE_PORT: "3306"
 
@@ -18,7 +18,6 @@ data:
   AWS_S3_REGION: ru-central1
 
   UPLOAD_PROVIDER: s3
-  UPLOAD_FOLDER: /uploads
   LOG_FOLDER: /var/log/CTFd
   ACCESS_LOG: /var/log/CTFd/access.log
   ERROR_LOG: /var/log/CTFd/error.log

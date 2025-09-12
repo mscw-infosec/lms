@@ -8,12 +8,31 @@ spec:
   selector:
     matchLabels:
       app: ctfd
-
   template:
     metadata:
       labels:
         app: ctfd
     spec:
+      initContainers:
+        - name: copy-ssh
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              cp -aL /ssh-secret/* /ssh/ && \
+              chmod 600 /ssh/*.key || true && \
+              chmod 644 /ssh/*.pub || true && \
+              chmod 700 /ssh && \
+              ssh-keyscan -F /ssh/config ctfd-worker >> /ssh/.known_hosts && \
+              chown -R 1001:1001 /ssh
+
+          volumeMounts:
+            - name: ssh-secret
+              mountPath: /ssh-secret
+              readOnly: true
+            - name: ssh
+              mountPath: /ssh
+
       containers:
         - name: ctfd
           image: cr.yandex/crpi7be6fcnum9d5jo38/ctfd:v6
@@ -27,9 +46,11 @@ spec:
           volumeMounts:
             - name: ssh
               mountPath: /home/ctfd/.ssh
-              readOnly: true
 
       volumes:
-        - name: ssh
+        - name: ssh-secret
           secret:
             secretName: ctfd-docker-worker
+        - name: ssh
+          emptyDir: {}
+
