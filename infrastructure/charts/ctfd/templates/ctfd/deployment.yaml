@@ -13,6 +13,7 @@ spec:
       labels:
         app: ctfd
     spec:
+      nodeName: cl1nsn5jic32dpnlnmsf-ovur
       initContainers:
         - name: copy-ssh
           image: alpine:3.22.1
