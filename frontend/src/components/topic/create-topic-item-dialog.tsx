@@ -90,7 +90,7 @@ export default function CreateTopicItemDialog({
 					? new Date(startsAtLocal).toISOString()
 					: undefined,
 				ends_at: endsAtLocal ? new Date(endsAtLocal).toISOString() : undefined,
-				duration: Number(examState.duration) * 60,
+				duration: Number(examState.duration),
 			}),
 		onSuccess: (res) => {
 			if (!res?.id) {
@@ -104,7 +104,7 @@ export default function CreateTopicItemDialog({
 				description: examState.description ?? undefined,
 				type: examState.type,
 				// Keep UI list consistent with backend (seconds)
-				duration: Number(examState.duration) * 60,
+				duration: Number(examState.duration),
 				tries_count: examState.tries_count,
 			});
 			setOpen(false);
