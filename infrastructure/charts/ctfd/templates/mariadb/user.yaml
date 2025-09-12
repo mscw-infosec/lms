@@ -4,6 +4,7 @@ metadata:
   name: ctfd
   namespace: {{ .Release.Namespace }}
 spec:
+  maxUserConnections: 50
   mariaDbRef:
     name: ctfd-mariadb
   passwordSecretKeyRef:
