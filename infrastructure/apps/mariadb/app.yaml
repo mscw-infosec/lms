@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mariadb
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.mariadb.com/mariadb-operator
+      chart: mariadb-operator-crds
+      targetRevision: 25.8.3
+      helm:
+        releaseName: mariadb-operator-crds
+
+    - repoURL: https://helm.mariadb.com/mariadb-operator
+      chart: mariadb-operator
+      targetRevision: 25.8.3
+      helm:
+        releaseName: mariadb-operator
+        valuesObject:
+          webhook:
+            cert:
+              certManager:
+                enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mariadb
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

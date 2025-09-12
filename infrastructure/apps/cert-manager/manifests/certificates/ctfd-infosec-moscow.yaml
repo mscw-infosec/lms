@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ctfd-infosec-moscow
+  namespace: ctfd
+spec:
+  secretName: tls-ctfd-infosec-moscow
+
+  commonName: ctfd.infosec.moscow
+  dnsNames:
+    - ctfd.infosec.moscow
+
+  duration: 2160h
+  renewBefore: 360h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io

@@ -1,0 +1,11 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: User
+metadata:
+  name: ctfd
+  namespace: {{ .Release.Namespace }}
+spec:
+  mariaDbRef:
+    name: ctfd-mariadb
+  passwordSecretKeyRef:
+    name: ctfd-mariadb
+    key: DATABASE_PASSWORD

@@ -1,0 +1,20 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: ctfd-mariadb
+  namespace: {{ .Release.Namespace }}
+spec:
+  rootPasswordSecretKeyRef:
+    name: mariadb
+    key: root-password
+    generate: true
+
+  image: docker.io/library/mariadb:10.11
+  replicas: 1
+  port: 3306
+
+  storage:
+    size: 1Gi
+
+  tls:
+    enabled: false
