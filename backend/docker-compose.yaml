@@ -19,6 +19,7 @@ services:
       retries: 5
 
   backend:
+    platform: linux/x86_64
     image: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend:latest
     ports:
       - 8000:8000
