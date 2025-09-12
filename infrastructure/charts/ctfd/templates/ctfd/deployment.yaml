@@ -48,6 +48,10 @@ spec:
           volumeMounts:
             - name: ssh
               mountPath: /home/ctfd/.ssh
+            - name: ctfd-tasks
+              mountPath: /opt/CTFd/CTFd/plugins/ctfd-owl/source/tasks
+            - name: user-task-folders
+              mountPath: /home/docker
 
       volumes:
         - name: ssh-secret
@@ -55,4 +59,7 @@ spec:
             secretName: ctfd-docker-worker
         - name: ssh
           emptyDir: {}
-
+        - name: ctfd-tasks
+          hostPath: /mnt/ctfd-tasks
+        - name: user-task-folders
+          hostPath: /mnt/user-dirs
