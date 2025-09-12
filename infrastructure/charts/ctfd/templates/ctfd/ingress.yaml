@@ -4,8 +4,26 @@ metadata:
   name: ctf-ingress
   namespace: {{ .Release.Namespace }}
   annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "4G"
+
+    # Timeouts
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+    # Buffers
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "4096k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "8182k"
+
+    # WebSocket / SSE for /events
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection '';
+
+    nginx.ingress.kubernetes.io/configuration-snippet: |
       chunked_transfer_encoding off;
       proxy_cache off;
       proxy_set_header Host $host;
