@@ -20,10 +20,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection '';
-
-    nginx.ingress.kubernetes.io/configuration-snippet: |
       chunked_transfer_encoding off;
       proxy_cache off;
       proxy_set_header Host $host;
