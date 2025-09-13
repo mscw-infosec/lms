@@ -12,10 +12,12 @@ spec:
       helm:
         releaseName: kube-prometheus-stack
         valuesObject:
-          additionalScrapeConfigsSecret:
-            enabled: true
-            name: additional-scrape-configs
-            key: prometheus-additional.yaml
+          prometheus:
+            prometheusSpec:
+              additionalScrapeConfigsSecret:
+                enabled: true
+                name: additional-scrape-configs
+                key: prometheus-additional.yaml
 
     - repoURL: git@github.com:mscw-infosec/lms.git
       targetRevision: HEAD
