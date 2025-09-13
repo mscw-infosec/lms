@@ -84,7 +84,42 @@ export function useAttempt(
 		);
 		return sorted[0] ?? null;
 	})();
-	const tasks = tasksQuery.data ?? [];
+	// Preserve stable initial order of tasks for the current exam to avoid reordering on refresh (e.g., after CTFd sync)
+	const initialOrderRef = useRef<Map<number, number> | null>(null);
+	// Reset baseline when exam changes
+	/* biome-ignore lint/correctness/useExhaustiveDependencies: We intentionally clear the baseline when exam changes */
+	useEffect(() => {
+		initialOrderRef.current = null;
+	}, [examId]);
+
+	const tasksRaw = tasksQuery.data ?? [];
+	const tasks = useMemo<PublicTaskDTO[]>(() => {
+		const list = tasksRaw ?? [];
+		list.sort((a, b) => {
+			return a.id - b.id;
+		});
+		if (list.length === 0) return list;
+		const base = initialOrderRef.current;
+		if (!base) {
+			const map = new Map<number, number>();
+			for (let i = 0; i < list.length; i++) {
+				const id = (list[i] as { id?: unknown }).id;
+				if (typeof id === "number") map.set(id, i);
+			}
+			initialOrderRef.current = map;
+			return list;
+		}
+		// Sort according to initial baseline, unknown tasks go to the end preserving relative order
+		const withIdx = list.map((t, i) => ({
+			t,
+			idx:
+				typeof (t as { id?: unknown }).id === "number"
+					? (base.get((t as { id: number }).id) ?? 1_000_000 + i)
+					: 1_000_000 + i,
+		}));
+		withIdx.sort((a, b) => a.idx - b.idx);
+		return withIdx.map((x) => x.t);
+	}, [tasksRaw]);
 	const isPreview = isStaff && (!attempt || !attempt.active);
 	const loading = attemptsListQuery.isLoading || tasksQuery.isLoading;
 
