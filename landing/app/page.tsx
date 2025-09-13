@@ -127,8 +127,7 @@ export default function InfoSecAnnualProgram() {
 
 						<div className="text-center py-8">
 							<Shield className="h-12 w-12 text-red-600 mx-auto mb-4" />
-							<p className="text-gray-600 mb-2">Скоро здесь будет вход в тестирующую систему</p>
-							<p className="text-sm text-gray-500">Пока его нет, вы можете подать заявку на участие в отборе в сборную.</p>
+							<p className="text-gray-600 mb-2">Для перехода в LMS нажмите на кнопку ниже</p>
 						</div>
 
 						<div className="flex gap-3">
@@ -136,7 +135,7 @@ export default function InfoSecAnnualProgram() {
 								Закрыть
 							</Button>
 							<Button className="flex-1 bg-red-600 hover:bg-red-700" asChild onClick={() => setIsLoginModalOpen(false)}>
-								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
+								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
 							</Button>
 						</div>
 					</div>
@@ -161,7 +160,7 @@ export default function InfoSecAnnualProgram() {
 									className="bg-red-600 hover:bg-red-700"
 									asChild
 								>
-									<a href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Поступить в набор осени 2025</a>
+									<a href="https://lms.infosec.moscow">Открыть LMS</a>
 								</Button>
 								<Button variant="outline" size="lg" asChild>
 									<a href="#timeline">Даты и сроки</a>
@@ -555,7 +554,7 @@ export default function InfoSecAnnualProgram() {
 							className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
 						>
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
+								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild onClick={() => setIsLoginModalOpen(true)}>
 								<Link href="#">Уже подали? Входите!</Link>
@@ -651,7 +650,7 @@ export default function InfoSecAnnualProgram() {
 						</h2>
 						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://forms.yandex.ru/u/68af6097f47e730c4327d3a3">Подать заявку</Link>
+								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
 							</Button>
 							<Button variant="outline" size="lg" asChild>
 								<Link href="#curriculum">Программа</Link>
