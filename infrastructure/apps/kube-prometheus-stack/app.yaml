@@ -25,12 +25,6 @@ spec:
                   scrape_interval: 30s
                   scrape_timeout: 10s
 
-    - repoURL: git@github.com:mscw-infosec/lms.git
-      targetRevision: HEAD
-      path: infrastructure/apps/kube-prometheus-stack/manifests
-      directory:
-        recurse: true
-
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
