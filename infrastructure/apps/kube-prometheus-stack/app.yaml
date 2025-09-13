@@ -14,10 +14,16 @@ spec:
         valuesObject:
           prometheus:
             prometheusSpec:
-              additionalScrapeConfigsSecret:
-                enabled: true
-                name: additional-scrape-configs
-                key: prometheus-additional.yaml
+              additionalScrapeConfigs:
+                - job_name: "external-node-exporter"
+                  static_configs:
+                    - targets: ["94.126.204.151:9100"]
+                      labels:
+                        cluster: "external-nodes"
+                  scheme: http
+                  metrics_path: /metrics
+                  scrape_interval: 30s
+                  scrape_timeout: 10s
 
     - repoURL: git@github.com:mscw-infosec/lms.git
       targetRevision: HEAD
