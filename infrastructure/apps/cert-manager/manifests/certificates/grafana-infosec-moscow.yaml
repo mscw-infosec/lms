@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-infosec-moscow
+  namespace: monitoring
+spec:
+  secretName: tls-grafana-infosec-moscow
+
+  commonName: grafana.infosec.moscow
+  dnsNames:
+    - grafana.infosec.moscow
+
+  duration: 2160h
+  renewBefore: 360h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io
