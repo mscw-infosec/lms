@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM predefined_attributes\n                WHERE email = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6c44885787d1de08c3df733e4a4f9e3d1517ebea7c992ec866705328ad98e326"
+}
