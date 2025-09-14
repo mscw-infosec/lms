@@ -34,7 +34,7 @@ pub async fn get_user(
 ) -> Result<Json<GetUserResponseDTO>, LMSError> {
     state
         .account_service
-        .assign_predefined_attributes(user.id, user.email.clone())
+        .assign_predefined_attributes(user.id, user.email.to_lowercase().clone())
         .await?;
     Ok(Json(user.into()))
 }
