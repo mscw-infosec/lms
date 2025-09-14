@@ -28,7 +28,14 @@ use uuid::Uuid;
         ("BearerAuth" = [])
     ),
 )]
-pub async fn get_user(user: UserModel) -> Result<Json<GetUserResponseDTO>, LMSError> {
+pub async fn get_user(
+    user: UserModel,
+    State(state): State<AccountState>,
+) -> Result<Json<GetUserResponseDTO>, LMSError> {
+    state
+        .account_service
+        .assign_predefined_attributes(user.id, user.email.clone())
+        .await?;
     Ok(Json(user.into()))
 }
 

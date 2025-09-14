@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS predefined_attributes (
+    email TEXT NOT NULL,
+    key VARCHAR NOT NULL,
+    VALUE VARCHAR NOT NULL
+)

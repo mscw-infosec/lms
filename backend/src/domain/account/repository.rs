@@ -16,6 +16,8 @@ pub trait AccountRepository {
     async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>>;
     async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>>;
     async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()>;
+    async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes>;
+    async fn delete_user_predefined_attribute(&self, email: String) -> Result<()>;
 }
 
 #[impl_unimplemented(DummyRepository)]

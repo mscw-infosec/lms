@@ -172,28 +172,6 @@ impl AccountRepository for RepositoryPostgres {
         Ok(tasks)
     }
 
-    async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()> {
-        let result = sqlx::query!(
-            r#"
-                UPDATE users
-                SET role = $1
-                WHERE id = $2
-            "#,
-            role as UserRole,
-            id
-        )
-        .execute(&self.pool)
-        .await?;
-
-        if result.rows_affected() == 0 {
-            return Err(LMSError::NotFound(
-                "No user was found with that id.".to_string(),
-            ));
-        }
-
-        Ok(())
-    }
-
     async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
         let mut tx = self.pool.begin().await?;
 
@@ -252,5 +230,59 @@ impl AccountRepository for RepositoryPostgres {
 
         tx.commit().await?;
         Ok(users)
+    }
+
+    async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()> {
+        let result = sqlx::query!(
+            r#"
+                UPDATE users
+                SET role = $1
+                WHERE id = $2
+            "#,
+            role as UserRole,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(LMSError::NotFound(
+                "No user was found with that id.".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes> {
+        let attributes = sqlx::query!(
+            r#"
+                SELECT key, value
+                FROM predefined_attributes
+                WHERE email = $1
+            "#,
+            email
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map(|x| {
+            x.into_iter()
+                .map(|row| (row.key, row.value))
+                .collect::<HashMap<String, String>>()
+        })?;
+        Ok(attributes)
+    }
+
+    async fn delete_user_predefined_attribute(&self, email: String) -> Result<()> {
+        let _ = sqlx::query!(
+            r#"
+                DELETE FROM predefined_attributes
+                WHERE email = $1
+            "#,
+            email
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
     }
 }

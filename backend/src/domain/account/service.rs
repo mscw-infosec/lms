@@ -46,6 +46,18 @@ impl AccountService {
         }
     }
 
+    pub async fn assign_predefined_attributes(&self, id: Uuid, email: String) -> Result<()> {
+        let attrs = self
+            .db_repo
+            .get_user_predefined_attributes(email.clone())
+            .await?;
+        if !attrs.is_empty() {
+            self.upsert_attributes(id, attrs).await?;
+            self.db_repo.delete_user_predefined_attribute(email).await?;
+        }
+        Ok(())
+    }
+
     pub async fn get_user(&self, id: Uuid) -> Result<UserModel> {
         if let Some(user) = self.cache_repo.get_user_by_id(id).await? {
             return Ok(user);
