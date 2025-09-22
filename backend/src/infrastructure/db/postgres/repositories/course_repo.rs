@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use serde_json::to_value;
 use uuid::Uuid;
 
+use crate::domain::account::model::UserRole;
 use crate::{
     domain::courses::{
         model::{AttributeFilter, CourseModel},
@@ -11,7 +12,6 @@ use crate::{
     errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
 };
-use crate::domain::account::model::UserRole;
 
 #[async_trait]
 impl CourseRepository for RepositoryPostgres {
@@ -66,7 +66,7 @@ impl CourseRepository for RepositoryPostgres {
         course_id: i32,
         user_id: Uuid,
         course: UpsertCourseRequestDTO,
-        role: UserRole
+        role: UserRole,
     ) -> Result<CourseModel> {
         let mut tx = self.pool.begin().await?;
 

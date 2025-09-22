@@ -1,3 +1,4 @@
+use crate::domain::account::model::UserRole;
 use crate::{
     domain::courses::model::CourseModel, dto::course::UpsertCourseRequestDTO, errors::Result,
     gen_openapi::DummyRepository,
@@ -5,7 +6,6 @@ use crate::{
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
-use crate::domain::account::model::UserRole;
 
 #[impl_unimplemented(DummyRepository)]
 #[async_trait]
@@ -21,7 +21,7 @@ pub trait CourseRepository {
         course_id: i32,
         user_id: Uuid,
         course: UpsertCourseRequestDTO,
-        role: UserRole
+        role: UserRole,
     ) -> Result<CourseModel>;
 
     async fn delete_course(&self, course_id: i32, user_id: Uuid, role: UserRole) -> Result<()>;
