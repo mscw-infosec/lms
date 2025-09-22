@@ -5,7 +5,9 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::{ValidationError, ValidationErrors};
 
-#[derive(Serialize, Deserialize, FromRow, ToSchema)]
+#[derive(
+    Serialize, Deserialize, FromRow, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash,
+)]
 pub struct Task {
     pub id: i64,
     pub title: String,
@@ -15,7 +17,9 @@ pub struct Task {
     pub configuration: TaskConfig,
 }
 
-#[derive(Serialize, Deserialize, sqlx::Type, ToSchema)]
+#[derive(
+    Serialize, Deserialize, sqlx::Type, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash,
+)]
 #[sqlx(type_name = "TASK_TYPE")]
 #[sqlx(rename_all = "snake_case")]
 pub enum TaskType {
@@ -30,7 +34,7 @@ pub enum TaskType {
     CTFd,
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
 #[serde(tag = "name", rename_all = "snake_case")]
 pub enum PublicTaskConfig {
     SingleChoice {
@@ -58,7 +62,7 @@ pub enum PublicTaskConfig {
     },
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
 #[serde(tag = "name", rename_all = "snake_case")]
 pub enum TaskConfig {
     SingleChoice {

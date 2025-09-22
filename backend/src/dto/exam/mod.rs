@@ -119,3 +119,8 @@ impl From<Json<Self>> for ScoringData {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct TextUpsertDTO {
+    pub text: String,
+}

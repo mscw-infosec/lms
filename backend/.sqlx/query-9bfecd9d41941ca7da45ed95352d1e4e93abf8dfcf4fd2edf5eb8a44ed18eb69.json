@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT t.configuration\n                FROM attempts a\n                LEFT JOIN exam_entities et ON et.exam_id = a.exam_id\n                LEFT JOIN exams e ON e.id = a.exam_id\n                LEFT JOIN tasks t ON t.id = et.task_id\n                WHERE\n                    a.user_id = $1 AND a.ends_at > NOW() AND\n                    t.task_type = 'ctfd'\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "configuration",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9bfecd9d41941ca7da45ed95352d1e4e93abf8dfcf4fd2edf5eb8a44ed18eb69"
+}

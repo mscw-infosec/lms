@@ -1,3 +1,4 @@
+use crate::domain::exam::model::{ExamExtendedEntity, TextEntity};
 use crate::domain::task::model::{PublicTaskConfig, Task, TaskAnswer, TaskConfig, TaskType};
 use serde::{Deserialize, Serialize};
 use serde_json::from_value;
@@ -32,7 +33,7 @@ pub struct TaskId {
     pub id: i32,
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
 pub struct PublicTaskDTO {
     pub id: i64,
     pub title: String,
@@ -40,6 +41,24 @@ pub struct PublicTaskDTO {
     pub task_type: TaskType,
     pub points: i64,
     pub configuration: PublicTaskConfig,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum PubExamExtendedEntity {
+    Task { task: PublicTaskDTO },
+    Text { text: TextEntity },
+}
+
+impl From<&ExamExtendedEntity> for PubExamExtendedEntity {
+    fn from(value: &ExamExtendedEntity) -> Self {
+        match value {
+            ExamExtendedEntity::Task { task } => Self::Task {
+                task: task.clone().into(),
+            },
+            ExamExtendedEntity::Text { text } => Self::Text { text: text.clone() },
+        }
+    }
 }
 
 impl From<Task> for PublicTaskDTO {

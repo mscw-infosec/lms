@@ -1,7 +1,7 @@
-use crate::domain::exam::model::{Exam, ExamType};
+use crate::domain::exam::model::{Exam, ExamEntity, ExamExtendedEntity, ExamType, TextEntity};
 use crate::domain::exam::repository::ExamRepository;
 use crate::domain::task::model::{
-    CtfdMetadataResponse, CtfdUsersReponse, Task, TaskAnswer, TaskConfig, TaskType,
+    CtfdMetadataResponse, CtfdUsersReponse, TaskAnswer, TaskConfig, TaskType,
 };
 use crate::domain::task::service::CTFD_API_URL;
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
@@ -56,17 +56,17 @@ impl ExamService {
         self.repo.update(exam_id, exam_data).await
     }
 
-    pub async fn get_tasks(&self, exam_id: Uuid) -> Result<Vec<Task>> {
-        self.repo.get_tasks(exam_id).await
+    pub async fn get_entities(&self, exam_id: Uuid) -> Result<Vec<ExamExtendedEntity>> {
+        self.repo.get_entities(exam_id).await
     }
 
-    pub async fn update_tasks(&self, exam_id: Uuid, tasks: Vec<i32>) -> Result<()> {
+    pub async fn update_tasks(&self, exam_id: Uuid, tasks: Vec<ExamEntity>) -> Result<()> {
         if tasks.iter().collect::<HashSet<_>>().len() != tasks.len() {
             return Err(LMSError::Conflict(
                 "You can use tasks only once in exam".to_string(),
             ));
         }
-        self.repo.update_tasks(exam_id, tasks).await
+        self.repo.update_entities(exam_id, tasks).await
     }
 
     pub async fn get_user_attempts(
@@ -143,7 +143,14 @@ impl ExamService {
                 "You have no active attempts".to_string(),
             ));
         }
-        let tasks = self.get_tasks(exam_id).await?;
+        let entities = self.get_entities(exam_id).await?;
+        let tasks = entities
+            .iter()
+            .filter_map(|e| match e {
+                ExamExtendedEntity::Task { task } => Some(task),
+                ExamExtendedEntity::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
         if let Some(task) = tasks.iter().find(|t| t.id == task_id as i64) {
             match (&task.configuration, user_answer.clone()) {
                 (
@@ -215,7 +222,14 @@ impl ExamService {
             results: HashMap::default(),
         };
         let exam = self.get_exam(attempt.exam_id).await?;
-        let tasks = self.get_tasks(attempt.exam_id).await?;
+        let entities = self.get_entities(attempt.exam_id).await?;
+        let tasks = entities
+            .iter()
+            .filter_map(|e| match e {
+                ExamExtendedEntity::Task { task } => Some(task),
+                ExamExtendedEntity::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
         for ctfd_task in tasks
             .iter()
             .filter(|x| matches!(x.task_type, TaskType::CTFd))
@@ -481,5 +495,17 @@ impl ExamService {
             return Ok(false);
         }
         Ok(true)
+    }
+
+    pub async fn create_text(&self, text: String) -> Result<TextEntity> {
+        self.repo.create_text(text).await
+    }
+
+    pub async fn update_text(&self, text_id: Uuid, text: String) -> Result<TextEntity> {
+        self.repo.update_text(text_id, text).await
+    }
+
+    pub async fn delete_text(&self, text_id: Uuid) -> Result<()> {
+        self.repo.delete_text(text_id).await
     }
 }

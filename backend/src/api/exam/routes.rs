@@ -1,12 +1,12 @@
 use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
-use crate::domain::exam::model::Exam;
+use crate::domain::exam::model::{Exam, ExamEntity, ExamExtendedEntity, TextEntity};
 use crate::domain::task::model::TaskConfig;
 use crate::dto::exam::{
     CreateExamResponseDTO, ExamAttempt, ExamAttemptSchema, ExamAttemptsListDTO, TaskAnswerDTO,
-    UpsertExamRequestDTO,
+    TextUpsertDTO, UpsertExamRequestDTO,
 };
-use crate::dto::task::{PublicTaskDTO, TaskVerdict};
+use crate::dto::task::{PubExamExtendedEntity, TaskVerdict};
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::utils::ValidatedJson;
@@ -142,17 +142,17 @@ pub async fn update_exam(
     Ok(exam.into())
 }
 
-/// Update exam's tasks by id
+/// Update exam's entities
 #[utoipa::path(
     put,
     tag = "Exam",
-    path = "/{exam_id}/tasks",
+    path = "/{exam_id}/entities",
     params(
         ("exam_id" = Uuid, Path)
     ),
-    request_body = Vec<i32>,
+    request_body = Vec<ExamEntity>,
     responses(
-        (status = 200, description = "Successfully updated exam's tasks"),
+        (status = 200, description = "Successfully updated exam's entities"),
         (status = 400, description = "Wrong data format"),
         (status = 401, description = "No auth data found"),
         (status = 403, description = "User has no permission to update exam"),
@@ -162,16 +162,16 @@ pub async fn update_exam(
         ("BearerAuth" = [])
     )
 )]
-pub async fn update_exam_tasks(
+pub async fn update_exam_entities(
     claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
-    Json(payload): Json<Vec<i32>>,
+    Json(payload): Json<Vec<ExamEntity>>,
 ) -> Result<(), LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden(
-            "You can't update exam tasks".to_string(),
+            "You can't update exam entities".to_string(),
         ));
     }
 
@@ -295,7 +295,15 @@ pub async fn get_last_attempt(
         .get_user_last_attempt(exam_id, claims.sub)
         .await?
         .into();
-    let tasks = state.exam_service.get_tasks(exam_id).await?;
+    let entities = state.exam_service.get_entities(exam_id).await?;
+    let tasks = entities
+        .iter()
+        .filter_map(|e| match e {
+            ExamExtendedEntity::Task { task } => Some(task),
+            ExamExtendedEntity::Text { .. } => None,
+        })
+        .collect::<Vec<_>>();
+
     attempt.max_score = tasks.iter().map(|t| t.points).sum();
     if let Some(scoring_data) = attempt.scoring_data.as_mut() {
         if scoring_data.show_results {
@@ -348,7 +356,15 @@ pub async fn get_user_exam_attempts(
         .iter()
         .map(|x| ExamAttemptSchema::from(x.clone()))
         .collect();
-    let tasks = state.exam_service.get_tasks(exam_id).await?;
+    let entities = state.exam_service.get_entities(exam_id).await?;
+    let tasks = entities
+        .iter()
+        .filter_map(|e| match e {
+            ExamExtendedEntity::Task { task } => Some(task),
+            ExamExtendedEntity::Text { .. } => None,
+        })
+        .collect::<Vec<_>>();
+
     let max_score: i64 = tasks.iter().map(|t| t.points).sum();
     for attempt in &mut attempts {
         attempt.max_score = max_score;
@@ -378,26 +394,26 @@ pub async fn get_user_exam_attempts(
 #[utoipa::path(
     get,
     tag = "Exam",
-    path = "/{exam_id}/tasks",
+    path = "/{exam_id}/entities",
     params(
         ("exam_id" = Uuid, Path)
     ),
     responses(
-        (status = 200, body = Vec<PublicTaskDTO>, description = "Successfully got exam's tasks"),
+        (status = 200, body = Vec<PubExamExtendedEntity>, description = "Successfully got exam's entities"),
         (status = 401, description = "No auth data found"),
         (status = 400, description = "Wrong data format"),
-        (status = 403, description = "You have no permission to view tasks"),
+        (status = 403, description = "You have no permission to view entities"),
         (status = 404, description = "Exam not found")
     ),
     security(
         ("BearerAuth" = [])
     )
 )]
-pub async fn get_tasks(
+pub async fn get_entities(
     claims: AccessTokenClaim,
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
-) -> Result<Json<Vec<PublicTaskDTO>>, LMSError> {
+) -> Result<Json<Vec<PubExamExtendedEntity>>, LMSError> {
     let attempts = state
         .exam_service
         .get_user_attempts(exam_id, claims.sub)
@@ -406,28 +422,124 @@ pub async fn get_tasks(
         || attempts.iter().any(|att| att.scoring_data.show_results)
         || matches!(claims.role, UserRole::Admin | UserRole::Teacher)
     {
-        let mut public_tasks: Vec<PublicTaskDTO> = Vec::new();
-        let tasks = state.exam_service.get_tasks(exam_id).await?;
-        for mut task in tasks {
-            match &mut task.configuration {
-                TaskConfig::SingleChoice {
-                    options, shuffle, ..
+        let entities = state.exam_service.get_entities(exam_id).await?;
+        let mut public_entities: Vec<PubExamExtendedEntity> = Vec::new();
+        for entity in &entities {
+            match entity.clone() {
+                ExamExtendedEntity::Task { mut task } => {
+                    match &mut task.configuration {
+                        TaskConfig::SingleChoice {
+                            options, shuffle, ..
+                        }
+                        | TaskConfig::MultipleChoice {
+                            options, shuffle, ..
+                        } if *shuffle => {
+                            options.shuffle(&mut rng());
+                        }
+                        TaskConfig::Ordering { items, .. } => {
+                            items.shuffle(&mut rng());
+                        }
+                        _ => {}
+                    }
+                    public_entities.push(entity.into());
                 }
-                | TaskConfig::MultipleChoice {
-                    options, shuffle, ..
-                } if *shuffle => {
-                    options.shuffle(&mut rng());
+                ExamExtendedEntity::Text { .. } => {
+                    public_entities.push(entity.into());
                 }
-                TaskConfig::Ordering { items, .. } => {
-                    items.shuffle(&mut rng());
-                }
-                _ => {}
             }
-            public_tasks.push(task.into());
         }
-        return Ok(Json(public_tasks));
+        return Ok(Json(public_entities));
     }
     Err(LMSError::Forbidden(
         "You have no permission to view tasks".to_string(),
     ))
+}
+
+/// Create new text
+#[utoipa::path(
+    post,
+    tag = "Exam",
+    path = "/text/new",
+    request_body = TextUpsertDTO,
+    responses(
+        (status = 201, description = "Successfully created text", body = TextEntity),
+        (status = 400, description = "Wrong data format"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "You can't create texts")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn create_text(
+    claims: AccessTokenClaim,
+    State(state): State<ExamState>,
+    Json(text): Json<TextUpsertDTO>,
+) -> Result<(StatusCode, Json<TextEntity>), LMSError> {
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't create texts".to_string()));
+    }
+    let text_entity = state.exam_service.create_text(text.text).await?;
+    Ok((StatusCode::CREATED, text_entity.into()))
+}
+
+/// Update text by id
+#[utoipa::path(
+    put,
+    tag = "Exam",
+    path = "/text/{text_id}",
+    params(
+        ("text_id" = Uuid, Path)
+    ),
+    request_body = Vec<TextUpsertDTO>,
+    responses(
+        (status = 200, description = "Successfully updated text", body = TextEntity),
+        (status = 400, description = "Wrong data format"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "You can't update texts"),
+        (status = 404, description = "Text not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn update_text(
+    claims: AccessTokenClaim,
+    State(state): State<ExamState>,
+    Path(text_id): Path<Uuid>,
+    Json(text): Json<TextUpsertDTO>,
+) -> Result<Json<TextEntity>, LMSError> {
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't update texts".to_string()));
+    }
+    let text_entity = state.exam_service.update_text(text_id, text.text).await?;
+    Ok(text_entity.into())
+}
+
+/// Delete text by id
+#[utoipa::path(
+    delete,
+    tag = "Exam",
+    path = "/text/{text_id}",
+    responses(
+        (status = 204, description = "Successfully deleted text"),
+        (status = 400, description = "Wrong data format"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "You can't delete texts"),
+        (status = 404, description = "Text not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn delete_text(
+    claims: AccessTokenClaim,
+    State(state): State<ExamState>,
+    Path(text_id): Path<Uuid>,
+) -> Result<StatusCode, LMSError> {
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't delete texts".to_string()));
+    }
+    let () = state.exam_service.delete_text(text_id).await?;
+    Ok(StatusCode::NO_CONTENT)
 }

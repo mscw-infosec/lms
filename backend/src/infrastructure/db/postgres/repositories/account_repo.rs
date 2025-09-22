@@ -151,7 +151,7 @@ impl AccountRepository for RepositoryPostgres {
             r#"
                 SELECT t.configuration
                 FROM attempts a
-                LEFT JOIN exam_tasks et ON et.exam_id = a.exam_id
+                LEFT JOIN exam_entities et ON et.exam_id = a.exam_id
                 LEFT JOIN exams e ON e.id = a.exam_id
                 LEFT JOIN tasks t ON t.id = et.task_id
                 WHERE
