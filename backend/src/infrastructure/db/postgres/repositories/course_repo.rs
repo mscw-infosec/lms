@@ -88,6 +88,7 @@ impl CourseRepository for RepositoryPostgres {
             )));
         }
 
+        // TODO: move such logic to service
         if !result.is_owner && !matches!(role, UserRole::Admin) {
             return Err(LMSError::Forbidden(format!(
                 "User is not the owner of course {course_id}"
@@ -138,6 +139,7 @@ impl CourseRepository for RepositoryPostgres {
             )));
         }
 
+        // TODO: move such logic to service
         if !result.is_owner && !matches!(role, UserRole::Admin) {
             return Err(LMSError::Forbidden(format!(
                 "User is not the owner of course {course_id}"

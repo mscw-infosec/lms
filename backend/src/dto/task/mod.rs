@@ -50,13 +50,11 @@ pub enum PubExamExtendedEntity {
     Text { text: TextEntity },
 }
 
-impl From<&ExamExtendedEntity> for PubExamExtendedEntity {
-    fn from(value: &ExamExtendedEntity) -> Self {
+impl From<ExamExtendedEntity> for PubExamExtendedEntity {
+    fn from(value: ExamExtendedEntity) -> Self {
         match value {
-            ExamExtendedEntity::Task { task } => Self::Task {
-                task: task.clone().into(),
-            },
-            ExamExtendedEntity::Text { text } => Self::Text { text: text.clone() },
+            ExamExtendedEntity::Task { task } => Self::Task { task: task.into() },
+            ExamExtendedEntity::Text { text } => Self::Text { text },
         }
     }
 }

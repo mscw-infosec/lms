@@ -16,6 +16,7 @@ use serde_json::to_value;
 use sqlx::types::Json;
 use std::cmp::min;
 use std::collections::HashMap;
+use tokio::try_join;
 use uuid::Uuid;
 
 #[async_trait]
@@ -163,8 +164,8 @@ impl ExamRepository for RepositoryPostgres {
     }
 
     async fn get_entities(&self, id: Uuid) -> Result<Vec<ExamExtendedEntity>> {
-        // yes, this is shit and a terrible implementation, but right now I need PoC, and I promise to fix it later
-        let tasks: Vec<Task> = sqlx::query_as!(
+        // TODO: yes, this is shit and a terrible implementation, but right now I need PoC, and I promise to fix it later
+        if let Ok((tasks, texts)) = try_join!(sqlx::query_as!(
             Task,
             r#"
                 SELECT
@@ -175,9 +176,7 @@ impl ExamRepository for RepositoryPostgres {
             "#,
             id
         )
-            .fetch_all(&self.pool)
-            .await?;
-        let texts: Vec<TextEntity> = sqlx::query_as!(
+            .fetch_all(&self.pool), sqlx::query_as!(
             TextEntity,
             r#"
                 SELECT
@@ -188,9 +187,8 @@ impl ExamRepository for RepositoryPostgres {
             "#,
             id
         )
-        .fetch_all(&self.pool)
-        .await?;
-        let mut orders = sqlx::query!(
+        .fetch_all(&self.pool)) {
+            let mut orders = sqlx::query!(
             r#"
                 SELECT
                     et.order_index, et.entity_type as "entity_type: ExamEntityType", et.task_id, et.text_id
@@ -200,28 +198,32 @@ impl ExamRepository for RepositoryPostgres {
             "#,
             id
         )
-            .fetch_all(&self.pool)
-            .await?
-            .iter().map(|row| {
-            match row.entity_type {
-                ExamEntityType::Task => {
-                    let task_id = row.task_id.expect("Task id should exist since entity type is task");
-                    let task = tasks.iter().find(|t| t.id == i64::from(task_id)).expect("Task should exist since entity type is task");
-                    (row.order_index, ExamExtendedEntity::Task {
-                        task: task.clone(),
-                    })
+                .fetch_all(&self.pool)
+                .await?
+                .iter().map(|row| {
+                match row.entity_type {
+                    ExamEntityType::Task => {
+                        let task_id = row.task_id.expect("Task id should exist since entity type is task");
+                        let task = tasks.iter().find(|t| t.id == i64::from(task_id)).expect("Task should exist since entity type is task");
+                        (row.order_index, ExamExtendedEntity::Task {
+                            task: task.clone(),
+                        })
+                    }
+                    ExamEntityType::Text => {
+                        let text_id = row.text_id.expect("Text id should exist since entity type is text");
+                        let text = texts.iter().find(|t| t.id == text_id).expect("Text should exist since entity type is text");
+                        (row.order_index, ExamExtendedEntity::Text {
+                            text: text.clone(),
+                        })
+                    }
                 }
-                ExamEntityType::Text => {
-                    let text_id = row.text_id.expect("Text id should exist since entity type is text");
-                    let text = texts.iter().find(|t| t.id == text_id).expect("Text should exist since entity type is text");
-                    (row.order_index, ExamExtendedEntity::Text {
-                        text: text.clone(),
-                    })
-                }
-            }
-        }).collect::<Vec<(i32, ExamExtendedEntity)>>();
-        orders.sort_by(|x1, x2| x1.0.cmp(&x2.0));
-        Ok(orders.into_iter().map(|x| x.1).collect())
+            }).collect::<Vec<(i32, ExamExtendedEntity)>>();
+            orders.sort_by(|x1, x2| x1.0.cmp(&x2.0));
+            return Ok(orders.into_iter().map(|x| x.1).collect())
+        }
+        Err(LMSError::ServerError(
+            "database failed to fetch entities".to_string(),
+        ))
     }
 
     #[allow(clippy::cast_possible_wrap)]
@@ -241,8 +243,16 @@ impl ExamRepository for RepositoryPostgres {
 
         let _ = sqlx::query!(
             r#"
-                INSERT INTO exam_entities (exam_id, task_id, text_id, order_index)
-                SELECT $1, NULLIF(x.task_id, -1), NULLIF(x.text_id, '00000000-0000-0000-0000-000000000000'), x.order_index
+                INSERT INTO exam_entities (exam_id, task_id, text_id, entity_type, order_index)
+                SELECT
+                    $1,
+                    NULLIF(x.task_id, -1),
+                    NULLIF(x.text_id, '00000000-0000-0000-0000-000000000000'),
+                    CASE WHEN x.task_id <> -1
+                        THEN 'task'::EXAM_ENTITY_TYPE
+                        ELSE 'text'::EXAM_ENTITY_TYPE
+                    END,
+                    x.order_index
                 FROM UNNEST($2::INT[], $3::UUID[], $4::INT[]) AS x(task_id, text_id, order_index)
             "#,
             id,
@@ -263,7 +273,8 @@ impl ExamRepository for RepositoryPostgres {
             &(0..tasks.len()).map(|x| x as i32).collect::<Vec<i32>>()
         )
         .execute(tx.as_mut())
-        .await.map_err(|err| match err {
+        .await
+        .map_err(|err| match err {
             sqlx::Error::Database(e) if e.is_foreign_key_violation() => {
                 LMSError::Conflict("You should provide existing task & text ids.".to_string())
             }

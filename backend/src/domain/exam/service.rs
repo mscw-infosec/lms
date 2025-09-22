@@ -60,10 +60,17 @@ impl ExamService {
         self.repo.get_entities(exam_id).await
     }
 
-    pub async fn update_tasks(&self, exam_id: Uuid, tasks: Vec<ExamEntity>) -> Result<()> {
-        if tasks.iter().collect::<HashSet<_>>().len() != tasks.len() {
+    pub async fn update_entities(&self, exam_id: Uuid, tasks: Vec<ExamEntity>) -> Result<()> {
+        let task_ids: Vec<i32> = tasks
+            .iter()
+            .filter_map(|e| match e {
+                ExamEntity::Task { id } => Some(*id),
+                ExamEntity::Text { .. } => None,
+            })
+            .collect();
+        if task_ids.iter().collect::<HashSet<_>>().len() != task_ids.len() {
             return Err(LMSError::Conflict(
-                "You can use tasks only once in exam".to_string(),
+                "You can use the same task only once in an exam".to_string(),
             ));
         }
         self.repo.update_entities(exam_id, tasks).await

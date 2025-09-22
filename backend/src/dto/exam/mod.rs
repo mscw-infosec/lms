@@ -122,5 +122,6 @@ impl From<Json<Self>> for ScoringData {
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
 pub struct TextUpsertDTO {
+    #[validate(length(max = 10000))]
     pub text: String,
 }

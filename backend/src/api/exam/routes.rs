@@ -175,7 +175,7 @@ pub async fn update_exam_entities(
         ));
     }
 
-    let () = state.exam_service.update_tasks(exam_id, payload).await?;
+    let () = state.exam_service.update_entities(exam_id, payload).await?;
     Ok(())
 }
 
@@ -424,7 +424,7 @@ pub async fn get_entities(
     {
         let entities = state.exam_service.get_entities(exam_id).await?;
         let mut public_entities: Vec<PubExamExtendedEntity> = Vec::new();
-        for entity in &entities {
+        for entity in entities {
             match entity.clone() {
                 ExamExtendedEntity::Task { mut task } => {
                     match &mut task.configuration {
@@ -441,7 +441,7 @@ pub async fn get_entities(
                         }
                         _ => {}
                     }
-                    public_entities.push(entity.into());
+                    public_entities.push(PubExamExtendedEntity::Task { task: task.into() });
                 }
                 ExamExtendedEntity::Text { .. } => {
                     public_entities.push(entity.into());
@@ -474,13 +474,13 @@ pub async fn get_entities(
 pub async fn create_text(
     claims: AccessTokenClaim,
     State(state): State<ExamState>,
-    Json(text): Json<TextUpsertDTO>,
+    ValidatedJson(text): ValidatedJson<TextUpsertDTO>,
 ) -> Result<(StatusCode, Json<TextEntity>), LMSError> {
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't create texts".to_string()));
     }
     let text_entity = state.exam_service.create_text(text.text).await?;
-    Ok((StatusCode::CREATED, text_entity.into()))
+    Ok((StatusCode::CREATED, Json(text_entity)))
 }
 
 /// Update text by id
@@ -491,7 +491,7 @@ pub async fn create_text(
     params(
         ("text_id" = Uuid, Path)
     ),
-    request_body = Vec<TextUpsertDTO>,
+    request_body = TextUpsertDTO,
     responses(
         (status = 200, description = "Successfully updated text", body = TextEntity),
         (status = 400, description = "Wrong data format"),
@@ -507,13 +507,13 @@ pub async fn update_text(
     claims: AccessTokenClaim,
     State(state): State<ExamState>,
     Path(text_id): Path<Uuid>,
-    Json(text): Json<TextUpsertDTO>,
+    ValidatedJson(text): ValidatedJson<TextUpsertDTO>,
 ) -> Result<Json<TextEntity>, LMSError> {
     if matches!(claims.role, UserRole::Student) {
         return Err(LMSError::Forbidden("You can't update texts".to_string()));
     }
     let text_entity = state.exam_service.update_text(text_id, text.text).await?;
-    Ok(text_entity.into())
+    Ok(Json(text_entity))
 }
 
 /// Delete text by id
