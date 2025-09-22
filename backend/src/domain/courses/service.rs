@@ -172,12 +172,13 @@ impl CourseService {
         course_id: i32,
         user_id: Uuid,
         course: UpsertCourseRequestDTO,
+        role: UserRole,
     ) -> Result<CourseModel> {
-        self.repo.edit_course(course_id, user_id, course).await
+        self.repo.edit_course(course_id, user_id, course, role).await
     }
 
-    pub async fn delete_course(&self, course_id: i32, user_id: Uuid) -> Result<()> {
-        self.repo.delete_course(course_id, user_id).await
+    pub async fn delete_course(&self, course_id: i32, user_id: Uuid, role: UserRole) -> Result<()> {
+        self.repo.delete_course(course_id, user_id, role).await
     }
 
     pub fn get_course_feed() -> Result<()> {

@@ -11,6 +11,7 @@ use crate::{
     errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
 };
+use crate::domain::account::model::UserRole;
 
 #[async_trait]
 impl CourseRepository for RepositoryPostgres {
@@ -65,6 +66,7 @@ impl CourseRepository for RepositoryPostgres {
         course_id: i32,
         user_id: Uuid,
         course: UpsertCourseRequestDTO,
+        role: UserRole
     ) -> Result<CourseModel> {
         let mut tx = self.pool.begin().await?;
 
@@ -86,7 +88,7 @@ impl CourseRepository for RepositoryPostgres {
             )));
         }
 
-        if !result.is_owner {
+        if !result.is_owner && !matches!(role, UserRole::Admin) {
             return Err(LMSError::Forbidden(format!(
                 "User is not the owner of course {course_id}"
             )));
@@ -115,7 +117,7 @@ impl CourseRepository for RepositoryPostgres {
         Ok(course_model)
     }
 
-    async fn delete_course(&self, course_id: i32, user_id: Uuid) -> Result<()> {
+    async fn delete_course(&self, course_id: i32, user_id: Uuid, role: UserRole) -> Result<()> {
         let mut tx = self.pool.begin().await?;
 
         let result = sqlx::query!(
@@ -136,7 +138,7 @@ impl CourseRepository for RepositoryPostgres {
             )));
         }
 
-        if !result.is_owner {
+        if !result.is_owner && !matches!(role, UserRole::Admin) {
             return Err(LMSError::Forbidden(format!(
                 "User is not the owner of course {course_id}"
             )));
