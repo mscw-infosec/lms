@@ -1,6 +1,5 @@
 "use client";
 
-import { type ExamDTO, getAllExams, updateExamTasks } from "@/api/exam";
 import type { TaskDTO, TaskType } from "@/api/tasks";
 import { deleteTask as deleteTaskApi, listTasks } from "@/api/tasks";
 import { AuthModal } from "@/components/auth-modal";
@@ -34,7 +33,6 @@ import {
 	Edit,
 	FileText,
 	Flag,
-	Link2,
 	ListChecks,
 	ListOrdered,
 	Plus,
@@ -82,12 +80,8 @@ export default function TasksPage() {
 	const [filterType, setFilterType] = useState<TaskType | "all">("all");
 	const [tasks, setTasks] = useState<TaskDTO[]>([]);
 	const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-	const [showLinkModal, setShowLinkModal] = useState(false);
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
-	const [examId, setExamId] = useState("");
-	const [exams, setExams] = useState<ExamDTO[]>([]);
-	const [loadingExams, setLoadingExams] = useState(false);
-	const [busy, setBusy] = useState<null | "link" | "delete">(null);
+	const [busy, setBusy] = useState<null | "delete">(null);
 	const [loading, setLoading] = useState(false);
 	const [hasMore, setHasMore] = useState(false);
 	const [offset, setOffset] = useState(0);
@@ -160,36 +154,6 @@ export default function TasksPage() {
 	};
 
 	const clearSelection = () => setSelectedIds(new Set());
-
-	const loadExams = async () => {
-		setLoadingExams(true);
-		try {
-			const examsList = await getAllExams();
-			setExams(examsList);
-		} catch (e) {
-			console.error("Failed to load exams:", e);
-		} finally {
-			setLoadingExams(false);
-		}
-	};
-
-	const onConfirmLink = async () => {
-		if (selectedIds.size === 0 || !examId) return;
-		setBusy("link");
-		try {
-			const taskIds = Array.from(selectedIds);
-			await updateExamTasks(examId, taskIds);
-			setShowLinkModal(false);
-			clearSelection();
-			setExamId("");
-		} catch (e) {
-			console.error(e);
-			// eslint-disable-next-line no-alert
-			alert(t("failed_operation") ?? "Operation failed");
-		} finally {
-			setBusy(null);
-		}
-	};
 
 	const onConfirmDelete = async () => {
 		if (selectedIds.size === 0) return;
@@ -365,21 +329,6 @@ export default function TasksPage() {
 									<div className="flex gap-1 sm:gap-2">
 										<Button
 											size="sm"
-											className="bg-red-600 px-2 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400 sm:px-3"
-											disabled={selectedIds.size === 0}
-											onClick={() => {
-												setShowLinkModal(true);
-												loadExams();
-											}}
-											title={t("link_to_exam")}
-										>
-											<Link2 className="h-4 w-4 sm:mr-2" />
-											<span className="hidden sm:inline">
-												{t("link_to_exam")}
-											</span>
-										</Button>
-										<Button
-											size="sm"
 											variant="ghost"
 											className="bg-transparent px-2 text-red-400 hover:bg-transparent hover:text-red-300 disabled:cursor-not-allowed disabled:text-slate-500 sm:px-3"
 											disabled={selectedIds.size === 0}
@@ -471,91 +420,6 @@ export default function TasksPage() {
 								</div>
 							</CardContent>
 						</Card>
-
-						{/* Link to Exam Dialog */}
-						<Dialog
-							open={showLinkModal}
-							onOpenChange={(o) => {
-								if (!o) setShowLinkModal(false);
-							}}
-						>
-							<DialogContent className="border border-slate-800 bg-slate-900 text-slate-200">
-								<DialogHeader>
-									<DialogTitle>{t("link_to_exam")}</DialogTitle>
-									<DialogDescription>
-										{t("link_to_exam_help") ??
-											"Choose exam and how to link selected tasks."}
-									</DialogDescription>
-								</DialogHeader>
-								<div className="space-y-3">
-									<div>
-										<label
-											htmlFor="exam-select"
-											className="mb-1 block text-slate-400 text-sm"
-										>
-											{t("select_exam") ?? "Select Exam"}
-										</label>
-										<Select value={examId} onValueChange={setExamId}>
-											<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
-												<SelectValue
-													placeholder={
-														loadingExams
-															? (t("loading") ?? "Loading...")
-															: (t("select_exam") ?? "Select an exam")
-													}
-												/>
-											</SelectTrigger>
-											<SelectContent className="border-slate-700 bg-slate-800">
-												{loadingExams ? (
-													<SelectItem value="loading" disabled>
-														{t("loading") ?? "Loading..."}
-													</SelectItem>
-												) : exams.length === 0 ? (
-													<SelectItem value="no_exams" disabled>
-														{t("no_exams_found") ?? "No exams found"}
-													</SelectItem>
-												) : (
-													exams.map((exam) => (
-														<SelectItem
-															key={exam.id}
-															value={exam.id}
-															className="text-white hover:bg-slate-700 hover:text-slate-100 focus:bg-slate-700 focus:text-slate-100"
-														>
-															<div className="flex w-full flex-col items-start justify-center">
-																<span className="text-left font-medium">
-																	{exam.name}
-																</span>
-																<span className="text-left text-slate-400 text-xs">
-																	ID: {exam.id}
-																</span>
-															</div>
-														</SelectItem>
-													))
-												)}
-											</SelectContent>
-										</Select>
-									</div>
-								</div>
-								<DialogFooter>
-									<Button
-										variant="outline"
-										className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
-										onClick={() => setShowLinkModal(false)}
-									>
-										{t("cancel")}
-									</Button>
-									<Button
-										onClick={onConfirmLink}
-										disabled={!examId || busy === "link"}
-										className="bg-red-600 text-white hover:bg-red-700"
-									>
-										{busy === "link"
-											? (t("linking") ?? "Linking...")
-											: t("link_to_exam")}
-									</Button>
-								</DialogFooter>
-							</DialogContent>
-						</Dialog>
 
 						{/* Delete Selected Dialog */}
 						<Dialog

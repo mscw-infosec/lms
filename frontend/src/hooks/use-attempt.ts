@@ -1,8 +1,9 @@
 import {
 	type ExamAttempt,
 	type ExamAttemptsListDTO,
+	type PubExamExtendedEntity,
 	type PublicTaskDTO,
-	getExamTasks,
+	getExamEntities,
 	getUserExamAttempts,
 	patchAttempt,
 	startAttempt,
@@ -17,6 +18,7 @@ export interface UseAttemptResult {
 	attempt: ExamAttempt | null;
 	isPreview: boolean;
 	tasks: PublicTaskDTO[];
+	entities: PubExamExtendedEntity[];
 	loading: boolean;
 	taskIndex: number;
 	setTaskIndex: (index: number) => void;
@@ -64,11 +66,11 @@ export function useAttempt(
 		retry: false,
 	});
 
-	const tasksQuery = useQuery({
-		queryKey: ["exam", examId, "tasks"],
+	const entitiesQuery = useQuery({
+		queryKey: ["exam", examId, "entities"],
 		queryFn: async () => {
 			if (!examId) throw new Error("no examId");
-			const list = await getExamTasks(examId);
+			const list = await getExamEntities(examId);
 			return list ?? [];
 		},
 		enabled: !!examId,
@@ -92,9 +94,15 @@ export function useAttempt(
 		initialOrderRef.current = null;
 	}, [examId]);
 
-	const tasksRaw = tasksQuery.data ?? [];
+	const entitiesRaw = entitiesQuery.data ?? [];
+	const entities = useMemo<PubExamExtendedEntity[]>(() => {
+		return entitiesRaw ?? [];
+	}, [entitiesRaw]);
 	const tasks = useMemo<PublicTaskDTO[]>(() => {
-		const list = tasksRaw ?? [];
+		const extracted = (entities ?? [])
+			.filter((e) => e && (e as { type?: string }).type === "task")
+			.map((e) => (e as { task: PublicTaskDTO }).task);
+		const list = extracted ?? [];
 		list.sort((a, b) => {
 			return a.id - b.id;
 		});
@@ -119,9 +127,9 @@ export function useAttempt(
 		}));
 		withIdx.sort((a, b) => a.idx - b.idx);
 		return withIdx.map((x) => x.t);
-	}, [tasksRaw]);
+	}, [entities]);
 	const isPreview = isStaff && (!attempt || !attempt.active);
-	const loading = attemptsListQuery.isLoading || tasksQuery.isLoading;
+	const loading = attemptsListQuery.isLoading || entitiesQuery.isLoading;
 
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally reset when examId changes */
 	useEffect(() => {
@@ -139,7 +147,7 @@ export function useAttempt(
 		onSuccess: async (att) => {
 			await Promise.all([
 				qc.invalidateQueries({ queryKey: ["exam", examId, "attempts-list"] }),
-				qc.invalidateQueries({ queryKey: ["exam", examId, "tasks"] }),
+				qc.invalidateQueries({ queryKey: ["exam", examId, "entities"] }),
 			]);
 			setTaskIndex(0);
 		},
@@ -167,7 +175,7 @@ export function useAttempt(
 			await qc.invalidateQueries({
 				queryKey: ["exam", examId, "attempts-list"],
 			});
-			await qc.invalidateQueries({ queryKey: ["exam", examId, "tasks"] });
+			await qc.invalidateQueries({ queryKey: ["exam", examId, "entities"] });
 
 			const m = msg ?? (t("failed_operation") || "Operation failed");
 			const timespanMatch =
@@ -263,7 +271,7 @@ export function useAttempt(
 	const refresh = useCallback(() => {
 		if (!examId) return;
 		qc.invalidateQueries({ queryKey: ["exam", examId, "attempts-list"] });
-		qc.invalidateQueries({ queryKey: ["exam", examId, "tasks"] });
+		qc.invalidateQueries({ queryKey: ["exam", examId, "entities"] });
 	}, [qc, examId]);
 
 	useEffect(() => {
@@ -281,6 +289,7 @@ export function useAttempt(
 			attempt,
 			isPreview,
 			tasks,
+			entities,
 			loading,
 			taskIndex,
 			setTaskIndex,
@@ -303,6 +312,7 @@ export function useAttempt(
 			attempt,
 			isPreview,
 			tasks,
+			entities,
 			loading,
 			taskIndex,
 			start,
