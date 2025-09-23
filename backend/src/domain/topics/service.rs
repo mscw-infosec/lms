@@ -37,9 +37,19 @@ impl TopicService {
         self.repo.get_all_topics_in_course(course_id).await
     }
 
-    pub async fn get_topic_by_id(&self, user: Uuid, role: UserRole, id: i32) -> Result<TopicModel> {
-        let _ = self.course_service.get_course_by_id(user, role, id).await?; // need it to check for access
-        self.repo.get_topic_by_id(id).await
+    pub async fn get_topic_by_id(
+        &self,
+        user: Uuid,
+        role: UserRole,
+        topic_id: i32,
+    ) -> Result<TopicModel> {
+        let topic = self.repo.get_topic_by_id(topic_id).await?;
+        let _ = self
+            .course_service
+            .get_course_by_id(user, role, topic.course_id)
+            .await?; // need it to check for access
+
+        Ok(topic)
     }
 
     pub async fn delete_topic(&self, id: i32) -> Result<()> {
@@ -54,8 +64,8 @@ impl TopicService {
         self.repo.add_topic_to_course(topic).await
     }
 
-    pub async fn get_exams(&self, user: Uuid, role: UserRole, id: i32) -> Result<Vec<Exam>> {
-        let _ = self.course_service.get_course_by_id(user, role, id).await?; // need it to check for access
-        self.repo.get_exams(id).await
+    pub async fn get_exams(&self, user: Uuid, role: UserRole, topic_id: i32) -> Result<Vec<Exam>> {
+        let _ = self.get_topic_by_id(user, role, topic_id).await?; // need it all to check for access
+        self.repo.get_exams(topic_id).await
     }
 }
