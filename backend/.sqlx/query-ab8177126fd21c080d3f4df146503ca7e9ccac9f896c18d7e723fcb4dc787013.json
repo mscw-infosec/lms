@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM exam_entities\n                WHERE exam_id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ab8177126fd21c080d3f4df146503ca7e9ccac9f896c18d7e723fcb4dc787013"
+}

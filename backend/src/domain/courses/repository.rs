@@ -1,3 +1,4 @@
+use crate::domain::account::model::UserRole;
 use crate::{
     domain::courses::model::CourseModel, dto::course::UpsertCourseRequestDTO, errors::Result,
     gen_openapi::DummyRepository,
@@ -20,9 +21,10 @@ pub trait CourseRepository {
         course_id: i32,
         user_id: Uuid,
         course: UpsertCourseRequestDTO,
+        role: UserRole,
     ) -> Result<CourseModel>;
 
-    async fn delete_course(&self, course_id: i32, user_id: Uuid) -> Result<()>;
+    async fn delete_course(&self, course_id: i32, user_id: Uuid, role: UserRole) -> Result<()>;
     async fn get_course_feed(&self, user_id: Uuid) -> Result<Vec<CourseModel>>;
     async fn get_all_courses(&self) -> Result<Vec<CourseModel>>;
     async fn get_course_by_id(&self, course_id: i32) -> Result<CourseModel>;

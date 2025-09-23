@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO exam_entities (exam_id, task_id, text_id, entity_type, order_index)\n                SELECT\n                    $1,\n                    NULLIF(x.task_id, -1),\n                    NULLIF(x.text_id, '00000000-0000-0000-0000-000000000000'),\n                    CASE WHEN x.task_id <> -1\n                        THEN 'task'::EXAM_ENTITY_TYPE\n                        ELSE 'text'::EXAM_ENTITY_TYPE\n                    END,\n                    x.order_index\n                FROM UNNEST($2::INT[], $3::UUID[], $4::INT[]) AS x(task_id, text_id, order_index)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array",
+        "UuidArray",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ec01d4f92e044d4aa49940d10c59efd53bd14b31067cbeff15711eca9afeb9ba"
+}

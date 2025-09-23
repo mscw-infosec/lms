@@ -76,7 +76,7 @@ pub async fn edit_course(
 
     let course = state
         .course_service
-        .edit_course(course_id, claims.sub, payload)
+        .edit_course(course_id, claims.sub, payload, claims.role)
         .await?;
 
     Ok(Json(course.into()))
@@ -110,7 +110,7 @@ pub async fn delete_course(
 
     state
         .course_service
-        .delete_course(course_id, claims.sub)
+        .delete_course(course_id, claims.sub, claims.role)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)

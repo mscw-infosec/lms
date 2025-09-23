@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    t.id, t.text\n                FROM exam_entities et\n                LEFT JOIN exam_texts t ON et.text_id = t.id\n                WHERE et.exam_id = $1 AND et.entity_type = 'text'\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "text",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "bf567f36930ab9a4b90563e20b0e6aacaceb9e6fa9283a14d4a8af4870e9be50"
+}

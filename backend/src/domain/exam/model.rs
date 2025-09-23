@@ -1,3 +1,4 @@
+use crate::domain::task::model::Task;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -23,4 +24,34 @@ pub struct Exam {
 pub enum ExamType {
     Instant,
     Delayed, // delayed results
+}
+
+#[derive(
+    Serialize, Deserialize, FromRow, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash,
+)]
+pub struct TextEntity {
+    pub id: Uuid,
+    pub text: String,
+}
+
+#[derive(Serialize, Deserialize, sqlx::Type, ToSchema, Debug)]
+#[sqlx(type_name = "EXAM_ENTITY_TYPE")]
+#[sqlx(rename_all = "lowercase")]
+pub enum ExamEntityType {
+    Task,
+    Text,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
+#[serde(tag = "name", rename_all = "snake_case")]
+pub enum ExamEntity {
+    Task { id: i32 },
+    Text { id: Uuid },
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Eq, PartialEq, Ord, PartialOrd, Clone, Hash)]
+#[serde(tag = "name", rename_all = "snake_case")]
+pub enum ExamExtendedEntity {
+    Task { task: Task },
+    Text { text: TextEntity },
 }
