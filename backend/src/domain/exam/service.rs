@@ -1,9 +1,11 @@
+use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::{Exam, ExamEntity, ExamExtendedEntity, ExamType, TextEntity};
 use crate::domain::exam::repository::ExamRepository;
 use crate::domain::task::model::{
     CtfdMetadataResponse, CtfdUsersReponse, TaskAnswer, TaskConfig, TaskType,
 };
 use crate::domain::task::service::CTFD_API_URL;
+use crate::domain::topics::service::TopicService;
 use crate::dto::exam::{ExamAttempt, ScoringData, UpsertExamRequestDTO};
 use crate::dto::task::TaskVerdict;
 use crate::errors::{LMSError, Result};
@@ -21,6 +23,7 @@ pub struct ExamService {
     repo: repo!(ExamRepository),
     http_client: reqwest::Client,
     ctfd_token: String,
+    topic_service: TopicService,
 }
 
 impl ExamService {
@@ -28,11 +31,13 @@ impl ExamService {
         repo: repo!(ExamRepository),
         http_client: reqwest::Client,
         ctfd_token: String,
+        topic_service: TopicService,
     ) -> Self {
         Self {
             repo,
             http_client,
             ctfd_token,
+            topic_service,
         }
     }
 
@@ -40,8 +45,13 @@ impl ExamService {
         self.repo.create(exam).await
     }
 
-    pub async fn get_exam(&self, exam_id: Uuid) -> Result<Exam> {
-        self.repo.get(exam_id).await
+    pub async fn get_exam(&self, exam_id: Uuid, user: Uuid, role: UserRole) -> Result<Exam> {
+        let exam = self.repo.get(exam_id).await?;
+        let _ = self
+            .topic_service
+            .get_topic_by_id(user, role, exam.topic_id)
+            .await?; // need it to check for access
+        Ok(exam)
     }
 
     pub async fn delete_exam(&self, exam_id: Uuid) -> Result<()> {
@@ -100,7 +110,8 @@ impl ExamService {
     }
 
     pub async fn start_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        let exam = self.get_exam(exam_id).await?;
+        let user = self.repo.get_user_by_id(user_id).await?;
+        let exam = self.get_exam(exam_id, user_id, user.role).await?;
         if let Some(starts_at) = exam.starts_at
             && starts_at > Utc::now()
         {
@@ -217,11 +228,14 @@ impl ExamService {
     #[allow(clippy::cast_possible_truncation)]
     #[allow(clippy::cast_sign_loss)]
     pub async fn score_attempt(&self, mut attempt: ExamAttempt) -> Result<ScoringData> {
+        let user = self.repo.get_user_by_id(attempt.user_id).await?;
         let mut scoring_data = ScoringData {
             show_results: false,
             results: HashMap::default(),
         };
-        let exam = self.get_exam(attempt.exam_id).await?;
+        let exam = self
+            .get_exam(attempt.exam_id, attempt.user_id, user.role)
+            .await?;
         let entities = self.get_entities(attempt.exam_id).await?;
         let tasks = entities
             .iter()
@@ -230,7 +244,6 @@ impl ExamService {
                 ExamExtendedEntity::Text { .. } => None,
             })
             .collect::<Vec<_>>();
-        let user = self.repo.get_user_by_id(attempt.user_id).await?;
         for ctfd_task in tasks
             .iter()
             .filter(|x| matches!(x.task_type, TaskType::CTFd))

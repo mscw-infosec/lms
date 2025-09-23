@@ -34,11 +34,16 @@ pub fn save_openapi() {
     );
     let basic_auth = BasicAuthService::new(dummy.clone());
     let course = CourseService::new(dummy.clone(), account.clone());
-    let exam = ExamService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
+    let topic = TopicService::new(dummy.clone(), course.clone());
+    let exam = ExamService::new(
+        dummy.clone(),
+        client.clone(),
+        config.ctfd_token.clone(),
+        topic.clone(),
+    );
     let oauth = OAuthService::new(dummy.clone(), dummy.clone());
     let refresh_token = RefreshTokenService::new(dummy.clone(), jwt.clone());
     let task = TaskService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
-    let topic = TopicService::new(dummy.clone());
     let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
         .expect("Failed to create VideoService");
 

@@ -28,12 +28,14 @@ use crate::{
     ),
 )]
 pub async fn get_topic_by_id(
-    // TODO: Start using proper ACL
-    _: AccessTokenClaim,
+    claims: AccessTokenClaim,
     Path(id): Path<i32>,
     State(state): State<TopicsState>,
 ) -> Result<Json<TopicResponseDTO>, LMSError> {
-    let topic = state.topic_service.get_topic_by_id(id).await?;
+    let topic = state
+        .topic_service
+        .get_topic_by_id(claims.sub, claims.role, id)
+        .await?;
     Ok(Json(topic.into()))
 }
 
@@ -141,9 +143,14 @@ pub async fn add_topic_to_course(
     ),
 )]
 pub async fn get_exams(
-    _: AccessTokenClaim,
+    claims: AccessTokenClaim,
     Path(topic_id): Path<i32>,
     State(state): State<TopicsState>,
 ) -> Result<Json<Vec<Exam>>, LMSError> {
-    Ok(Json(state.topic_service.get_exams(topic_id).await?))
+    Ok(Json(
+        state
+            .topic_service
+            .get_exams(claims.sub, claims.role, topic_id)
+            .await?,
+    ))
 }

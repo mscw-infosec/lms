@@ -22,14 +22,13 @@ use crate::{
     ),
 )]
 pub async fn get_all_topics_in_course(
-    // TODO: Start using proper ACL
-    _: AccessTokenClaim,
+    claims: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
 ) -> Result<Json<Vec<TopicResponseDTO>>, LMSError> {
     let topics = state
         .topic_service
-        .get_all_topics_in_course(course_id)
+        .get_all_topics_in_course(claims.sub, claims.role, course_id)
         .await?
         .into_iter()
         .map(From::from)

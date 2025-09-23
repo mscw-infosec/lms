@@ -67,11 +67,15 @@ pub async fn create(
     )
 )]
 pub async fn get_by_id(
+    claims: AccessTokenClaim,
     State(state): State<ExamState>,
     Path(exam_id): Path<Uuid>,
 ) -> Result<Json<Exam>, LMSError> {
     // TODO: ACL for exams (has access to exam)
-    let exam = state.exam_service.get_exam(exam_id).await?;
+    let exam = state
+        .exam_service
+        .get_exam(exam_id, claims.sub, claims.role)
+        .await?;
     Ok(Json(exam))
 }
 
@@ -347,7 +351,10 @@ pub async fn get_user_exam_attempts(
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<Json<ExamAttemptsListDTO>, LMSError> {
-    let exam: Exam = state.exam_service.get_exam(exam_id).await?;
+    let exam: Exam = state
+        .exam_service
+        .get_exam(exam_id, claims.sub, claims.role)
+        .await?;
     let exam_attempts: Vec<ExamAttempt> = state
         .exam_service
         .get_user_attempts(exam_id, claims.sub)
