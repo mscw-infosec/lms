@@ -390,7 +390,7 @@ pub async fn get_user_exam_attempts(
     }))
 }
 
-/// Get exam tasks (only with active attempt or if exam scores are available or if admin)
+/// Get exam entities (only with active attempt or if exam scores are available or if admin)
 #[utoipa::path(
     get,
     tag = "Exam",
@@ -451,7 +451,7 @@ pub async fn get_entities(
         return Ok(Json(public_entities));
     }
     Err(LMSError::Forbidden(
-        "You have no permission to view tasks".to_string(),
+        "You have no permission to view entities".to_string(),
     ))
 }
 

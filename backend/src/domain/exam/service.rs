@@ -237,6 +237,7 @@ impl ExamService {
                 ExamExtendedEntity::Text { .. } => None,
             })
             .collect::<Vec<_>>();
+        let user = self.repo.get_user_by_id(attempt.user_id).await?;
         for ctfd_task in tasks
             .iter()
             .filter(|x| matches!(x.task_type, TaskType::CTFd))
@@ -245,9 +246,8 @@ impl ExamService {
                 task_id: ctfd_task_id,
             } = ctfd_task.configuration
             {
-                let user = self.repo.get_user_by_id(attempt.user_id).await?;
                 let solve_status = self
-                    .check_if_ctfd_task_solved(ctfd_task_id, user.email)
+                    .check_if_ctfd_task_solved(ctfd_task_id, user.email.clone())
                     .await?;
                 if solve_status {
                     attempt
