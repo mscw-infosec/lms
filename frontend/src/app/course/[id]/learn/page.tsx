@@ -11,6 +11,7 @@ import {
 	patchAttempt,
 } from "@/api/exam";
 import { AuthModal } from "@/components/auth-modal";
+import EditExamDialog from "@/components/exam/edit-exam-dialog";
 import { Header } from "@/components/header";
 import Markdown from "@/components/markdown";
 import { TaskPlayer } from "@/components/task-player";
@@ -56,6 +57,7 @@ import {
 	ChevronRight,
 	HelpCircle,
 	Menu,
+	Pencil,
 	Play,
 	X,
 } from "lucide-react";
@@ -89,11 +91,14 @@ export default function LearnPage() {
 	const [selectedReviewAttemptId, setSelectedReviewAttemptId] = useState<
 		string | null
 	>(null);
+	const [reviewTaskIndex, setReviewTaskIndex] = useState(0);
+	const [editExamOpen, setEditExamOpen] = useState(false);
 
 	const {
 		attempt,
 		isPreview,
 		tasks,
+		entities,
 		loading,
 		taskIndex,
 		setTaskIndex,
@@ -292,7 +297,11 @@ export default function LearnPage() {
 	});
 
 	const canPrev = taskIndex > 0;
-	const canNext = taskIndex < (tasks.length || 0) - 1;
+	const canNext = taskIndex < (entities?.length || 0) - 1;
+
+	// Review navigation
+	const canPrevReview = reviewTaskIndex > 0;
+	const canNextReview = reviewTaskIndex < (entities?.length || 0) - 1;
 
 	const switching = (pendingExam?.id ?? null) !== (selectedExam?.id ?? null);
 
@@ -345,6 +354,12 @@ export default function LearnPage() {
 			setSelectedReviewAttemptId(String(sortedAttempts[0].id));
 		}
 	}, [reviewMode, selectedReviewAttemptId, sortedAttempts]);
+
+	// Reset review navigation index when entering review mode or changing selected attempt
+	useEffect(() => {
+		if (!selectedReviewAttemptId) return;
+		if (reviewMode) setReviewTaskIndex(0);
+	}, [reviewMode, selectedReviewAttemptId]);
 
 	const reviewAttempt: ExamAttempt | null = useMemo(() => {
 		if (!reviewMode) return null;
@@ -965,9 +980,7 @@ export default function LearnPage() {
 			// ignore
 		}
 		const isLastTask =
-			tasks.length > 0 &&
-			taskIndex === tasks.length - 1 &&
-			tasks[taskIndex]?.id === task.id;
+			(entities?.length ?? 0) > 0 && taskIndex === (entities?.length ?? 0) - 1;
 		return (
 			<TaskPlayer
 				task={task}
@@ -993,7 +1006,7 @@ export default function LearnPage() {
 				}}
 				onNext={() => {
 					submitBufferedForTask(task.id);
-					setTaskIndex(Math.min(tasks.length - 1, taskIndex + 1));
+					setTaskIndex(Math.min((entities?.length || 1) - 1, taskIndex + 1));
 				}}
 				onProgress={onProgress}
 				onAnswer={onAnswer}
@@ -1012,6 +1025,56 @@ export default function LearnPage() {
 				}}
 			/>
 		);
+	}
+
+	function renderCurrentEntity() {
+		const ent = (entities ?? [])[taskIndex] as
+			| { type?: string; task?: PublicTaskDTO }
+			| { type?: string; text?: { text?: string } }
+			| undefined;
+		if (!ent) return null;
+		if ((ent as { type?: string }).type === "task") {
+			const t = (ent as { task: PublicTaskDTO }).task;
+			return renderInteractiveTask(t);
+		}
+		if ((ent as { type?: string }).type === "text") {
+			const text = String(
+				(ent as { text?: { text?: unknown } }).text?.text ?? "",
+			);
+			return (
+				<Card className="border-slate-800 bg-slate-900">
+					<CardContent className="pt-6">
+						<Markdown content={text} />
+					</CardContent>
+				</Card>
+			);
+		}
+		return null;
+	}
+
+	function renderReviewEntity() {
+		const ent = (entities ?? [])[reviewTaskIndex] as
+			| { type?: string; task?: PublicTaskDTO }
+			| { type?: string; text?: { text?: string } }
+			| undefined;
+		if (!ent) return null;
+		if ((ent as { type?: string }).type === "task") {
+			const t = (ent as { task: PublicTaskDTO }).task;
+			return renderReadOnlyTask(t);
+		}
+		if ((ent as { type?: string }).type === "text") {
+			const text = String(
+				(ent as { text?: { text?: unknown } }).text?.text ?? "",
+			);
+			return (
+				<Card className="border-slate-800 bg-slate-900">
+					<CardContent className="pt-6">
+						<Markdown content={text} />
+					</CardContent>
+				</Card>
+			);
+		}
+		return null;
 	}
 
 	useEffect(() => {
@@ -1170,6 +1233,16 @@ export default function LearnPage() {
 				onLogin={() => setAuthModal("login")}
 				onRegister={() => setAuthModal("register")}
 			/>
+
+			{isStaff && selectedExam ? (
+				<EditExamDialog
+					examId={String(selectedExam.id)}
+					open={editExamOpen}
+					onOpenChange={setEditExamOpen}
+					entities={entities ?? []}
+					onSaved={() => refresh()}
+				/>
+			) : null}
 			<div className="flex">
 				{/* Backdrop for mobile */}
 				{sidebarOpen && (
@@ -1256,13 +1329,30 @@ export default function LearnPage() {
 									size="sm"
 									disabled={!canNext}
 									onClick={() => {
-										setTaskIndex(Math.min(tasks.length - 1, taskIndex + 1));
+										setTaskIndex(
+											Math.min((entities?.length || 1) - 1, taskIndex + 1),
+										);
 									}}
 									className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
 								>
 									<span className="hidden sm:inline">{t("next")}</span>
 									<ChevronRight className="h-3 w-3 lg:ml-1 lg:h-4 lg:w-4" />
 								</Button>
+
+								{isStaff && isPreview ? (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => setEditExamOpen(true)}
+										className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
+										title={t("edit_exam") ?? "Edit exam"}
+									>
+										<Pencil className="h-3 w-3 lg:mr-1 lg:h-4 lg:w-4" />
+										<span className="hidden sm:inline">
+											{t("edit_exam") ?? "Edit exam"}
+										</span>
+									</Button>
+								) : null}
 
 								{attempt ? (
 									<AlertDialog>
@@ -1316,11 +1406,45 @@ export default function LearnPage() {
 								) : null}
 							</div>
 						) : null}
+						{selectedExam && reviewMode ? (
+							<div className="flex flex-shrink-0 items-center space-x-1 lg:space-x-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										setReviewTaskIndex(Math.max(0, reviewTaskIndex - 1))
+									}
+									disabled={!canPrevReview}
+									className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
+								>
+									<ChevronLeft className="h-3 w-3 lg:mr-1 lg:h-4 lg:w-4" />
+									<span className="hidden sm:inline">{t("previous")}</span>
+								</Button>
+
+								<Button
+									variant="outline"
+									size="sm"
+									disabled={!canNextReview}
+									onClick={() => {
+										setReviewTaskIndex(
+											Math.min(
+												(entities?.length || 1) - 1,
+												reviewTaskIndex + 1,
+											),
+										);
+									}}
+									className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
+								>
+									<span className="hidden sm:inline">{t("next")}</span>
+									<ChevronRight className="h-3 w-3 lg:ml-1 lg:h-4 lg:w-4" />
+								</Button>
+							</div>
+						) : null}
 					</div>
 
 					{/* Content */}
 					<div
-						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${attempt?.active && tasks.length > 0 && !reviewMode ? "pb-24" : ""}`}
+						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${((attempt?.active || isPreview) && (entities?.length ?? 0) > 0 && !reviewMode) || (reviewMode && (entities?.length ?? 0) > 0) ? "pb-24" : ""}`}
 					>
 						{!selectedExam ? (
 							<div className="space-y-4">
@@ -1646,15 +1770,6 @@ export default function LearnPage() {
 
 								{reviewMode ? (
 									<div className="space-y-4">
-										<div className="flex items-center gap-2">
-											<Button
-												variant="outline"
-												onClick={() => setReviewMode(false)}
-												className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
-											>
-												{t("back") ?? "Back"}
-											</Button>
-										</div>
 										{/* Attempt selector for review mode */}
 										{sortedAttempts.length > 0 ? (
 											<div className="flex flex-wrap items-center gap-2 text-sm">
@@ -1715,24 +1830,31 @@ export default function LearnPage() {
 												</div>
 											</div>
 										) : null}
-										{tasks.length === 0 ? (
+										{(entities?.length ?? 0) === 0 ? (
 											<div className="text-slate-400 text-sm">
 												{t("no_tasks_attached") ?? "No tasks attached yet."}
 											</div>
 										) : (
-											tasks.map((tTask) => renderReadOnlyTask(tTask))
+											<>
+												{renderReviewEntity()}
+												<div className="flex items-center gap-2">
+													<Button
+														variant="outline"
+														onClick={() => setReviewMode(false)}
+														className="border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+													>
+														{t("back") ?? "Back"}
+													</Button>
+												</div>
+											</>
 										)}
 									</div>
-								) : tasks.length === 0 ? (
+								) : (entities?.length ?? 0) === 0 ? (
 									<div className="text-slate-400 text-sm">
 										{t("no_tasks_attached") ?? "No tasks attached yet."}
 									</div>
 								) : (
-									<>
-										{tasks[taskIndex]
-											? renderInteractiveTask(tasks[taskIndex] as PublicTaskDTO)
-											: null}
-									</>
+									<>{renderCurrentEntity()}</>
 								)}
 							</div>
 						)}
@@ -1740,7 +1862,9 @@ export default function LearnPage() {
 				</div>
 
 				{/* Right Sidebar: timer + progress (active attempt or preview) */}
-				{(attempt?.active || isPreview) && tasks.length > 0 && !reviewMode ? (
+				{(attempt?.active || isPreview) &&
+				(entities?.length ?? 0) > 0 &&
+				!reviewMode ? (
 					<div className="hidden w-60 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
 						{attempt?.active ? (
 							(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
@@ -1779,32 +1903,104 @@ export default function LearnPage() {
 							{t("progress") || "Progress"}
 						</div>
 						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-							{tasks.map((tTask, idx) => {
-								const id = tTask.id;
-								const isSubmitted = submittedIds.has(id);
-								return (
-									<button
-										key={id}
-										type="button"
-										onClick={() => setTaskIndex(idx)}
-										className={`flex h-8 w-8 items-center justify-center rounded ${
-											isSubmitted
-												? "bg-indigo-500 text-white"
-												: "bg-slate-700 text-slate-300"
-										} ${idx === taskIndex ? "ring-2 ring-indigo-400" : ""}`}
-										title={`${t("task") || "Task"} #${idx + 1}`}
-									>
-										<span className="font-semibold text-[11px]">{idx + 1}</span>
-									</button>
-								);
-							})}
+							{(() => {
+								let num = 0;
+								return (entities ?? []).map((ent, idx) => {
+									if ((ent as { type?: string }).type === "task") {
+										num++;
+										const task = (ent as { task: PublicTaskDTO }).task;
+										const id = task.id;
+										const isSubmitted = submittedIds.has(id);
+										return (
+											<button
+												key={`task-${id}`}
+												type="button"
+												onClick={() => setTaskIndex(idx)}
+												className={`flex h-8 w-8 items-center justify-center rounded ${
+													isSubmitted
+														? "bg-indigo-500 text-white"
+														: "bg-slate-700 text-slate-300"
+												} ${idx === taskIndex ? "ring-2 ring-indigo-400" : ""}`}
+												title={`${t("task") || "Task"} #${num}`}
+											>
+												<span className="font-semibold text-[11px]">{num}</span>
+											</button>
+										);
+									}
+									// text entity
+									return (
+										<button
+											key={`text-${selectedExam?.id ?? "none"}-${(ent as { text: { id: string } }).text.id}`}
+											type="button"
+											onClick={() => setTaskIndex(idx)}
+											className={`flex h-8 w-8 items-center justify-center rounded bg-slate-700 text-slate-300 ${
+												idx === taskIndex ? "ring-2 ring-indigo-400" : ""
+											}`}
+											title={t("text") || "Text"}
+										>
+											<BookOpen className="h-4 w-4" />
+										</button>
+									);
+								});
+							})()}
+						</div>
+					</div>
+				) : null}
+				{reviewMode && (entities?.length ?? 0) > 0 ? (
+					<div className="hidden w-60 shrink-0 border-slate-800 border-l bg-slate-900 p-3 lg:block">
+						<div className="mb-2 text-center font-medium text-slate-300 text-xs">
+							{t("progress") || "Progress"}
+						</div>
+						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+							{(() => {
+								let num = 0;
+								return (entities ?? []).map((ent, idx) => {
+									if ((ent as { type?: string }).type === "task") {
+										num++;
+										const task = (ent as { task: PublicTaskDTO }).task;
+										const v = verdictsByTaskId[task.id];
+										const bg =
+											v === "full_score"
+												? "bg-green-600 text-white"
+												: v === "incorrect"
+													? "bg-red-600 text-white"
+													: v === "on_review" || v === "partial_score"
+														? "bg-amber-600 text-white"
+														: "bg-slate-700 text-slate-300";
+										return (
+											<button
+												key={`rev-task-${task.id}`}
+												type="button"
+												onClick={() => setReviewTaskIndex(idx)}
+												className={`flex h-8 w-8 items-center justify-center rounded ${bg} ${idx === reviewTaskIndex ? "ring-2 ring-indigo-400" : ""}`}
+												title={`${t("task") || "Task"} #${num}`}
+											>
+												<span className="font-semibold text-[11px]">{num}</span>
+											</button>
+										);
+									}
+									return (
+										<button
+											key={`rev-text-${selectedExam?.id ?? "none"}-${(ent as { text: { id: string } }).text.id}`}
+											type="button"
+											onClick={() => setReviewTaskIndex(idx)}
+											className={`flex h-8 w-8 items-center justify-center rounded border border-slate-700 bg-transparent text-slate-300 ${idx === reviewTaskIndex ? "ring-2 ring-indigo-400" : ""}`}
+											title={t("text") || "Text"}
+										>
+											<BookOpen className="h-4 w-4" />
+										</button>
+									);
+								});
+							})()}
 						</div>
 					</div>
 				) : null}
 			</div>
 
 			{/* Mobile Footer: timer + progress (active attempt or preview) */}
-			{(attempt?.active || isPreview) && tasks.length > 0 && !reviewMode ? (
+			{(attempt?.active || isPreview) &&
+			(entities?.length ?? 0) > 0 &&
+			!reviewMode ? (
 				<div className="fixed inset-x-0 bottom-0 z-20 border-slate-800 border-t bg-slate-900 p-3 lg:hidden">
 					{/* Timer visible only during active attempt */}
 					{attempt?.active ? (
@@ -1846,27 +2042,105 @@ export default function LearnPage() {
 					<div className="flex items-center justify-center">
 						<div className="max-w-full overflow-x-auto px-2 py-1">
 							<div className="flex items-center gap-2">
-								{tasks.map((tTask, idx) => {
-									const id = tTask.id;
-									const isSubmitted = submittedIds.has(id);
-									return (
-										<button
-											key={id}
-											type="button"
-											onClick={() => setTaskIndex(idx)}
-											className={`flex h-8 w-8 items-center justify-center rounded ${
-												isSubmitted
-													? "bg-indigo-500 text-white"
-													: "bg-slate-700 text-slate-300"
-											} ${idx === taskIndex ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900" : ""}`}
-											title={`${t("task") || "Task"} #${idx + 1}`}
-										>
-											<span className="font-semibold text-[11px]">
-												{idx + 1}
-											</span>
-										</button>
-									);
-								})}
+								{(() => {
+									let num = 0;
+									return (entities ?? []).map((ent, idx) => {
+										if ((ent as { type?: string }).type === "task") {
+											num++;
+											const task = (ent as { task: PublicTaskDTO }).task;
+											const id = task.id;
+											const isSubmitted = submittedIds.has(id);
+											return (
+												<button
+													key={`task-${id}`}
+													type="button"
+													onClick={() => setTaskIndex(idx)}
+													className={`flex h-8 w-8 items-center justify-center rounded ${
+														isSubmitted
+															? "bg-indigo-500 text-white"
+															: "bg-slate-700 text-slate-300"
+													} ${idx === taskIndex ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900" : ""}`}
+													title={`${t("task") || "Task"} #${num}`}
+												>
+													<span className="font-semibold text-[11px]">
+														{num}
+													</span>
+												</button>
+											);
+										}
+										return (
+											<button
+												key={`text-${selectedExam?.id ?? "none"}-${(ent as { text: { id: string } }).text.id}`}
+												type="button"
+												onClick={() => setTaskIndex(idx)}
+												className={`flex h-8 w-8 items-center justify-center rounded bg-slate-700 text-slate-300 ${
+													idx === taskIndex
+														? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900"
+														: ""
+												}`}
+												title={t("text") || "Text"}
+											>
+												<BookOpen className="h-4 w-4" />
+											</button>
+										);
+									});
+								})()}
+							</div>
+						</div>
+					</div>
+				</div>
+			) : null}
+			{/* Mobile Footer: review progress sidebar */}
+			{reviewMode && (entities?.length ?? 0) > 0 ? (
+				<div className="fixed inset-x-0 bottom-0 z-20 border-slate-800 border-t bg-slate-900 p-3 lg:hidden">
+					<div className="mb-2 text-center font-medium text-slate-300 text-xs">
+						{t("progress") || "Progress"}
+					</div>
+					<div className="flex items-center justify-center">
+						<div className="max-w-full overflow-x-auto px-2 py-1">
+							<div className="flex items-center gap-2">
+								{(() => {
+									let num = 0;
+									return (entities ?? []).map((ent, idx) => {
+										if ((ent as { type?: string }).type === "task") {
+											num++;
+											const task = (ent as { task: PublicTaskDTO }).task;
+											const v = verdictsByTaskId[task.id];
+											const bg =
+												v === "full_score"
+													? "bg-green-600 text-white"
+													: v === "incorrect"
+														? "bg-red-600 text-white"
+														: v === "on_review" || v === "partial_score"
+															? "bg-amber-600 text-white"
+															: "bg-slate-700 text-slate-300";
+											return (
+												<button
+													key={`rev-task-${task.id}`}
+													type="button"
+													onClick={() => setReviewTaskIndex(idx)}
+													className={`flex h-8 w-8 items-center justify-center rounded ${bg} ${idx === reviewTaskIndex ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900" : ""}`}
+													title={`${t("task") || "Task"} #${num}`}
+												>
+													<span className="font-semibold text-[11px]">
+														{num}
+													</span>
+												</button>
+											);
+										}
+										return (
+											<button
+												key={`rev-text-${selectedExam?.id ?? "none"}-${(ent as { text: { id: string } }).text.id}`}
+												type="button"
+												onClick={() => setReviewTaskIndex(idx)}
+												className={`flex h-8 w-8 items-center justify-center rounded border border-slate-700 bg-transparent text-slate-300 ${idx === reviewTaskIndex ? "ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900" : ""}`}
+												title={t("text") || "Text"}
+											>
+												<BookOpen className="h-4 w-4" />
+											</button>
+										);
+									});
+								})()}
 							</div>
 						</div>
 					</div>

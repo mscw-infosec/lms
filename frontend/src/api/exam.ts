@@ -6,6 +6,8 @@ export type UpsertExamRequestDTO =
 export type CreateExamResponseDTO =
 	components["schemas"]["CreateExamResponseDTO"];
 export type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
+export type PubExamExtendedEntity =
+	components["schemas"]["PubExamExtendedEntity"];
 export type ExamDTO = components["schemas"]["Exam"]; // base exam shape returned by exam endpoints
 export type ExamAttempt = components["schemas"]["ExamAttemptSchema"];
 export type ExamAttemptsListDTO = components["schemas"]["ExamAttemptsListDTO"];
@@ -57,6 +59,14 @@ export async function updateExamTasks(
 
 export async function getExamTasks(exam_id: string): Promise<PublicTaskDTO[]> {
 	return http<PublicTaskDTO[]>(`/api/exam/${exam_id}/tasks`, {
+		withAuth: true,
+	});
+}
+
+export async function getExamEntities(
+	exam_id: string,
+): Promise<PubExamExtendedEntity[]> {
+	return http<PubExamExtendedEntity[]>(`/api/exam/${exam_id}/entities`, {
 		withAuth: true,
 	});
 }
@@ -139,6 +149,48 @@ export async function patchAttempt<TBody = unknown>(
 export async function stopAttempt(exam_id: string): Promise<void> {
 	await http<void>(`/api/exam/${exam_id}/attempt/stop`, {
 		method: "POST",
+		withAuth: true,
+	});
+}
+
+// --- Entities & Text management helpers ---
+export type TextUpsertDTO = components["schemas"]["TextUpsertDTO"];
+export type TextEntity = components["schemas"]["TextEntity"];
+export type ExamEntity = components["schemas"]["ExamEntity"];
+
+export async function updateExamEntities(
+	exam_id: string,
+	entities: ExamEntity[],
+): Promise<void> {
+	await http<void>(`/api/exam/${exam_id}/entities`, {
+		method: "PUT",
+		body: JSON.stringify(entities),
+		withAuth: true,
+	});
+}
+
+export async function createText(data: TextUpsertDTO): Promise<TextEntity> {
+	return http<TextEntity>("/api/exam/text/new", {
+		method: "POST",
+		body: JSON.stringify(data),
+		withAuth: true,
+	});
+}
+
+export async function updateText(
+	text_id: string,
+	data: TextUpsertDTO,
+): Promise<TextEntity> {
+	return http<TextEntity>(`/api/exam/text/${text_id}`, {
+		method: "PUT",
+		body: JSON.stringify(data),
+		withAuth: true,
+	});
+}
+
+export async function deleteText(text_id: string): Promise<void> {
+	await http<void>(`/api/exam/text/${text_id}`, {
+		method: "DELETE",
 		withAuth: true,
 	});
 }

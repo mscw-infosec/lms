@@ -842,6 +842,144 @@
 				]
 			}
 		},
+		"/exam/text/new": {
+			"post": {
+				"tags": ["Exam"],
+				"summary": "Create new text",
+				"operationId": "create_text",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TextUpsertDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Successfully created text",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TextEntity"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You can't create texts"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/text/{text_id}": {
+			"put": {
+				"tags": ["Exam"],
+				"summary": "Update text by id",
+				"operationId": "update_text",
+				"parameters": [
+					{
+						"name": "text_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TextUpsertDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Successfully updated text",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TextEntity"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You can't update texts"
+					},
+					"404": {
+						"description": "Text not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Exam"],
+				"summary": "Delete text by id",
+				"operationId": "delete_text",
+				"parameters": [
+					{
+						"name": "text_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Successfully deleted text"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You can't delete texts"
+					},
+					"404": {
+						"description": "Text not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/exam/{exam_id}": {
 			"get": {
 				"tags": ["Exam"],
@@ -1188,11 +1326,11 @@
 				]
 			}
 		},
-		"/exam/{exam_id}/tasks": {
+		"/exam/{exam_id}/entities": {
 			"get": {
 				"tags": ["Exam"],
-				"summary": "Get exam tasks (only with active attempt or if exam scores are available or if admin)",
-				"operationId": "get_tasks",
+				"summary": "Get exam entities (only with active attempt or if exam scores are available or if admin)",
+				"operationId": "get_entities",
 				"parameters": [
 					{
 						"name": "exam_id",
@@ -1206,13 +1344,13 @@
 				],
 				"responses": {
 					"200": {
-						"description": "Successfully got exam's tasks",
+						"description": "Successfully got exam's entities",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "array",
 									"items": {
-										"$ref": "#/components/schemas/PublicTaskDTO"
+										"$ref": "#/components/schemas/PubExamExtendedEntity"
 									}
 								}
 							}
@@ -1225,7 +1363,7 @@
 						"description": "No auth data found"
 					},
 					"403": {
-						"description": "You have no permission to view tasks"
+						"description": "You have no permission to view entities"
 					},
 					"404": {
 						"description": "Exam not found"
@@ -1239,8 +1377,8 @@
 			},
 			"put": {
 				"tags": ["Exam"],
-				"summary": "Update exam's tasks by id",
-				"operationId": "update_exam_tasks",
+				"summary": "Update exam's entities",
+				"operationId": "update_exam_entities",
 				"parameters": [
 					{
 						"name": "exam_id",
@@ -1258,8 +1396,7 @@
 							"schema": {
 								"type": "array",
 								"items": {
-									"type": "integer",
-									"format": "int32"
+									"$ref": "#/components/schemas/ExamEntity"
 								}
 							}
 						}
@@ -1268,7 +1405,7 @@
 				},
 				"responses": {
 					"200": {
-						"description": "Successfully updated exam's tasks"
+						"description": "Successfully updated exam's entities"
 					},
 					"400": {
 						"description": "Wrong data format"
@@ -2166,6 +2303,38 @@
 					}
 				}
 			},
+			"ExamEntity": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["id", "name"],
+						"properties": {
+							"id": {
+								"type": "integer",
+								"format": "int32"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["task"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["id", "name"],
+						"properties": {
+							"id": {
+								"type": "string",
+								"format": "uuid"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["text"]
+							}
+						}
+					}
+				]
+			},
 			"ExamType": {
 				"type": "string",
 				"enum": ["Instant", "Delayed"]
@@ -2206,6 +2375,36 @@
 				"propertyNames": {
 					"type": "string"
 				}
+			},
+			"PubExamExtendedEntity": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["task", "type"],
+						"properties": {
+							"task": {
+								"$ref": "#/components/schemas/PublicTaskDTO"
+							},
+							"type": {
+								"type": "string",
+								"enum": ["task"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["text", "type"],
+						"properties": {
+							"text": {
+								"$ref": "#/components/schemas/TextEntity"
+							},
+							"type": {
+								"type": "string",
+								"enum": ["text"]
+							}
+						}
+					}
+				]
 			},
 			"PublicAccountDTO": {
 				"type": "object",
@@ -2812,6 +3011,28 @@
 						}
 					}
 				]
+			},
+			"TextEntity": {
+				"type": "object",
+				"required": ["id", "text"],
+				"properties": {
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"text": {
+						"type": "string"
+					}
+				}
+			},
+			"TextUpsertDTO": {
+				"type": "object",
+				"required": ["text"],
+				"properties": {
+					"text": {
+						"type": "string"
+					}
+				}
 			},
 			"TopicResponseDTO": {
 				"type": "object",

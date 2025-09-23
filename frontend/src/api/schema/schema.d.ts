@@ -333,6 +333,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exam/text/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create new text */
+        post: operations["create_text"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exam/text/{text_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update text by id */
+        put: operations["update_text"];
+        post?: never;
+        /** Delete text by id */
+        delete: operations["delete_text"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/exam/{exam_id}": {
         parameters: {
             query?: never;
@@ -437,17 +472,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/exam/{exam_id}/tasks": {
+    "/exam/{exam_id}/entities": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get exam tasks (only with active attempt or if exam scores are available or if admin) */
-        get: operations["get_tasks"];
-        /** Update exam's tasks by id */
-        put: operations["update_exam_tasks"];
+        /** Get exam entities (only with active attempt or if exam scores are available or if admin) */
+        get: operations["get_entities"];
+        /** Update exam's entities */
+        put: operations["update_exam_entities"];
         post?: never;
         delete?: never;
         options?: never;
@@ -800,6 +835,17 @@ export interface components {
             attempts_left: number;
             ran_out_of_attempts: boolean;
         };
+        ExamEntity: {
+            /** Format: int32 */
+            id: number;
+            /** @enum {string} */
+            name: "task";
+        } | {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            name: "text";
+        };
         /** @enum {string} */
         ExamType: "Instant" | "Delayed";
         GetUserResponseDTO: {
@@ -814,6 +860,15 @@ export interface components {
         };
         HashMap: {
             [key: string]: string;
+        };
+        PubExamExtendedEntity: {
+            task: components["schemas"]["PublicTaskDTO"];
+            /** @enum {string} */
+            type: "task";
+        } | {
+            text: components["schemas"]["TextEntity"];
+            /** @enum {string} */
+            type: "text";
         };
         PublicAccountDTO: {
             attributes: components["schemas"]["HashMap"];
@@ -992,6 +1047,14 @@ export interface components {
         } | {
             /** @enum {string} */
             verdict: "on_review";
+        };
+        TextEntity: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+        };
+        TextUpsertDTO: {
+            text: string;
         };
         TopicResponseDTO: {
             /** Format: int32 */
@@ -1824,6 +1887,153 @@ export interface operations {
             };
         };
     };
+    create_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextUpsertDTO"];
+            };
+        };
+        responses: {
+            /** @description Successfully created text */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextEntity"];
+                };
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can't create texts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                text_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextUpsertDTO"];
+            };
+        };
+        responses: {
+            /** @description Successfully updated text */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextEntity"];
+                };
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can't update texts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Text not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                text_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully deleted text */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can't delete texts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Text not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_by_id: {
         parameters: {
             query?: never;
@@ -2182,7 +2392,7 @@ export interface operations {
             };
         };
     };
-    get_tasks: {
+    get_entities: {
         parameters: {
             query?: never;
             header?: never;
@@ -2193,13 +2403,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successfully got exam's tasks */
+            /** @description Successfully got exam's entities */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PublicTaskDTO"][];
+                    "application/json": components["schemas"]["PubExamExtendedEntity"][];
                 };
             };
             /** @description Wrong data format */
@@ -2216,7 +2426,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description You have no permission to view tasks */
+            /** @description You have no permission to view entities */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2232,7 +2442,7 @@ export interface operations {
             };
         };
     };
-    update_exam_tasks: {
+    update_exam_entities: {
         parameters: {
             query?: never;
             header?: never;
@@ -2243,11 +2453,11 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": number[];
+                "application/json": components["schemas"]["ExamEntity"][];
             };
         };
         responses: {
-            /** @description Successfully updated exam's tasks */
+            /** @description Successfully updated exam's entities */
             200: {
                 headers: {
                     [name: string]: unknown;
