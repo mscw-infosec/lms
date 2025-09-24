@@ -1,0 +1,25 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Backup
+metadata:
+  name: backup
+spec:
+  mariaDbRef:
+    name: mariadb
+  schedule:
+    cron: "0 0 */3 * *"
+    suspend: false
+  maxRetention: 864h # 3 * 24 * 12
+  compression: gzip
+  storage:
+    s3:
+      bucket: ctfd-mariadb-backups
+      prefix: mariadb
+      endpoint: storage.yandexcloud.net
+      region:  ru-central1
+      accessKeyIdSecretKeyRef:
+        name: ctfd-mariadb-backups
+        key: access-key-id
+      secretAccessKeySecretKeyRef:
+        name: ctfd-mariadb-backups
+        key: secret-access-key
+
