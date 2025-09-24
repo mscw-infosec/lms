@@ -4,7 +4,7 @@ metadata:
   name: backup
 spec:
   mariaDbRef:
-    name: mariadb
+    name: ctfd-mariadb
   schedule:
     cron: "0 0 */3 * *"
     suspend: false
