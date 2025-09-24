@@ -6,9 +6,9 @@ spec:
   mariaDbRef:
     name: ctfd-mariadb
   schedule:
-    cron: "0 0 */3 * *"
+    cron: "0 0 * * *"
     suspend: false
-  maxRetention: 864h # 3 * 24 * 12
+  maxRetention: 72h # 3 * 24
   compression: gzip
   storage:
     s3:
