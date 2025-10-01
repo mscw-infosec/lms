@@ -103,19 +103,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
-name = "async-compat"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bab94bde396a3f7b4962e396fdad640e241ed797d4d8d77fc8c237d14c58fc0"
-dependencies = [
- "futures-core",
- "futures-io",
- "once_cell",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "async-compression"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1673,7 +1660,6 @@ name = "lms-backend"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-compat",
  "async-trait",
  "axum 0.8.4",
  "axum-macros",
@@ -1699,7 +1685,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tonic 0.13.1",
- "totp-lite",
  "tower-cookies",
  "tower-http",
  "tracing",
@@ -3731,18 +3716,6 @@ dependencies = [
  "prost-build",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "totp-lite"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8e43134db17199f7f721803383ac5854edd0d3d523cc34dba321d6acfbe76c3"
-dependencies = [
- "digest",
- "hmac",
- "sha1",
- "sha2",
 ]
 
 [[package]]

@@ -45,6 +45,17 @@ pub struct ExamAttempt {
     pub scoring_data: Json<ScoringData>,
 }
 
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct ExamAttemptAdminSchema {
+    pub id: Uuid,
+    pub exam_id: Uuid,
+    pub user_id: Uuid,
+    pub started_at: DateTime<Utc>,
+    pub ends_at: DateTime<Utc>,
+    pub answer_data: ExamAnswer,
+    pub scoring_data: ScoringData,
+}
+
 #[derive(Serialize, Deserialize, ToSchema, Clone)]
 pub struct TaskAnswerDTO {
     pub task_id: usize,
@@ -92,6 +103,29 @@ impl From<ExamAttempt> for ExamAttemptSchema {
     }
 }
 
+impl From<ExamAttempt> for ExamAttemptAdminSchema {
+    fn from(value: ExamAttempt) -> Self {
+        Self {
+            id: value.id,
+            exam_id: value.exam_id,
+            user_id: value.user_id,
+            started_at: value.started_at,
+            ends_at: value.ends_at,
+            answer_data: value.answer_data.into(),
+            scoring_data: value.scoring_data.into(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct AttemptListingQuery {
+    #[validate(range(min = 0, max = 20))]
+    pub limit: i32,
+    #[validate(range(min = 0))]
+    pub offset: i32,
+    pub ungraded_first: bool,
+}
+
 #[derive(Serialize, Deserialize, ToSchema, FromRow, Clone, Default)]
 pub struct ExamAnswer {
     pub answers: HashMap<usize, TaskAnswer>,
@@ -124,4 +158,16 @@ impl From<Json<Self>> for ScoringData {
 pub struct TextUpsertDTO {
     #[validate(length(max = 10000))]
     pub text: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct TaskVerdictPatchRequest {
+    #[validate(range(min = 0))]
+    pub task_id: i32,
+    pub verdict: TaskVerdict,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct AttemptVisibilityPatchRequest {
+    pub show_results: bool,
 }

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE attempts\n            SET scoring_data = jsonb_set(\n                scoring_data,\n                ARRAY['show_results'],\n                to_jsonb($1::boolean),\n                true\n            )\n            WHERE exam_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a9c1c9317edbca8a921c6f0b36f49cc1de1a825e563152a71927a9e4faa69a4f"
+}

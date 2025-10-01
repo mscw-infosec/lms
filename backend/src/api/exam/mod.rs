@@ -1,8 +1,14 @@
+mod attempt;
 mod routes;
+
+use crate::api::exam::attempt::{
+    get_last_attempt, get_self_exam_attempts, patch_attempt, start_new_attempt, stop_attempt,
+};
 use crate::api::exam::routes::{create, delete_exam, get_by_id, update_exam, update_exam_entities};
 use crate::domain::account::service::AccountService;
 use crate::domain::exam::service::ExamService;
 use crate::infrastructure::jwt::JWT;
+use attempt::*;
 use axum_macros::FromRef;
 use routes::*;
 use std::sync::Arc;
@@ -32,7 +38,10 @@ pub fn configure(
         .routes(routes!(update_exam_entities, start_new_attempt))
         .routes(routes!(stop_attempt, patch_attempt, get_last_attempt))
         .routes(routes!(get_entities))
-        .routes(routes!(get_user_exam_attempts))
+        .routes(routes!(get_self_exam_attempts))
         .routes(routes!(create_text, update_text, delete_text))
+        .routes(routes!(get_attempts_by_exam, patch_attempt_task_verdict))
+        .routes(routes!(change_visibility_for_attempt_by_id))
+        .routes(routes!(change_visibility_for_attempts_by_exam))
         .with_state(state)
 }
