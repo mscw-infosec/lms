@@ -51,7 +51,6 @@ utoipa-swagger-ui = { version = "9.0.1", features = ["axum"], optional = true }
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 validator = { version = "0.20.0", features = ["derive"] }
 yandex-cloud = "2025.4.14"
-num-traits = "0.2.19"
 
 [profile.release]
 lto = "fat"

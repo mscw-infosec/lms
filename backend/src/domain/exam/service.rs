@@ -13,7 +13,6 @@ use crate::repo;
 use crate::utils::send_and_parse;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use chrono::Utc;
-use num_traits::cast::FromPrimitive;
 use sqlx::types::Json;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -141,6 +140,7 @@ impl ExamService {
 
     // here clippy would be wrong in the full_score case for `score != max_score`: we really want to check that we've got two fully equal floats
     #[allow(clippy::float_cmp)]
+    #[allow(clippy::cast_possible_truncation)]
     pub async fn update_attempt_verdict(
         &self,
         attempt_id: Uuid,
@@ -167,9 +167,11 @@ impl ExamService {
                 TaskVerdict::FullScore {
                     score, max_score, ..
                 } => {
-                    if score < 0f64
+                    if !score.is_finite()
+                        || !max_score.is_finite()
+                        || score < 0f64
                         || score != max_score
-                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                        || max_score as i64 != task.points
                     {
                         return Err(LMSError::ShitHappened(
                             "You provided invalid score".to_string(),
@@ -179,9 +181,11 @@ impl ExamService {
                 TaskVerdict::PartialScore {
                     score, max_score, ..
                 } => {
-                    if score < 0f64
+                    if !score.is_finite()
+                        || !max_score.is_finite()
+                        || score < 0f64
                         || score >= max_score
-                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                        || max_score as i64 != task.points
                     {
                         return Err(LMSError::ShitHappened(
                             "You provided invalid score".to_string(),
@@ -191,8 +195,10 @@ impl ExamService {
                 TaskVerdict::Incorrect {
                     score, max_score, ..
                 } => {
-                    if score != 0f64
-                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                    if !score.is_finite()
+                        || !max_score.is_finite()
+                        || score != 0f64
+                        || max_score as i64 != task.points
                     {
                         return Err(LMSError::ShitHappened(
                             "You provided invalid score".to_string(),
