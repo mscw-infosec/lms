@@ -13,6 +13,7 @@ use crate::repo;
 use crate::utils::send_and_parse;
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use chrono::Utc;
+use num_traits::cast::FromPrimitive;
 use sqlx::types::Json;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -79,12 +80,53 @@ impl ExamService {
         self.repo.update_entities(exam_id, entities).await
     }
 
-    pub async fn get_user_attempts(
+    pub async fn get_exam_attempts(
+        &self,
+        exam_id: Uuid,
+        limit: i32,
+        offset: i32,
+        ungraded_first: bool,
+    ) -> Result<Vec<ExamAttempt>> {
+        let mut attempts = self.repo.get_exam_attempts(exam_id, limit, offset).await?;
+        for attempt in &mut attempts {
+            if attempt.ends_at <= Utc::now()
+                && attempt.scoring_data.results.is_empty()
+                && !attempt.answer_data.answers.is_empty()
+            {
+                let scoring = self.score_attempt(attempt.clone()).await?;
+                attempt.scoring_data = Json(scoring);
+            }
+        }
+        if ungraded_first {
+            attempts.sort_by(|a, b| {
+                b.scoring_data
+                    .results
+                    .iter()
+                    .filter(|(_, task_verdict)| matches!(task_verdict, TaskVerdict::OnReview))
+                    .count()
+                    .cmp(
+                        &a.scoring_data
+                            .results
+                            .iter()
+                            .filter(|(_, task_verdict)| {
+                                matches!(task_verdict, TaskVerdict::OnReview)
+                            })
+                            .count(),
+                    )
+            });
+        }
+        Ok(attempts)
+    }
+
+    pub async fn get_user_attempts_in_exam(
         &self,
         exam_id: Uuid,
         user_id: Uuid,
     ) -> Result<Vec<ExamAttempt>> {
-        let mut attempts = self.repo.get_user_attempts(exam_id, user_id).await?;
+        let mut attempts = self
+            .repo
+            .get_user_attempts_in_exam(exam_id, user_id)
+            .await?;
         for attempt in &mut attempts {
             if attempt.ends_at <= Utc::now()
                 && attempt.scoring_data.results.is_empty()
@@ -97,8 +139,104 @@ impl ExamService {
         Ok(attempts)
     }
 
-    pub async fn get_user_last_attempt(&self, exam_id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
-        let mut attempt = self.repo.get_user_last_attempt(exam_id, user_id).await?;
+    // here clippy would be wrong in the full_score case for `score != max_score`: we really want to check that we've got two fully equal floats
+    #[allow(clippy::float_cmp)]
+    pub async fn update_attempt_verdict(
+        &self,
+        attempt_id: Uuid,
+        exam_id: Uuid,
+        task_id: i32,
+        verdict: TaskVerdict,
+    ) -> Result<()> {
+        let entities = self.repo.get_entities(exam_id).await?;
+        let tasks = entities
+            .iter()
+            .filter_map(|e| match e {
+                ExamExtendedEntity::Task { task } => Some(task),
+                ExamExtendedEntity::Text { .. } => None,
+            })
+            .collect::<Vec<_>>();
+        let updating_task = tasks.iter().find(|&&t| t.id == i64::from(task_id));
+        match updating_task {
+            None => {
+                return Err(LMSError::NotFound(
+                    "No such task exists in this exam".to_string(),
+                ));
+            }
+            Some(task) => match verdict {
+                TaskVerdict::FullScore {
+                    score, max_score, ..
+                } => {
+                    if score < 0f64
+                        || score != max_score
+                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                    {
+                        return Err(LMSError::ShitHappened(
+                            "You provided invalid score".to_string(),
+                        ));
+                    }
+                }
+                TaskVerdict::PartialScore {
+                    score, max_score, ..
+                } => {
+                    if score < 0f64
+                        || score >= max_score
+                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                    {
+                        return Err(LMSError::ShitHappened(
+                            "You provided invalid score".to_string(),
+                        ));
+                    }
+                }
+                TaskVerdict::Incorrect {
+                    score, max_score, ..
+                } => {
+                    if score != 0f64
+                        || i64::from_f64(max_score.ceil()).unwrap_or_default() != task.points
+                    {
+                        return Err(LMSError::ShitHappened(
+                            "You provided invalid score".to_string(),
+                        ));
+                    }
+                }
+                TaskVerdict::OnReview => {}
+            },
+        }
+
+        self.repo
+            .update_attempt_verdict(attempt_id, task_id, verdict)
+            .await
+    }
+
+    pub async fn update_attempt_visibility_by_id(
+        &self,
+        attempt_id: Uuid,
+        show_results: bool,
+    ) -> Result<()> {
+        self.repo
+            .update_attempt_visibility_by_id(attempt_id, show_results)
+            .await
+    }
+
+    pub async fn update_attempts_visibility_by_exam(
+        &self,
+        exam_id: Uuid,
+        show_results: bool,
+    ) -> Result<()> {
+        self.repo
+            .update_attempts_visibility_by_exam(exam_id, show_results)
+            .await
+    }
+
+    pub async fn get_user_last_attempt_in_exam(
+        &self,
+        exam_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<ExamAttempt> {
+        let mut attempt = self
+            .repo
+            .get_user_last_attempt_in_exam(exam_id, user_id)
+            .await?;
         if attempt.ends_at <= Utc::now()
             && attempt.scoring_data.results.is_empty()
             && !attempt.answer_data.answers.is_empty()
@@ -126,7 +264,7 @@ impl ExamService {
     }
 
     pub async fn stop_exam(&self, exam_id: Uuid, user_id: Uuid) -> Result<()> {
-        let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
+        let attempt = self.get_user_last_attempt_in_exam(exam_id, user_id).await?;
         if attempt.ends_at <= Utc::now() {
             if attempt.scoring_data.results.is_empty() {
                 let _ = self.score_attempt(attempt).await?;
@@ -148,7 +286,7 @@ impl ExamService {
         task_id: usize,
         user_answer: TaskAnswer,
     ) -> Result<ExamAttempt> {
-        let attempt = self.get_user_last_attempt(exam_id, user_id).await?;
+        let attempt = self.get_user_last_attempt_in_exam(exam_id, user_id).await?;
         if attempt.ends_at <= Utc::now() {
             return Err(LMSError::NotFound(
                 "You have no active attempts".to_string(),

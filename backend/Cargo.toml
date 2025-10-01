@@ -15,7 +15,6 @@ gen-openapi = ["dep:utoipa-swagger-ui"]
 
 [dependencies]
 anyhow = "1.0.98"
-async-compat = "0.2.4"
 async-trait = "0.1.88"
 axum = { version = "0.8.4", features = ["multipart"] }
 axum-macros = "0.5.0"
@@ -41,7 +40,6 @@ thiserror = "2.0.12"
 tokio = { version = "1.44.2", features = ["full"] }
 tokio-util = "0.7.15"
 tonic = "0.13.1"
-totp-lite = "2.0.1"
 tower-cookies = "0.11.0"
 tower-http = { version = "0.6.2", features = ["compression-full", "cors", "request-id", "trace"] }
 tracing = "0.1.41"
@@ -53,6 +51,7 @@ utoipa-swagger-ui = { version = "9.0.1", features = ["axum"], optional = true }
 uuid = { version = "1.16.0", features = ["serde", "v4"] }
 validator = { version = "0.20.0", features = ["derive"] }
 yandex-cloud = "2025.4.14"
+num-traits = "0.2.19"
 
 [profile.release]
 lto = "fat"

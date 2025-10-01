@@ -8,6 +8,7 @@ use crate::domain::task::model::TaskType;
 use crate::domain::task::model::{Task, TaskAnswer};
 use crate::dto::exam::ScoringData;
 use crate::dto::exam::{ExamAnswer, ExamAttempt, UpsertExamRequestDTO};
+use crate::dto::task::TaskVerdict;
 use crate::errors::{LMSError, Result};
 use crate::infrastructure::db::postgres::RepositoryPostgres;
 use async_trait::async_trait;
@@ -286,7 +287,33 @@ impl ExamRepository for RepositoryPostgres {
         Ok(())
     }
 
-    async fn get_user_attempts(&self, id: Uuid, user_id: Uuid) -> Result<Vec<ExamAttempt>> {
+    async fn get_exam_attempts(
+        &self,
+        exam_id: Uuid,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<ExamAttempt>> {
+        let attempts: Vec<ExamAttempt> = sqlx::query_as!(
+            ExamAttempt,
+            r#"
+                SELECT id, exam_id, user_id, started_at, ends_at,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                FROM attempts
+                WHERE exam_id = $1
+                ORDER BY started_at ASC
+                LIMIT $2 OFFSET $3
+            "#,
+            exam_id,
+            i64::from(limit),
+            i64::from(offset)
+        )
+            .fetch_all(&self.pool)
+            .await?;
+
+        Ok(attempts)
+    }
+
+    async fn get_user_attempts_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<Vec<ExamAttempt>> {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
             r#"
@@ -305,7 +332,7 @@ impl ExamRepository for RepositoryPostgres {
         Ok(attempts)
     }
 
-    async fn get_user_last_attempt(&self, id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+    async fn get_user_last_attempt_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
         let attempt = sqlx::query_as!(
             ExamAttempt,
             r#"
@@ -405,7 +432,7 @@ impl ExamRepository for RepositoryPostgres {
         task_id: usize,
         answer: TaskAnswer,
     ) -> Result<ExamAttempt> {
-        let mut attempts = self.get_user_attempts(exam_id, user_id).await?;
+        let mut attempts = self.get_user_attempts_in_exam(exam_id, user_id).await?;
         if let Some(active_attempt) = attempts.iter_mut().find(|a| a.ends_at > Utc::now()) {
             let mut answer_data = active_attempt.answer_data.clone();
             answer_data.answers.insert(task_id, answer);
@@ -570,5 +597,82 @@ impl ExamRepository for RepositoryPostgres {
             _ => LMSError::DatabaseError(err),
         })?;
         Ok(text_entity)
+    }
+
+    async fn update_attempt_verdict(
+        &self,
+        attempt_id: Uuid,
+        task_id: i32,
+        verdict: TaskVerdict,
+    ) -> Result<()> {
+        let _ = sqlx::query!(
+            r#"
+                UPDATE attempts
+                SET scoring_data = jsonb_set(
+                    scoring_data,
+                    ARRAY['results', $1],
+                    to_jsonb($2::jsonb),
+                    true
+                )
+                WHERE id = $3
+            "#,
+            task_id.to_string(),
+            to_value(verdict).expect("Something bad happened with TaskVerdict data"),
+            attempt_id,
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_attempt_visibility_by_id(
+        &self,
+        attempt_id: Uuid,
+        show_results: bool,
+    ) -> Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE attempts
+            SET scoring_data = jsonb_set(
+                scoring_data,
+                ARRAY['show_results'],
+                to_jsonb($1::boolean),
+                true
+            )
+            WHERE id = $2
+            "#,
+            show_results,
+            attempt_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn update_attempts_visibility_by_exam(
+        &self,
+        exam_id: Uuid,
+        show_results: bool,
+    ) -> Result<()> {
+        sqlx::query!(
+            r#"
+            UPDATE attempts
+            SET scoring_data = jsonb_set(
+                scoring_data,
+                ARRAY['show_results'],
+                to_jsonb($1::boolean),
+                true
+            )
+            WHERE exam_id = $2
+            "#,
+            show_results,
+            exam_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }
