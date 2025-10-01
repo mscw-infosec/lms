@@ -45,7 +45,7 @@ pub struct ExamAttempt {
     pub scoring_data: Json<ScoringData>,
 }
 
-#[derive(Serialize, Deserialize, FromRow, ToSchema)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct ExamAttemptAdminSchema {
     pub id: Uuid,
     pub exam_id: Uuid,

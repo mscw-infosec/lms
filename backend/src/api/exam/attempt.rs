@@ -270,10 +270,7 @@ pub async fn get_attempts_by_exam(
         .exam_service
         .get_exam_attempts(exam_id, query.limit, query.offset, query.ungraded_first)
         .await?;
-    let attempts: Vec<ExamAttemptAdminSchema> = exam_attempts
-        .iter()
-        .map(|x| ExamAttemptAdminSchema::from(x.clone()))
-        .collect();
+    let attempts: Vec<ExamAttemptAdminSchema> = exam_attempts.into_iter().map(Into::into).collect();
 
     Ok(Json(attempts))
 }
@@ -289,7 +286,7 @@ pub async fn get_attempts_by_exam(
     ),
     request_body = TaskVerdictPatchRequest,
     responses(
-        (status = 200, description = "Successfully patched attempt verdict"),
+        (status = 204, description = "Successfully patched attempt verdict"),
         (status = 400, description = "Wrong data format / invalid score"),
         (status = 401, description = "No auth data found"),
         (status = 403, description = "You have no permissions (teacher / admin) to access this endpoint"),
@@ -304,7 +301,7 @@ pub async fn patch_attempt_task_verdict(
     Path((exam_id, attempt_id)): Path<(Uuid, Uuid)>,
     State(state): State<ExamState>,
     Json(patch_request): Json<TaskVerdictPatchRequest>,
-) -> Result<(), LMSError> {
+) -> Result<StatusCode, LMSError> {
     if !matches!(claims.role, UserRole::Teacher | UserRole::Admin) {
         return Err(LMSError::Forbidden(
             "Student can't access admin endpoints".to_string(),
@@ -320,7 +317,7 @@ pub async fn patch_attempt_task_verdict(
         )
         .await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// Change `show_results` for an attempt by id
@@ -333,7 +330,7 @@ pub async fn patch_attempt_task_verdict(
     ),
     request_body = AttemptVisibilityPatchRequest,
     responses(
-        (status = 200, description = "Successfully changed attempt visibility"),
+        (status = 204, description = "Successfully changed attempt visibility"),
         (status = 400, description = "Wrong data format"),
         (status = 401, description = "No auth data found"),
         (status = 403, description = "You have no permissions (teacher / admin) to access this endpoint")
@@ -347,7 +344,7 @@ pub async fn change_visibility_for_attempt_by_id(
     Path(attempt_id): Path<Uuid>,
     State(state): State<ExamState>,
     Json(patch_request): Json<AttemptVisibilityPatchRequest>,
-) -> Result<(), LMSError> {
+) -> Result<StatusCode, LMSError> {
     if !matches!(claims.role, UserRole::Teacher | UserRole::Admin) {
         return Err(LMSError::Forbidden(
             "Student can't access admin endpoints".to_string(),
@@ -358,7 +355,7 @@ pub async fn change_visibility_for_attempt_by_id(
         .update_attempt_visibility_by_id(attempt_id, patch_request.show_results)
         .await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// Change `show_results` for all attempts in an exam
@@ -371,7 +368,7 @@ pub async fn change_visibility_for_attempt_by_id(
     ),
     request_body = AttemptVisibilityPatchRequest,
     responses(
-        (status = 200, description = "Successfully changed attempt visibility"),
+        (status = 204, description = "Successfully changed attempt visibility"),
         (status = 400, description = "Wrong data format"),
         (status = 401, description = "No auth data found"),
         (status = 403, description = "You have no permissions (teacher / admin) to access this endpoint")
@@ -385,7 +382,7 @@ pub async fn change_visibility_for_attempts_by_exam(
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
     Json(patch_request): Json<AttemptVisibilityPatchRequest>,
-) -> Result<(), LMSError> {
+) -> Result<StatusCode, LMSError> {
     if !matches!(claims.role, UserRole::Teacher | UserRole::Admin) {
         return Err(LMSError::Forbidden(
             "Student can't access admin endpoints".to_string(),
@@ -396,5 +393,5 @@ pub async fn change_visibility_for_attempts_by_exam(
         .update_attempts_visibility_by_exam(exam_id, patch_request.show_results)
         .await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
