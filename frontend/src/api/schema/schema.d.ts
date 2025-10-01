@@ -316,6 +316,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exam/admin/attempt/visibility/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change `show_results` for an attempt by id */
+        patch: operations["change_visibility_for_attempt_by_id"];
+        trace?: never;
+    };
     "/exam/new": {
         parameters: {
             query?: never;
@@ -387,6 +404,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exam/{exam_id}/admin/attempt/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List attempts by exams for admin */
+        get: operations["get_attempts_by_exam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/exam/{exam_id}/admin/attempt/verdict/{attempt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Patch verdict for user's attempt */
+        patch: operations["patch_attempt_task_verdict"];
+        trace?: never;
+    };
+    "/exam/{exam_id}/admin/attempt/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change `show_results` for all attempts in an exam */
+        patch: operations["change_visibility_for_attempts_by_exam"];
+        trace?: never;
+    };
     "/exam/{exam_id}/attempt/last": {
         parameters: {
             query?: never;
@@ -412,7 +480,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get user attempts for exam */
-        get: operations["get_user_exam_attempts"];
+        get: operations["get_self_exam_attempts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -722,6 +790,9 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AttemptVisibilityPatchRequest: {
+            show_results: boolean;
+        };
         AttributeFilter: {
             content: {
                 key: string;
@@ -811,6 +882,20 @@ export interface components {
             answers: {
                 [key: string]: components["schemas"]["TaskAnswer"];
             };
+        };
+        ExamAttemptAdminSchema: {
+            answer_data: components["schemas"]["ExamAnswer"];
+            /** Format: date-time */
+            ends_at: string;
+            /** Format: uuid */
+            exam_id: string;
+            /** Format: uuid */
+            id: string;
+            scoring_data: components["schemas"]["ScoringData"];
+            /** Format: date-time */
+            started_at: string;
+            /** Format: uuid */
+            user_id: string;
         };
         ExamAttemptSchema: {
             active: boolean;
@@ -1047,6 +1132,11 @@ export interface components {
         } | {
             /** @enum {string} */
             verdict: "on_review";
+        };
+        TaskVerdictPatchRequest: {
+            /** Format: int32 */
+            task_id: number;
+            verdict: components["schemas"]["TaskVerdict"];
         };
         TextEntity: {
             /** Format: uuid */
@@ -1842,6 +1932,51 @@ export interface operations {
             };
         };
     };
+    change_visibility_for_attempt_by_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttemptVisibilityPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successfully changed attempt visibility */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You have no permissions (teacher / admin) to access this endpoint */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     create: {
         parameters: {
             query?: never;
@@ -2163,6 +2298,158 @@ export interface operations {
             };
         };
     };
+    get_attempts_by_exam: {
+        parameters: {
+            query: {
+                limit: number;
+                offset: number;
+                ungraded_first: boolean;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully got attempts list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamAttemptAdminSchema"][];
+                };
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You have no permissions (teacher / admin) to access this endpoint */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    patch_attempt_task_verdict: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskVerdictPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successfully patched attempt verdict */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Wrong data format / invalid score */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You have no permissions (teacher / admin) to access this endpoint */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam / attempt / task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    change_visibility_for_attempts_by_exam: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttemptVisibilityPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successfully changed attempt visibility */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You have no permissions (teacher / admin) to access this endpoint */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_last_attempt: {
         parameters: {
             query?: never;
@@ -2206,7 +2493,7 @@ export interface operations {
             };
         };
     };
-    get_user_exam_attempts: {
+    get_self_exam_attempts: {
         parameters: {
             query?: never;
             header?: never;
@@ -2240,7 +2527,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Exam not found */
+            /** @description Exam / task / attempt not found */
             404: {
                 headers: {
                     [name: string]: unknown;

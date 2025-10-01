@@ -194,3 +194,68 @@ export async function deleteText(text_id: string): Promise<void> {
 		withAuth: true,
 	});
 }
+
+// --- Admin Attempts Panel API ---
+export type ExamAttemptAdmin = components["schemas"]["ExamAttemptAdminSchema"];
+export type TaskVerdict = components["schemas"]["TaskVerdict"];
+export type TaskVerdictPatchRequest =
+	components["schemas"]["TaskVerdictPatchRequest"];
+export type AttemptVisibilityPatchRequest =
+	components["schemas"]["AttemptVisibilityPatchRequest"];
+
+// GET /exam/{exam_id}/admin/attempt/list
+export async function listExamAttemptsAdmin(
+	exam_id: string,
+	params: { limit: number; offset: number; ungraded_first: boolean },
+): Promise<ExamAttemptAdmin[]> {
+	const query = new URLSearchParams({
+		limit: String(params.limit),
+		offset: String(params.offset),
+		ungraded_first: String(params.ungraded_first),
+	}).toString();
+	return http<ExamAttemptAdmin[]>(
+		`/api/exam/${exam_id}/admin/attempt/list?${query}`,
+		{
+			withAuth: true,
+		},
+	);
+}
+
+// PATCH /exam/{exam_id}/admin/attempt/verdict/{attempt_id}
+export async function patchAttemptTaskVerdict(
+	exam_id: string,
+	attempt_id: string,
+	payload: TaskVerdictPatchRequest,
+): Promise<void> {
+	await http<void>(`/api/exam/${exam_id}/admin/attempt/verdict/${attempt_id}`, {
+		method: "PATCH",
+		body: JSON.stringify(payload),
+		withAuth: true,
+	});
+}
+
+// PATCH /exam/admin/attempt/visibility/{attempt_id}
+export async function setAttemptVisibility(
+	attempt_id: string,
+	show_results: boolean,
+): Promise<void> {
+	const body: AttemptVisibilityPatchRequest = { show_results };
+	await http<void>(`/api/exam/admin/attempt/visibility/${attempt_id}`, {
+		method: "PATCH",
+		body: JSON.stringify(body),
+		withAuth: true,
+	});
+}
+
+// PATCH /exam/{exam_id}/admin/attempt/visibility
+export async function setExamAttemptsVisibility(
+	exam_id: string,
+	show_results: boolean,
+): Promise<void> {
+	const body: AttemptVisibilityPatchRequest = { show_results };
+	await http<void>(`/api/exam/${exam_id}/admin/attempt/visibility`, {
+		method: "PATCH",
+		body: JSON.stringify(body),
+		withAuth: true,
+	});
+}

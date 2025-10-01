@@ -799,6 +799,53 @@
 				]
 			}
 		},
+		"/exam/admin/attempt/visibility/{attempt_id}": {
+			"patch": {
+				"tags": ["Exam"],
+				"summary": "Change `show_results` for an attempt by id",
+				"operationId": "change_visibility_for_attempt_by_id",
+				"parameters": [
+					{
+						"name": "attempt_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AttemptVisibilityPatchRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Successfully changed attempt visibility"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You have no permissions (teacher / admin) to access this endpoint"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/exam/new": {
 			"post": {
 				"tags": ["Exam"],
@@ -1104,6 +1151,188 @@
 				]
 			}
 		},
+		"/exam/{exam_id}/admin/attempt/list": {
+			"get": {
+				"tags": ["Exam"],
+				"summary": "List attempts by exams for admin",
+				"operationId": "get_attempts_by_exam",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "ungraded_first",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully got attempts list",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ExamAttemptAdminSchema"
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You have no permissions (teacher / admin) to access this endpoint"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/admin/attempt/verdict/{attempt_id}": {
+			"patch": {
+				"tags": ["Exam"],
+				"summary": "Patch verdict for user's attempt",
+				"operationId": "patch_attempt_task_verdict",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "attempt_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskVerdictPatchRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Successfully patched attempt verdict"
+					},
+					"400": {
+						"description": "Wrong data format / invalid score"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You have no permissions (teacher / admin) to access this endpoint"
+					},
+					"404": {
+						"description": "Exam / attempt / task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/exam/{exam_id}/admin/attempt/visibility": {
+			"patch": {
+				"tags": ["Exam"],
+				"summary": "Change `show_results` for all attempts in an exam",
+				"operationId": "change_visibility_for_attempts_by_exam",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AttemptVisibilityPatchRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Successfully changed attempt visibility"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "You have no permissions (teacher / admin) to access this endpoint"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/exam/{exam_id}/attempt/last": {
 			"get": {
 				"tags": ["Exam"],
@@ -1152,7 +1381,7 @@
 			"get": {
 				"tags": ["Exam"],
 				"summary": "Get user attempts for exam",
-				"operationId": "get_user_exam_attempts",
+				"operationId": "get_self_exam_attempts",
 				"parameters": [
 					{
 						"name": "exam_id",
@@ -1182,7 +1411,7 @@
 						"description": "No auth data found"
 					},
 					"404": {
-						"description": "Exam not found"
+						"description": "Exam / task / attempt not found"
 					}
 				},
 				"security": [
@@ -1970,6 +2199,15 @@
 	},
 	"components": {
 		"schemas": {
+			"AttemptVisibilityPatchRequest": {
+				"type": "object",
+				"required": ["show_results"],
+				"properties": {
+					"show_results": {
+						"type": "boolean"
+					}
+				}
+			},
 			"AttributeFilter": {
 				"oneOf": [
 					{
@@ -2227,6 +2465,46 @@
 							"type": "integer",
 							"minimum": 0
 						}
+					}
+				}
+			},
+			"ExamAttemptAdminSchema": {
+				"type": "object",
+				"required": [
+					"id",
+					"exam_id",
+					"user_id",
+					"started_at",
+					"ends_at",
+					"answer_data",
+					"scoring_data"
+				],
+				"properties": {
+					"answer_data": {
+						"$ref": "#/components/schemas/ExamAnswer"
+					},
+					"ends_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"exam_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"scoring_data": {
+						"$ref": "#/components/schemas/ScoringData"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid"
 					}
 				}
 			},
@@ -3011,6 +3289,19 @@
 						}
 					}
 				]
+			},
+			"TaskVerdictPatchRequest": {
+				"type": "object",
+				"required": ["task_id", "verdict"],
+				"properties": {
+					"task_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"verdict": {
+						"$ref": "#/components/schemas/TaskVerdict"
+					}
+				}
 			},
 			"TextEntity": {
 				"type": "object",

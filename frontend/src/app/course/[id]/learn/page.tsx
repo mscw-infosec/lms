@@ -1340,18 +1340,37 @@ export default function LearnPage() {
 								</Button>
 
 								{isStaff && isPreview ? (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => setEditExamOpen(true)}
-										className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
-										title={t("edit_exam") ?? "Edit exam"}
-									>
-										<Pencil className="h-3 w-3 lg:mr-1 lg:h-4 lg:w-4" />
-										<span className="hidden sm:inline">
-											{t("edit_exam") ?? "Edit exam"}
-										</span>
-									</Button>
+									<>
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() => setEditExamOpen(true)}
+											className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
+											title={t("edit_exam") ?? "Edit exam"}
+										>
+											<Pencil className="h-3 w-3 lg:mr-1 lg:h-4 lg:w-4" />
+											<span className="hidden sm:inline">
+												{t("edit_exam") ?? "Edit exam"}
+											</span>
+										</Button>
+
+										{/* Attempts Admin Panel button */}
+										{selectedExam ? (
+											<Link href={`/exam/${selectedExam.id}/admin`}>
+												<Button
+													variant="outline"
+													size="sm"
+													className="border-slate-700 bg-transparent px-2 text-slate-300 text-xs hover:bg-slate-800 lg:px-3 lg:text-sm"
+													title={t("attempts_admin") ?? "Attempts admin"}
+												>
+													<BookOpen className="h-3 w-3 lg:mr-1 lg:h-4 lg:w-4" />
+													<span className="hidden sm:inline">
+														{t("attempts_admin") ?? "Attempts admin"}
+													</span>
+												</Button>
+											</Link>
+										) : null}
+									</>
 								) : null}
 
 								{attempt ? (
