@@ -37,7 +37,7 @@ spec:
 
       containers:
         - name: ctfd
-          image: cr.yandex/crpi7be6fcnum9d5jo38/ctfd:v7
+          image: cr.yandex/crpi7be6fcnum9d5jo38/ctfd:v8
           envFrom:
             - configMapRef:
                 name: ctfd
