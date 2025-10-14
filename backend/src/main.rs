@@ -15,7 +15,8 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
+        courses::service::CourseService, entity::service::EntityService,
+        exam::service::ExamService, oauth::service::OAuthService,
         refresh_token::service::RefreshTokenService, task::service::TaskService,
         topics::service::TopicService, video::service::VideoService,
     },
@@ -105,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
     let refresh_token = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let task = TaskService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
-
+    let entity = EntityService::new(db_repo.clone());
     let services = Services {
         account,
         basic_auth,
@@ -116,6 +117,7 @@ async fn main() -> anyhow::Result<()> {
         task,
         topic,
         video,
+        entity,
     };
 
     let app_router = generate_router(jwt, client, config, services)?;
