@@ -25,7 +25,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_clear_headers "Strict-Transport-Security";
-      add_header Strict-Transport-Security "max-age=0; includeSubDomains" always;
+      add_header Strict-Transport-Security "max-age=0" always;
       chunked_transfer_encoding off;
       proxy_cache off;
       proxy_set_header Host $host;
