@@ -4,6 +4,10 @@ metadata:
   name: ctf-ingress
   namespace: {{ .Release.Namespace }}
   annotations:
+    nginx.ingress.kubernetes.io/hsts: "true"
+    nginx.ingress.kubernetes.io/hsts-max-age: "0"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
+    
     nginx.ingress.kubernetes.io/proxy-body-size: "4G"
 
     # Timeouts
@@ -26,7 +30,6 @@ metadata:
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Host $server_name;
-      add_header Strict-Transport-Security "max-age=0; includeSubDomains" always;
 
 spec:
   tls:
