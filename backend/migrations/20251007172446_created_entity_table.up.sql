@@ -2,7 +2,7 @@
 CREATE TYPE ENTITY_TYPE AS ENUM ('exam', 'text', 'video');
 CREATE TABLE entities (
                           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                          topic_id INTEGER NOT NULL,
+                          topic_id INTEGER NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
                           type ENTITY_TYPE NOT NULL,
                           order_id INTEGER NOT NULL,
                           entity_version INTEGER NOT NULL DEFAULT 1,

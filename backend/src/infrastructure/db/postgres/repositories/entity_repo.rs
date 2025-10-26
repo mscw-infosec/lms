@@ -9,10 +9,11 @@ use crate::infrastructure::db::postgres::RepositoryPostgres;
 
 #[async_trait]
 impl EntityRepository for RepositoryPostgres {
-    async fn create(&self, entity: UpsertEntityDto) -> Result<()> {
+    async fn create(&self, entity: UpsertEntityDto) -> Result<Entity> {
         let mut conn = self.pool.acquire().await?;
 
-        sqlx::query!(
+        let inserted = sqlx::query_as!(
+            Entity,
             r#"
             INSERT INTO entities (
 
@@ -23,6 +24,13 @@ impl EntityRepository for RepositoryPostgres {
                 entity_data
             )
             VALUES ($1, $2, $3, $4, $5)
+            RETURNING
+                id,
+                topic_id,
+                type AS "type: EntityType",
+                order_id,
+                entity_version,
+                entity_data
             "#,
             entity.topic_id,
             entity.r#type as EntityType,
@@ -30,10 +38,10 @@ impl EntityRepository for RepositoryPostgres {
             entity.entity_version,
             entity.entity_data
         )
-        .execute(conn.as_mut())
+        .fetch_one(conn.as_mut())
         .await?;
 
-        Ok(())
+        Ok(inserted)
     }
 
     async fn update(&self, id: Uuid, entity: UpsertEntityDto) -> Result<Entity> {

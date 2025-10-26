@@ -22,7 +22,7 @@ impl EntityService {
         order_id: i32,
         entity_version: i32,
         entity_data: String,
-    ) -> Result<()> {
+    ) -> Result<Entity> {
         let dto = UpsertEntityDto {
             id: None,
             topic_id,
