@@ -23,8 +23,7 @@ pub enum EntityData {
 
 impl From<String> for EntityData {
     fn from(s: String) -> Self {
-        let data: EntityData =
-            serde_json::from_str(s.as_str()).expect("cannot deserialize entity data");
+        let data: Self = serde_json::from_str(s.as_str()).expect("cannot deserialize entity data");
         data
     }
 }

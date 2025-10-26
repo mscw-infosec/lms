@@ -12,7 +12,7 @@ pub struct EntityService {
 
 impl EntityService {
     pub fn new(repo: repo!(EntityRepository)) -> Self {
-        Self { repo: repo }
+        Self { repo }
     }
 
     pub async fn create_entity(

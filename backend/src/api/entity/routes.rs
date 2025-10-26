@@ -34,7 +34,7 @@ pub async fn create(
         return Err(LMSError::Forbidden("You can't create entities".to_string()));
     }
     let entity_data: String = serde_json::to_string(&payload.entity_data)
-        .map_err(|e| LMSError::ShitHappened(format!("Failed to serialize entity data: {}", e)))?;
+        .map_err(|e| LMSError::ShitHappened(format!("Failed to serialize entity data: {e}")))?;
 
     state
         .service
