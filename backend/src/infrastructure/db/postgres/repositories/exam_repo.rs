@@ -323,6 +323,7 @@ impl ExamRepository for RepositoryPostgres {
                 WHERE exam_id = $1
                 AND scoring_data = '{"results": {}, "show_results": false}'::jsonb
                 AND answer_data != '{"answers": {}}'::jsonb
+                AND ends_at < NOW()
                 ORDER BY started_at ASC
             "#,
             exam_id
