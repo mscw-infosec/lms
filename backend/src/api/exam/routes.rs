@@ -2,7 +2,9 @@ use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::{Exam, ExamEntity, ExamExtendedEntity, TextEntity};
 use crate::domain::task::model::TaskConfig;
-use crate::dto::exam::{CreateExamResponseDTO, ExamScoringAmount, TextUpsertDTO, UpsertExamRequestDTO};
+use crate::dto::exam::{
+    CreateExamResponseDTO, ExamScoringAmount, TextUpsertDTO, UpsertExamRequestDTO,
+};
 use crate::dto::task::PubExamExtendedEntity;
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
@@ -168,7 +170,9 @@ pub async fn score_unscored(
 ) -> Result<Json<ExamScoringAmount>, LMSError> {
     // TODO: ACL for tasks (owners)
     if matches!(claims.role, UserRole::Student) {
-        return Err(LMSError::Forbidden("You can't launch exam scoring".to_string()));
+        return Err(LMSError::Forbidden(
+            "You can't launch exam scoring".to_string(),
+        ));
     }
     let amount = state.exam_service.score_unscored(exam_id).await?;
     Ok(Json(ExamScoringAmount { amount }))

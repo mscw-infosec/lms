@@ -174,5 +174,5 @@ pub struct AttemptVisibilityPatchRequest {
 
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct ExamScoringAmount {
-    pub amount: usize
+    pub amount: usize,
 }

@@ -14,7 +14,6 @@ use axum::{
     Json,
     extract::{Path, State},
 };
-use tracing::info;
 use uuid::Uuid;
 
 /// Return user object
@@ -94,7 +93,6 @@ pub async fn get_user_ctfd_data(
     Path(user_email): Path<String>,
     State(state): State<AccountState>,
 ) -> Result<Json<CtfdAccountData>, LMSError> {
-    info!("Got request for ctfd data for user: {}", user_email);
     let user = state.account_service.get_user_by_email(user_email).await?;
     Ok(Json(CtfdAccountData {
         attributes: user.attributes,

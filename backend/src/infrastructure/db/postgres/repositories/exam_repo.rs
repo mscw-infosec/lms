@@ -332,7 +332,6 @@ impl ExamRepository for RepositoryPostgres {
             .await?;
 
         Ok(attempts)
-
     }
 
     async fn get_user_attempts_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<Vec<ExamAttempt>> {
