@@ -313,6 +313,27 @@ impl ExamRepository for RepositoryPostgres {
         Ok(attempts)
     }
 
+    async fn get_exam_unscored_attempts(&self, exam_id: Uuid) -> Result<Vec<ExamAttempt>> {
+        let attempts: Vec<ExamAttempt> = sqlx::query_as!(
+            ExamAttempt,
+            r#"
+                SELECT id, exam_id, user_id, started_at, ends_at,
+                answer_data as "answer_data: Json<ExamAnswer>", scoring_data as "scoring_data: Json<ScoringData>"
+                FROM attempts
+                WHERE exam_id = $1
+                AND scoring_data = '{"results": {}, "show_results": false}'::jsonb
+                AND answer_data != '{"answers": {}}'::jsonb
+                ORDER BY started_at ASC
+            "#,
+            exam_id
+        )
+            .fetch_all(&self.pool)
+            .await?;
+
+        Ok(attempts)
+
+    }
+
     async fn get_user_attempts_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<Vec<ExamAttempt>> {
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,

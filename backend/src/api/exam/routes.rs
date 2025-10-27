@@ -2,7 +2,7 @@ use crate::api::exam::ExamState;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::{Exam, ExamEntity, ExamExtendedEntity, TextEntity};
 use crate::domain::task::model::TaskConfig;
-use crate::dto::exam::{CreateExamResponseDTO, TextUpsertDTO, UpsertExamRequestDTO};
+use crate::dto::exam::{CreateExamResponseDTO, ExamScoringAmount, TextUpsertDTO, UpsertExamRequestDTO};
 use crate::dto::task::PubExamExtendedEntity;
 use crate::errors::LMSError;
 use crate::infrastructure::jwt::AccessTokenClaim;
@@ -140,6 +140,38 @@ pub async fn update_exam(
 
     let exam = state.exam_service.update_exam(exam_id, payload).await?;
     Ok(exam.into())
+}
+
+/// Score all unscored attempts
+#[utoipa::path(
+    post,
+    tag = "Exam",
+    path = "/{exam_id}/score",
+    params(
+        ("exam_id" = Uuid, Path)
+    ),
+    responses(
+        (status = 200, description = "Successfully scored attempts in exam"),
+        (status = 400, description = "Wrong data format"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "User has no permission to launch exam scoring"),
+        (status = 404, description = "Exam not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn score_unscored(
+    claims: AccessTokenClaim,
+    Path(exam_id): Path<Uuid>,
+    State(state): State<ExamState>,
+) -> Result<Json<ExamScoringAmount>, LMSError> {
+    // TODO: ACL for tasks (owners)
+    if matches!(claims.role, UserRole::Student) {
+        return Err(LMSError::Forbidden("You can't launch exam scoring".to_string()));
+    }
+    let amount = state.exam_service.score_unscored(exam_id).await?;
+    Ok(Json(ExamScoringAmount { amount }))
 }
 
 /// Update exam's entities

@@ -24,6 +24,7 @@ pub trait ExamRepository {
         limit: i32,
         offset: i32,
     ) -> Result<Vec<ExamAttempt>>;
+    async fn get_exam_unscored_attempts(&self, exam_id: Uuid) -> Result<Vec<ExamAttempt>>;
     async fn get_user_attempts_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<Vec<ExamAttempt>>;
     async fn get_user_last_attempt_in_exam(&self, id: Uuid, user_id: Uuid) -> Result<ExamAttempt>;
     async fn stop_attempt(&self, attempt_id: Uuid) -> Result<()>;
