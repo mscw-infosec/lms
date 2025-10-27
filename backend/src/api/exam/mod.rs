@@ -43,5 +43,6 @@ pub fn configure(
         .routes(routes!(get_attempts_by_exam, patch_attempt_task_verdict))
         .routes(routes!(change_visibility_for_attempt_by_id))
         .routes(routes!(change_visibility_for_attempts_by_exam))
+        .routes(routes!(score_unscored))
         .with_state(state)
 }

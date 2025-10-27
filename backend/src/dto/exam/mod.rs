@@ -171,3 +171,8 @@ pub struct TaskVerdictPatchRequest {
 pub struct AttemptVisibilityPatchRequest {
     pub show_results: bool,
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct ExamScoringAmount {
+    pub amount: usize
+}

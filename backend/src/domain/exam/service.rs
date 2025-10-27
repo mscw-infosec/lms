@@ -614,6 +614,16 @@ impl ExamService {
         Ok(scoring_data)
     }
 
+    pub async fn score_unscored(&self, exam_id: Uuid) -> Result<usize> {
+        let attempts = self.repo.get_exam_unscored_attempts(exam_id).await?;
+        let mut counter: usize = 0;
+        for attempt in attempts {
+            let _ = self.score_attempt(attempt).await?;
+            counter += 1;
+        }
+        Ok(counter)
+    }
+
     pub async fn find_ctfd_id_by_email(&self, user_email: String) -> Result<i32> {
         let existent_user = send_and_parse::<CtfdUsersReponse>(
             self.http_client
