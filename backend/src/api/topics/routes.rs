@@ -4,7 +4,6 @@ use axum::{
     http::StatusCode,
 };
 
-use crate::domain::exam::model::Exam;
 use crate::{
     api::topics::TopicsState,
     domain::account::model::UserRole,
@@ -13,6 +12,7 @@ use crate::{
     infrastructure::jwt::AccessTokenClaim,
     utils::ValidatedJson,
 };
+use crate::{domain::exam::model::Exam, dto::entity::GetEntitiesForTopicResponseDto};
 
 /// Retrieves a specific topic by its ID.
 #[utoipa::path(
@@ -153,4 +153,31 @@ pub async fn get_exams(
             .get_exams(claims.sub, claims.role, topic_id)
             .await?,
     ))
+}
+
+//get topic entities
+#[utoipa::path(
+    get,
+    tag = "Topic",
+    path = "/{topic_id}/entities",
+    params(
+        ("topic_id", Path)
+    ),
+    responses(
+        (status = 200, description = "Entities listed"),
+        (status = 400, description = "Invalid request data"),
+        (status = 401, description = "No auth data")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn get_entities(
+    _claims: AccessTokenClaim,
+    Path(topic_id): Path<i32>,
+    State(state): State<TopicsState>,
+) -> Result<Json<GetEntitiesForTopicResponseDto>, LMSError> {
+    Ok(Json(GetEntitiesForTopicResponseDto {
+        entities: state.entity_service.get_by_topic_id(topic_id).await?,
+    }))
 }

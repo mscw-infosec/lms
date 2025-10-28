@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                id,\n                topic_id,\n                type AS \"type: EntityType\",\n                order_id,\n                entity_version,\n                entity_data\n            FROM entities\n            WHERE topic_id = $1\n            ORDER BY order_id ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "topic_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "type: EntityType",
+        "type_info": {
+          "Custom": {
+            "name": "entity_type",
+            "kind": {
+              "Enum": [
+                "exam",
+                "text",
+                "video"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "order_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "entity_version",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "entity_data",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d37690d85e84b3bc8f9cbe792d64068b26533f0c4082b3ebae1220b3d3131d79"
+}
