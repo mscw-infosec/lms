@@ -43,8 +43,8 @@ export default function MOSHPage() {
 
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               Если у вас возникли вопросы, напишите нам на{" "}
-              <a href="mailto:trainers@infosec.moscow" className="text-red-600 dark:text-red-400 hover:underline">
-                trainers@infosec.moscow
+              <a href="mailto:ib@mosolymp.ru" className="text-red-600 dark:text-red-400 hover:underline">
+                ib@mosolymp.ru
               </a>.
             </p>
           </div>
