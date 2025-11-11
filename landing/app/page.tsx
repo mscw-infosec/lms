@@ -294,7 +294,14 @@ export default function InfoSecAnnualProgram() {
 				{/* Cohort timeline (mobile-optimized) */}
 				<section id="timeline" className="w-full py-12 md:py-20">
 					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<h3 className="font-bold text-xl">Таймлайн набора осени 2025</h3>
+
+					<div className="mb-6 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
+					<p className="text-gray-800 text-sm font-medium">
+						Сентябрьский отбор 2025 года завершён. Даты следующих отборов будут анонсированы позже.
+					</p>
+					</div>
+
+						<h3 className="font-bold text-xl">Таймлайн набора сентября 2025</h3>
 
 						{/* Mobile: two rows (3 + 2) to avoid overflow */}
 						<div
