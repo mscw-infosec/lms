@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mosh-lms
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: ssh://git@github.com/mscw-infosec/lms.git
+      targetRevision: HEAD
+      path: infrastructure/charts/lms
+      helm:
+        releaseName: mosh-lms
+        valueFiles:
+          - values-mosh.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mosh-lms
+
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

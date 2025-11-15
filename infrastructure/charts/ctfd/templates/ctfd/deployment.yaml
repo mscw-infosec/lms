@@ -13,7 +13,7 @@ spec:
       labels:
         app: ctfd
     spec:
-      nodeName: cl1nsn5jic32dpnlnmsf-ovur
+      nodeName: {{ .Values.ctfd.node_name }}
       initContainers:
         - name: copy-ssh
           image: alpine:3.22.1
@@ -25,7 +25,7 @@ spec:
               cp -aL /ssh-secret/* /ssh/ && \
               chmod 600 /ssh/*.key || true && \
               chmod 700 /ssh && \
-              ssh-keyscan worker.ctfd.infosec.moscow >> /ssh/.known_hosts && \
+              ssh-keyscan {{ .Values.ctfd.worker_domain }} >> /ssh/.known_hosts && \
               chown -R 1001:1001 /ssh
 
           volumeMounts:

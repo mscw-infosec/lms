@@ -1,4 +1,7 @@
+lms_domain: lms.infosec.moscow
+
 backend:
+  deploy: true
   port: 8080
   replicas: 2
   image:
@@ -7,6 +10,7 @@ backend:
     pullPolicy: IfNotPresent
 
 frontend:
+  deploy: true
   port: 3000
   replicas: 4
   image:
@@ -15,6 +19,7 @@ frontend:
     pullPolicy: IfNotPresent
 
 landing:
+  deploy: true
   port: 3000
   replicas: 4
   image:

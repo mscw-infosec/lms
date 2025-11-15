@@ -1,0 +1,12 @@
+lms_domain: mosh.infosec.moscow
+
+backend:
+  image:
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-mosh-backend
+    tag: 0.0.1
+
+frontend:
+  deploy: false
+
+landing:
+  deploy: false

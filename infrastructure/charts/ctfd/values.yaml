@@ -1,2 +1,10 @@
 ctfd:
   replicas: 2
+  node_name: cl1nsn5jic32dpnlnmsf-ovur
+  domain: ctfd.infosec.moscow
+  worker_domain: worker.ctfd.infosec.moscow
+  tls_secret_name: tls-ctfd-infosec-moscow
+  backups_enabled: true
+  files_s3_bucket: ctfd-infosec-moscow
+lms:
+  base_url: https://lms.infosec.moscow/api

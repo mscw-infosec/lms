@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mosh-infosec-moscow
+  namespace: mosh-lms
+spec:
+  secretName: tls-mosh-infosec-moscow
+
+  commonName: mosh.infosec.moscow
+  dnsNames:
+    - mosh.infosec.moscow
+
+  duration: 2160h
+  renewBefore: 360h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io

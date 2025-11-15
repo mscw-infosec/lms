@@ -1,0 +1,9 @@
+ctfd:
+  node_name: cl1o7tjsdsq4e8939n38-uxuf
+  domain: mosh-ctfd.infosec.moscow
+  worker_domain: worker.mosh-ctfd.infosec.moscow
+  tls_secret_name: tls-mosh-ctfd-infosec-moscow
+  backups_enabled: false
+  files_s3_bucket: mosh-ctfd-infosec-moscow
+lms:
+  base_url: https://mosh.infosec.moscow/api
