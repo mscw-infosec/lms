@@ -7,13 +7,13 @@ data:
   DOCKER_HOST: ssh://ctfd-worker
 
   WORKERS: "4"
-  LMS_BASE_URL: https://lms.infosec.moscow/api
+  LMS_BASE_URL: {{ .Values.lms.base_url }}
   REDIS_HOST: redis://redis:6379
   DATABASE_HOST: ctfd-mariadb-maxscale
   DATABASE_PROTOCOL: mysql+pymysql
   DATABASE_PORT: "3306"
 
-  AWS_S3_BUCKET: ctfd-infosec-moscow
+  AWS_S3_BUCKET: {{ .Values.ctfd.files_s3_bucket }}
   AWS_S3_ENDPOINT_URL: https://storage.yandexcloud.net
   AWS_S3_REGION: ru-central1
 

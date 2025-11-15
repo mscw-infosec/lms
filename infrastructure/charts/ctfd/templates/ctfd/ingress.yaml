@@ -36,10 +36,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - ctfd.infosec.moscow
-      secretName: tls-ctfd-infosec-moscow
+        - {{ .Values.ctfd.domain }}
+      secretName: {{ .Values.ctfd.tls_secret_name }}
   rules:
-    - host: ctfd.infosec.moscow
+    - host: {{ .Values.ctfd.domain }}
       http:
         paths:
           - path: /

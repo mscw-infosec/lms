@@ -1,0 +1,25 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mosh-ctfd-infosec-moscow
+  namespace: mosh-ctfd
+spec:
+  secretName: tls-mosh-ctfd-infosec-moscow
+
+  commonName: mosh-ctfd.infosec.moscow
+  dnsNames:
+    - mosh-ctfd.infosec.moscow
+
+  duration: 2160h
+  renewBefore: 360h
+
+  privateKey:
+    algorithm: ECDSA
+    size: 384
+    encoding: PKCS8
+    rotationPolicy: Always
+
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io
