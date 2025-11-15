@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+export function getCtfdDomain(): string {
+	return process.env.CTFD_DOMAIN || "";
+}
+
 export function getPointsPlural(amount: number): string {
 	const lastDigit = amount % 10;
 	const lastTwo = amount % 100;

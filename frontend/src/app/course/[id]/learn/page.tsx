@@ -46,7 +46,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import type { UiAnswerPayload } from "@/lib/answers";
 import { buildTaskAnswer } from "@/lib/answers";
-import { getPointsPlural } from "@/lib/utils";
+import { getCtfdDomain, getPointsPlural } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -71,10 +71,6 @@ type TaskConfig = {
 	options?: string[];
 	items?: string[];
 };
-
-export function getCtfdDomain(): string {
-	return process.env.CTFD_DOMAIN || "";
-}
 
 export default function LearnPage() {
 	const router = useRouter();

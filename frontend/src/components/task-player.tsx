@@ -1,7 +1,6 @@
 "use client";
 
 import type { PublicTaskDTO } from "@/api/exam";
-import { getCtfdDomain } from "@/app/course/[id]/learn/page";
 import Markdown from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { UiAnswerPayload } from "@/lib/answers";
-import { getPointsPlural } from "@/lib/utils";
+import { getCtfdDomain, getPointsPlural } from "@/lib/utils";
 import {
 	AlertCircle,
 	CheckCircle,
