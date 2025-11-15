@@ -18,6 +18,8 @@ pub trait AccountRepository {
     async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()>;
     async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes>;
     async fn delete_user_predefined_attribute(&self, email: String) -> Result<()>;
+    async fn has_sirius_account(&self, user_id: Uuid) -> Result<bool>;
+    async fn set_sirius_account(&self, user_id: Uuid, account_id: i32) -> Result<()>;
 }
 
 #[impl_unimplemented(DummyRepository)]

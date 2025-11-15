@@ -254,6 +254,22 @@ pub struct CtfdUsersReponse {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct SiriusUserRequest {
+    pub email: String
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SiriusUserResponse {
+    pub result: Vec<SiriusUser>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SiriusUser {
+    pub id: String
+}
+
+
+#[derive(Serialize, Deserialize)]
 pub struct CtfdUser {
     pub id: i32,
 }

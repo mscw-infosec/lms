@@ -1,11 +1,11 @@
 use crate::domain::account::model::Attributes;
-use crate::domain::task::service::CTFD_API_URL;
+use crate::domain::task::service::{CTFD_API_URL, SIRIUS_API_URL};
 use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
 use s3::post_policy::PresignedPost;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::domain::task::model::CtfdUsersReponse;
+use crate::domain::task::model::{CtfdUsersReponse, SiriusUserRequest, SiriusUserResponse};
 use crate::utils::send_and_parse;
 use crate::{
     domain::account::{
@@ -25,6 +25,7 @@ pub struct AccountService {
     pub redirect_url: String,
     http_client: reqwest::Client,
     ctfd_token: String,
+    sirius_token: String
 }
 
 impl AccountService {
@@ -35,6 +36,7 @@ impl AccountService {
         redirect_url: &str,
         http_client: reqwest::Client,
         ctfd_token: String,
+        sirius_token: String
     ) -> Self {
         Self {
             db_repo,
@@ -43,6 +45,7 @@ impl AccountService {
             redirect_url: redirect_url.to_string(),
             http_client,
             ctfd_token,
+            sirius_token
         }
     }
 
@@ -53,9 +56,20 @@ impl AccountService {
             .await?;
         if !attrs.is_empty() {
             self.upsert_attributes(id, attrs).await?;
-            self.db_repo.delete_user_predefined_attribute(email).await?;
+            self.db_repo.delete_user_predefined_attribute(email.clone()).await?;
+        }
+
+        if !self.has_sirius_account(id).await? {
+            let account = self.get_sirius(email).await;
+            if let Ok(account) = account {
+                self.db_repo.set_sirius_account(id, account).await?;
+            }
         }
         Ok(())
+    }
+
+    pub async fn has_sirius_account(&self, id: Uuid) -> Result<bool> {
+        self.db_repo.has_sirius_account(id).await
     }
 
     pub async fn get_user(&self, id: Uuid) -> Result<UserModel> {
@@ -136,6 +150,27 @@ impl AccountService {
             return Ok(true);
         }
         Ok(false)
+    }
+
+    pub async fn get_sirius(&self, email: String) -> Result<i32> {
+        let existent_user = send_and_parse::<SiriusUserResponse>(
+            self.http_client
+                .get(format!(
+                    "{SIRIUS_API_URL}activities/olymp:mosh-secr-2026/applications:lookup"
+                ))
+                .header(CONTENT_TYPE, "application/json")
+                .header(AUTHORIZATION, format!("Bearer {}", self.sirius_token))
+                .json(&SiriusUserRequest {
+                    email
+                }),
+            "Sirius user checking",
+        )
+            .await?;
+
+        if existent_user.result.is_empty() {
+            return Err(LMSError::NotFound("No such registration".to_string()));
+        }
+        Ok(str::parse::<i32>(existent_user.result[0].id.as_str()).expect("Somewhy Sirius has violated the spec"))
     }
 
     pub async fn list_accounts(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {

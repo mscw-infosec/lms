@@ -285,4 +285,39 @@ impl AccountRepository for RepositoryPostgres {
         .await?;
         Ok(())
     }
+
+    async fn has_sirius_account(&self, user_id: Uuid) -> Result<bool> {
+        let sirius_id = sqlx::query_scalar!(
+            r#"
+                SELECT sirius_id FROM users
+                WHERE id = $1
+            "#,
+            user_id
+        )
+            .fetch_one(&self.pool)
+            .await;
+
+        if let Ok(result) = sirius_id {
+            return if result.is_none() {
+                Ok(false)
+            } else {
+                Ok(true)
+            }
+        }
+        Ok(false)
+    }
+
+    async fn set_sirius_account(&self, user_id: Uuid, account_id: i32) -> Result<()> {
+        let _ = sqlx::query!(
+            r#"
+                UPDATE users
+                SET sirius_id = $1 WHERE id = $2
+            "#,
+            account_id,
+            user_id
+        )
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
 }

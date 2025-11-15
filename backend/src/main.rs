@@ -91,6 +91,7 @@ async fn main() -> anyhow::Result<()> {
         &config.frontend_redirect_url,
         client.clone(),
         config.ctfd_token.clone(),
+        config.sirius_token.clone(),
     );
     let basic_auth = BasicAuthService::new(db_repo.clone());
     let course = CourseService::new(db_repo.clone(), account.clone());

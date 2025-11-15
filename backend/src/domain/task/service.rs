@@ -7,7 +7,8 @@ use crate::{domain::task::repository::TaskRepository, repo};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
 use std::sync::Arc;
 
-pub const CTFD_API_URL: &str = "https://ctfd.infosec.moscow/api/v1";
+pub const CTFD_API_URL: &str = "https://mosh-ctfd.infosec.moscow/api/v1";
+pub const SIRIUS_API_URL: &str = "https://my.sirius.online/api/activity/v1/";
 
 #[derive(Clone)]
 pub struct TaskService {
