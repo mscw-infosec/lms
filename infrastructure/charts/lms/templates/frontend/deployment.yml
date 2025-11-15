@@ -25,5 +25,7 @@ spec:
           env:
             - name: PORT
               value: "{{ .Values.frontend.port }}"
+            - name: CTFD_DOMAIN
+              value: "{{ .Values.ctfd_domain }}"
 ---
 {{- end }}

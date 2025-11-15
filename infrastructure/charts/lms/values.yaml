@@ -1,11 +1,15 @@
 lms_domain: lms.infosec.moscow
 lms_tls_cert: tls-lms-infosec-moscow
 lms_s3_bucket: lms-infosec-moscow
+ctfd_domain: ctfd.infosec.moscow
 
 backend:
   deploy: true
   port: 8080
   replicas: 2
+  secret:
+    key: e6qifkcl5445su046f67
+    version: e6qm081iujmlv1lu9q3f
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend
     tag: 0.0.49
@@ -17,7 +21,7 @@ frontend:
   replicas: 4
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-frontend
-    tag: 0.0.33
+    tag: 0.0.34
     pullPolicy: IfNotPresent
 
 landing:

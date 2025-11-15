@@ -44,8 +44,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
-import { buildTaskAnswer } from "@/lib/answers";
 import type { UiAnswerPayload } from "@/lib/answers";
+import { buildTaskAnswer } from "@/lib/answers";
 import { getPointsPlural } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
@@ -56,12 +56,11 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	HelpCircle,
+	Info,
 	Menu,
 	Pencil,
 	Play,
-	X,
 } from "lucide-react";
-import { Info } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -72,6 +71,10 @@ type TaskConfig = {
 	options?: string[];
 	items?: string[];
 };
+
+export function getCtfdDomain(): string {
+	return process.env.CTFD_DOMAIN || "";
+}
 
 export default function LearnPage() {
 	const router = useRouter();
@@ -2233,7 +2236,7 @@ export default function LearnPage() {
 					<AlertDialogFooter className="gap-2 sm:gap-0 sm:[&>*:first-child]:mr-auto">
 						<AlertDialogAction asChild className="sm:mr-auto">
 							<a
-								href="https://ctfd.infosec.moscow/login"
+								href={`https://${getCtfdDomain()}/login`}
 								target="_blank"
 								rel="noopener noreferrer"
 								title="CTFd"
