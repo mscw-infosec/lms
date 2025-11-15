@@ -10,7 +10,7 @@ data:
   YANDEX_CALLBACK_URL: https://{{ .Values.lms_domain }}/api/oauth/yandex/callback
   S3_ENDPOINT: https://storage.yandexcloud.net
   S3_REGION: ru-central1
-  S3_BUCKET_NAME: lms-infosec-moscow
+  S3_BUCKET_NAME: {{ .Values.lms_s3_bucket }}
   FRONTEND_REDIRECT_URL: https://{{ .Values.lms_domain }}/oauth/callback
   IAM_KEY_FILE: /iam/iam-key.json
 ---

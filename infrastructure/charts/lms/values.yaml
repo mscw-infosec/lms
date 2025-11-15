@@ -1,4 +1,6 @@
 lms_domain: lms.infosec.moscow
+lms_tls_cert: tls-lms-infosec-moscow
+lms_s3_bucket: lms-infosec-moscow
 
 backend:
   deploy: true

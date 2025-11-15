@@ -10,10 +10,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - lms.infosec.moscow
-      secretName: tls-lms-infosec-moscow
+        - {{ .Values.lms_domain }}
+      secretName: {{ .Values.lms_tls_cert }}
   rules:
-    - host: lms.infosec.moscow
+    - host: {{ .Values.lms_domain }}
       http:
         paths:
           - path: /api
