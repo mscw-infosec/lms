@@ -50,20 +50,22 @@ impl AccountService {
     }
 
     pub async fn assign_predefined_attributes(&self, id: Uuid, email: String) -> Result<()> {
-        let attrs = self
+        let mut attrs = self
             .db_repo
             .get_user_predefined_attributes(email.clone())
             .await?;
-        if !attrs.is_empty() {
-            self.upsert_attributes(id, attrs).await?;
-            self.db_repo.delete_user_predefined_attribute(email.clone()).await?;
-        }
 
         if !self.has_sirius_account(id).await? {
-            let account = self.get_sirius(email).await;
+            let account = self.get_sirius(email.clone()).await;
             if let Ok(account) = account {
                 self.db_repo.set_sirius_account(id, account).await?;
+                attrs.insert("mosh_2026".to_string(), "true".to_string());
             }
+        }
+
+        if !attrs.is_empty() {
+            self.upsert_attributes(id, attrs).await?;
+            self.db_repo.delete_user_predefined_attribute(email).await?;
         }
         Ok(())
     }
