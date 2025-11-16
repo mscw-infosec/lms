@@ -11,5 +11,10 @@ backend:
     key: e6qifkcl5445su046f67
     version: e6qac28oioq4ei8l7s3i
 
+frontend:
+  image:
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-mosh-frontend
+    tag: 0.0.1
+
 landing:
   deploy: false
