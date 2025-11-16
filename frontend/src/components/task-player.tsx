@@ -957,7 +957,7 @@ export function TaskPlayer({
 					>
 						{getTaskTypeKey() === "ctfd" && typeof cfg?.task_id === "number" ? (
 							<a
-								href={`https://ctfd.infosec.moscow/challenges#task-${cfg.task_id}`}
+								href={`https://mosh-ctfd.infosec.moscow/challenges#task-${cfg.task_id}`}
 								target="_blank"
 								rel="noreferrer"
 								className="flex h-10 items-center rounded-md bg-red-600 px-2 text-white hover:bg-red-700 sm:px-3"

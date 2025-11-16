@@ -2233,7 +2233,7 @@ export default function LearnPage() {
 					<AlertDialogFooter className="gap-2 sm:gap-0 sm:[&>*:first-child]:mr-auto">
 						<AlertDialogAction asChild className="sm:mr-auto">
 							<a
-								href="https://ctfd.infosec.moscow/login"
+								href="https://mosh-ctfd.infosec.moscow/login"
 								target="_blank"
 								rel="noopener noreferrer"
 								title="CTFd"
