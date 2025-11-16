@@ -157,7 +157,7 @@ impl AccountService {
     pub async fn get_sirius(&self, email: String) -> Result<i32> {
         let existent_user = send_and_parse::<SiriusUserResponse>(
             self.http_client
-                .get(format!(
+                .post(format!(
                     "{SIRIUS_API_URL}activities/olymp:mosh-secr-2026/applications:lookup"
                 ))
                 .header(CONTENT_TYPE, "application/json")
