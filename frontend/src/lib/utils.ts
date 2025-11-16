@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getCtfdDomain(): string {
-	return process.env.CTFD_DOMAIN || "";
+	return process.env.NEXT_PUBLIC_CTFD_DOMAIN || process.env.CTFD_DOMAIN || "";
 }
 
 export function getPointsPlural(amount: number): string {

@@ -1,6 +1,7 @@
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
+import Script from "next/script";
 import "@/styles/globals.css";
 import "katex/dist/katex.min.css";
 import AuthRerenderBoundary from "@/components/auth-rerender-boundary";
@@ -31,6 +32,17 @@ html {
   --font-mono: ${GeistMono.variable};
 }
         `}</style>
+				{(() => {
+					const domain =
+						process.env.NEXT_PUBLIC_CTFD_DOMAIN ||
+						process.env.CTFD_DOMAIN ||
+						"";
+					return (
+						<Script id="ctfd-domain" strategy="beforeInteractive">
+							{`window.__CTFD_DOMAIN__ = ${JSON.stringify(domain)};`}
+						</Script>
+					);
+				})()}
 			</head>
 			<body>
 				<I18nProvider>

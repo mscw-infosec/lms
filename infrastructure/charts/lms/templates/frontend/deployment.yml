@@ -27,5 +27,7 @@ spec:
               value: "{{ .Values.frontend.port }}"
             - name: CTFD_DOMAIN
               value: "{{ .Values.ctfd_domain }}"
+            - name: NEXT_PUBLIC_CTFD_DOMAIN
+              value: "{{ .Values.ctfd_domain }}"
 ---
 {{- end }}
