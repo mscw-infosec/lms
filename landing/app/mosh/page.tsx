@@ -1,4 +1,4 @@
-import { Shield, Clock, LinkIcon } from "lucide-react"
+import { Shield, Clock, ShieldQuestionIcon } from "lucide-react"
 
 export default function MOSHPage() {
   return (
@@ -22,22 +22,23 @@ export default function MOSHPage() {
 
           {/* Main content */}
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-8 md:p-12 mb-8">
-            <div className="flex items-center justify-center gap-3 mb-6 text-amber-600 dark:text-amber-400">
+            <div className="flex items-center justify-center gap-3 mb-6 text-green-600 dark:text-green-400">
               <Clock className="w-5 h-5" />
-              <p className="text-lg font-medium">Олимпиада ещё не началась</p>
+              <p className="text-lg font-medium">Олимпиада идёт</p>
             </div>
 
             <p className="text-slate-600 dark:text-slate-300 text-lg mb-6">
-              Мы подготавливаем всё необходимое для проведения МОШ. Олимпиада стартует 17 ноября, подробная информация (включая инструкцию по участию) появится на этой странице не позднее 12:00 16 ноября.
+              Задачи олимпиады доступны по адресу <a href="https://mosh.infosec.moscow" className="text-red-600 dark:text-red-400 hover:underline">mosh.infosec.moscow</a>.
             </p>
 
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 mb-6">
               <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2">
-                <LinkIcon className="w-4 h-4" />
-                Что дальше?
+                <ShieldQuestionIcon className="w-6 h-6" />
+                Как принять участие?
               </h3>
               <p className="text-blue-800 dark:text-blue-300 text-sm">
-                На этой странице появится ссылка на LMS (Learning Management System), в которой участники смогут получить доступ к заданиям олимпиады. Для участия в олимпиаде необходима предварительная регистрация.
+                Для участия необходимо зарегистрироваться на сайте <a href="https://my.sirius.online/activity-page/olymp:mosh-secr-2026" className="text-red-600 dark:text-red-400 hover:underline">Сириус.Онлайн</a>.
+                Важно учесть, что ваша почта на сайте должна совпадать с почтой вашего Яндекс.ID - он потребуется для получения доступа к заданиям.
               </p>
             </div>
 
