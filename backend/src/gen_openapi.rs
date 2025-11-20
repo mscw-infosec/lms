@@ -5,7 +5,8 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
+        courses::service::CourseService, entity::service::EntityService,
+        exam::service::ExamService, oauth::service::OAuthService,
         refresh_token::service::RefreshTokenService, task::service::TaskService,
         topics::service::TopicService, video::service::VideoService,
     },
@@ -44,8 +45,9 @@ pub fn save_openapi() {
     let oauth = OAuthService::new(dummy.clone(), dummy.clone());
     let refresh_token = RefreshTokenService::new(dummy.clone(), jwt.clone());
     let task = TaskService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
-    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
+    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy.clone())
         .expect("Failed to create VideoService");
+    let entity = EntityService::new(dummy);
 
     let services = Services {
         account,
@@ -57,6 +59,7 @@ pub fn save_openapi() {
         task,
         topic,
         video,
+        entity,
     };
 
     let (_, api) = generate_router(jwt, client, config, services)
