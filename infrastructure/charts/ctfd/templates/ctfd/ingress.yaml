@@ -6,7 +6,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/hsts: "true"
     nginx.ingress.kubernetes.io/hsts-max-age: "0"
-    nginx.ingress.kubernetes.io/hsts-include-subdomains: "false"
+    nginx.ingress.kubernetes.io/hsts-include-subdomains: "true"
     
     nginx.ingress.kubernetes.io/proxy-body-size: "4G"
 
