@@ -6,7 +6,7 @@ ctfd_domain: mosh-ctfd.infosec.moscow
 backend:
   image:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-mosh-backend
-    tag: 0.0.3
+    tag: 0.0.4
   secret:
     key: e6qifkcl5445su046f67
     version: e6qac28oioq4ei8l7s3i
