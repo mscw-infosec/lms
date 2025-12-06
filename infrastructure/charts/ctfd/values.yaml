@@ -1,6 +1,6 @@
 ctfd:
   replicas: 2
-  node_name: cl1nsn5jic32dpnlnmsf-ovur
+  node_name: cl1nsn5jic32dpnlnmsf-ozaz
   domain: ctfd.infosec.moscow
   worker_domain: worker.ctfd.infosec.moscow
   tls_secret_name: tls-ctfd-infosec-moscow
