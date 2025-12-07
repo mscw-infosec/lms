@@ -518,7 +518,7 @@ impl ExamService {
                         continue;
                     }
                     if *case_sensitive {
-                        if answers.contains(&answer) {
+                        if answers.contains(&answer.trim().to_string()) {
                             scoring_data.results.insert(
                                 task_id,
                                 TaskVerdict::FullScore {
@@ -530,7 +530,7 @@ impl ExamService {
                             continue;
                         }
                     } else {
-                        let answer = answer.to_lowercase();
+                        let answer = answer.trim().to_lowercase();
                         if answers
                             .iter()
                             .map(|x| x.to_lowercase())
