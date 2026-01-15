@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: idm
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: idm
+
+  template:
+    metadata:
+      labels:
+        app: idm
+    spec:
+      imagePullSecrets:
+        - name: yandex-cr-auth
+
+      containers:
+        - name: idm
+          image: "{{ .Values.idm.image.repository }}:{{ .Values.idm.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.idm.port }}
+          envFrom:
+            - secretRef:
+                name: idm

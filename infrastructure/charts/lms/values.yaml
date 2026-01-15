@@ -2,6 +2,8 @@ lms_domain: lms.infosec.moscow
 lms_tls_cert: tls-lms-infosec-moscow
 lms_s3_bucket: lms-infosec-moscow
 ctfd_domain: ctfd.infosec.moscow
+idm_domain: idm.infosec.moscow
+idm_tls_cert: tls-idm-infosec-moscow
 
 backend:
   deploy: true
@@ -32,3 +34,13 @@ landing:
     repository: cr.yandex/crpi7be6fcnum9d5jo38/lms-landing
     tag: 0.0.18
     pullPolicy: IfNotPresent
+
+idm:
+  image:
+    repository: cr.yandex/crpi7be6fcnum9d5jo38/idm
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8000
+  secret:
+    key: e6qr44u3hrnb48b2updq
+    version: e6qre4mgepraopn1dm95
