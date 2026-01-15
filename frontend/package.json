@@ -41,7 +41,7 @@
 		"input-otp": "^1.4.2",
 		"katex": "^0.16.9",
 		"lucide-react": "^0.525.0",
-		"next": "^15.2.3",
+		"next": "^15.2.8",
 		"next-intl": "^3.22.4",
 		"next-themes": "^0.4.6",
 		"react": "^19.0.0",
