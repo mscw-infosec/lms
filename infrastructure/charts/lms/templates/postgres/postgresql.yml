@@ -9,7 +9,6 @@ spec:
   instances: 2
   storage:
     size: 10Gi
-  enableSuperuserAccess: true
   bootstrap:
     initdb:
       database: lms
