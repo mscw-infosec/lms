@@ -1,0 +1,78 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO entities (\n\n                topic_id,\n                type,\n                order_id,\n                entity_version,\n                entity_data\n            )\n            VALUES ($1, $2, $3, $4, $5)\n            RETURNING\n                id,\n                topic_id,\n                type AS \"type: EntityType\",\n                order_id,\n                entity_version,\n                entity_data\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "topic_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "type: EntityType",
+        "type_info": {
+          "Custom": {
+            "name": "entity_type",
+            "kind": {
+              "Enum": [
+                "exam",
+                "text",
+                "video"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "order_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "entity_version",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "entity_data",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        {
+          "Custom": {
+            "name": "entity_type",
+            "kind": {
+              "Enum": [
+                "exam",
+                "text",
+                "video"
+              ]
+            }
+          }
+        },
+        "Int4",
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ecc3bcf860f09bf1d69a6288bab8c3051372092089fd558934f0bcdc0e216a0b"
+}
