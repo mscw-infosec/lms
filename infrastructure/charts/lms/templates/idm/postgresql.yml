@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: idm-postgres
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: 2
+  storage:
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: idm
+      owner: idm
+      secret:
+        name: idm-postgres
