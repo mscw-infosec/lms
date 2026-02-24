@@ -7,3 +7,5 @@ pub mod refresh_token;
 pub mod task;
 pub mod topics;
 pub mod video;
+
+pub mod entity;

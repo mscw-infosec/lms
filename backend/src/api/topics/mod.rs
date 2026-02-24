@@ -7,7 +7,10 @@ use axum_macros::FromRef;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    domain::{account::service::AccountService, topics::service::TopicService},
+    domain::{
+        account::service::AccountService, entity::service::EntityService,
+        topics::service::TopicService,
+    },
     infrastructure::jwt::JWT,
 };
 
@@ -15,17 +18,20 @@ use crate::{
 pub struct TopicsState {
     pub topic_service: TopicService,
     pub account_service: AccountService,
+    pub entity_service: EntityService,
     pub jwt: Arc<JWT>,
 }
 
 pub fn configure(
     topics_service: TopicService,
     account_service: AccountService,
+    entity_service: EntityService,
     jwt: Arc<JWT>,
 ) -> OpenApiRouter {
     let state = TopicsState {
         topic_service: topics_service,
         account_service,
+        entity_service,
         jwt,
     };
 
@@ -37,5 +43,6 @@ pub fn configure(
             add_topic_to_course
         ))
         .routes(routes!(get_exams))
+        .routes(routes!(get_entities))
         .with_state(state)
 }

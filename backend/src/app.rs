@@ -5,7 +5,8 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
+        courses::service::CourseService, entity::service::EntityService,
+        exam::service::ExamService, oauth::service::OAuthService,
         refresh_token::service::RefreshTokenService, task::service::TaskService,
         topics::service::TopicService, video::service::VideoService,
     },
@@ -26,6 +27,7 @@ pub struct Services {
     pub task: TaskService,
     pub topic: TopicService,
     pub video: VideoService,
+    pub entity: EntityService,
 }
 
 pub fn generate_router(
@@ -90,8 +92,9 @@ pub fn generate_router(
         )
         .nest(
             "/topics",
-            api::topics::configure(svcs.topic, svcs.account, jwt),
-        );
+            api::topics::configure(svcs.topic, svcs.account, svcs.entity.clone(), jwt.clone()),
+        )
+        .nest("/entities", api::entity::configure(jwt, svcs.entity));
 
     Ok(router)
 }
