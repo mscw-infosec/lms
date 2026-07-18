@@ -556,6 +556,21 @@ impl ExamRepository for RepositoryPostgres {
         Ok(user.ok_or(LMSError::NotFound("No user found".to_string()))?)
     }
 
+    async fn get_usernames(&self, ids: &[Uuid]) -> Result<Vec<(Uuid, String)>> {
+        let rows = sqlx::query!(
+            r#"
+                SELECT id, username
+                FROM users
+                WHERE id = ANY($1)
+            "#,
+            ids
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows.into_iter().map(|r| (r.id, r.username)).collect())
+    }
+
     async fn create_text(&self, text: String) -> Result<TextEntity> {
         let text_entity = sqlx::query_as!(
             TextEntity,

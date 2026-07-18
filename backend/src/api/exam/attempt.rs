@@ -270,7 +270,15 @@ pub async fn get_attempts_by_exam(
         .exam_service
         .get_exam_attempts(exam_id, query.limit, query.offset, query.ungraded_first)
         .await?;
-    let attempts: Vec<ExamAttemptAdminSchema> = exam_attempts.into_iter().map(Into::into).collect();
+    let user_ids: Vec<Uuid> = exam_attempts.iter().map(|a| a.user_id).collect();
+    let usernames = state.exam_service.get_usernames(&user_ids).await?;
+    let attempts: Vec<ExamAttemptAdminSchema> = exam_attempts
+        .into_iter()
+        .map(|a| {
+            let username = usernames.get(&a.user_id).cloned().unwrap_or_default();
+            ExamAttemptAdminSchema::from_attempt(a, username)
+        })
+        .collect();
 
     Ok(Json(attempts))
 }

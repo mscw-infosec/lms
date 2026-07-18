@@ -50,10 +50,26 @@ pub struct ExamAttemptAdminSchema {
     pub id: Uuid,
     pub exam_id: Uuid,
     pub user_id: Uuid,
+    pub username: String,
     pub started_at: DateTime<Utc>,
     pub ends_at: DateTime<Utc>,
     pub answer_data: ExamAnswer,
     pub scoring_data: ScoringData,
+}
+
+impl ExamAttemptAdminSchema {
+    pub fn from_attempt(value: ExamAttempt, username: String) -> Self {
+        Self {
+            id: value.id,
+            exam_id: value.exam_id,
+            user_id: value.user_id,
+            username,
+            started_at: value.started_at,
+            ends_at: value.ends_at,
+            answer_data: value.answer_data.into(),
+            scoring_data: value.scoring_data.into(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Clone)]
@@ -99,20 +115,6 @@ impl From<ExamAttempt> for ExamAttemptSchema {
             answer_data: value.answer_data.into(),
             scoring_data: Some(value.scoring_data.into()),
             ..Default::default()
-        }
-    }
-}
-
-impl From<ExamAttempt> for ExamAttemptAdminSchema {
-    fn from(value: ExamAttempt) -> Self {
-        Self {
-            id: value.id,
-            exam_id: value.exam_id,
-            user_id: value.user_id,
-            started_at: value.started_at,
-            ends_at: value.ends_at,
-            answer_data: value.answer_data.into(),
-            scoring_data: value.scoring_data.into(),
         }
     }
 }

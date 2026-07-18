@@ -43,6 +43,8 @@ pub trait ExamRepository {
         attempt_score: &ScoringData,
     ) -> Result<()>;
     async fn get_user_by_id(&self, user_id: Uuid) -> Result<UserModel>;
+    /// Resolves usernames for a set of user ids (for attempt listings).
+    async fn get_usernames(&self, ids: &[Uuid]) -> Result<Vec<(Uuid, String)>>;
     async fn create_text(&self, text: String) -> Result<TextEntity>;
     async fn update_text(&self, id: Uuid, text: String) -> Result<TextEntity>;
     async fn delete_text(&self, id: Uuid) -> Result<()>;

@@ -539,8 +539,8 @@ export default function AttemptsAdminPage() {
 									>
 										<div className="flex items-center justify-between">
 											<div>
-												<div className="font-medium text-slate-400 text-sm">
-													{att.id}
+												<div className="font-medium text-slate-200 text-sm">
+													{att.username || att.user_id}
 												</div>
 												<div className="text-slate-300 text-xs">
 													{t("started")}:{" "}

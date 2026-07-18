@@ -3417,6 +3417,7 @@
 					"id",
 					"exam_id",
 					"user_id",
+					"username",
 					"started_at",
 					"ends_at",
 					"answer_data",
@@ -3448,6 +3449,9 @@
 					"user_id": {
 						"type": "string",
 						"format": "uuid"
+					},
+					"username": {
+						"type": "string"
 					}
 				}
 			},
@@ -3591,7 +3595,14 @@
 			"Gradebook": {
 				"type": "object",
 				"description": "Full exam gradebook: metadata, per-attempt rows and summary stats.",
-				"required": ["exam_id", "exam_name", "max_score", "rows", "summary"],
+				"required": [
+					"exam_id",
+					"exam_name",
+					"max_score",
+					"tasks",
+					"rows",
+					"summary"
+				],
 				"properties": {
 					"exam_id": {
 						"type": "string",
@@ -3612,6 +3623,12 @@
 					},
 					"summary": {
 						"$ref": "#/components/schemas/GradebookSummary"
+					},
+					"tasks": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/GradebookTask"
+						}
 					}
 				}
 			},
@@ -3626,7 +3643,8 @@
 					"started_at",
 					"ends_at",
 					"score",
-					"status"
+					"status",
+					"task_scores"
 				],
 				"properties": {
 					"attempt_id": {
@@ -3650,6 +3668,17 @@
 					},
 					"status": {
 						"$ref": "#/components/schemas/AttemptStatus"
+					},
+					"task_scores": {
+						"type": "object",
+						"description": "Per-task score for this attempt, keyed by task id (as string).",
+						"additionalProperties": {
+							"type": "number",
+							"format": "double"
+						},
+						"propertyNames": {
+							"type": "string"
+						}
 					},
 					"user_id": {
 						"type": "string",
@@ -3705,6 +3734,24 @@
 					"total_attempts": {
 						"type": "integer",
 						"minimum": 0
+					}
+				}
+			},
+			"GradebookTask": {
+				"type": "object",
+				"description": "A task in an exam, used for the per-task export columns.",
+				"required": ["id", "title", "max_score"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"max_score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"title": {
+						"type": "string"
 					}
 				}
 			},

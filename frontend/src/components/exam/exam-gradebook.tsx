@@ -1,23 +1,13 @@
 "use client";
 
 import {
-	type AttemptStatus,
 	type ExportFormat,
 	type Gradebook,
 	downloadExamExport,
 	getExamGradebook,
 } from "@/api/report";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2, RefreshCw } from "lucide-react";
@@ -39,15 +29,6 @@ function fmt(n: number): string {
 		? String(Math.round(r))
 		: r.toFixed(2);
 }
-
-const STATUS_STYLES: Record<
-	AttemptStatus,
-	{ label: string; className: string }
-> = {
-	graded: { label: "Graded", className: "bg-green-600 text-white" },
-	on_review: { label: "On review", className: "bg-amber-600 text-white" },
-	in_progress: { label: "In progress", className: "bg-slate-600 text-white" },
-};
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
 	return (
@@ -205,8 +186,10 @@ export default function ExamGradebook({ examId }: { examId: string }) {
 												background: "#0f172a",
 												border: "1px solid #334155",
 												borderRadius: 8,
-												color: "#e2e8f0",
+												color: "#ffffff",
 											}}
+											labelStyle={{ color: "#ffffff" }}
+											itemStyle={{ color: "#ffffff" }}
 											cursor={{ fill: "#1e293b55" }}
 										/>
 										<Bar dataKey="count" radius={[4, 4, 0, 0]}>
@@ -217,55 +200,6 @@ export default function ExamGradebook({ examId }: { examId: string }) {
 									</BarChart>
 								</ResponsiveContainer>
 							</div>
-						</div>
-
-						<div className="overflow-x-auto rounded-lg border border-slate-800">
-							<Table>
-								<TableHeader>
-									<TableRow className="border-slate-800 hover:bg-transparent">
-										<TableHead className="text-slate-300">User</TableHead>
-										<TableHead className="text-slate-300">Email</TableHead>
-										<TableHead className="text-slate-300">Score</TableHead>
-										<TableHead className="text-slate-300">%</TableHead>
-										<TableHead className="text-slate-300">Status</TableHead>
-										<TableHead className="text-slate-300">Started</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{gb.rows.map((row) => {
-										const pct =
-											gb.max_score > 0 ? (row.score / gb.max_score) * 100 : 0;
-										const style = STATUS_STYLES[row.status];
-										return (
-											<TableRow
-												key={row.attempt_id}
-												className="border-slate-800 hover:bg-slate-800/40"
-											>
-												<TableCell className="font-medium text-slate-200">
-													{row.username}
-												</TableCell>
-												<TableCell className="text-slate-400">
-													{row.email}
-												</TableCell>
-												<TableCell className="text-slate-200">
-													{fmt(row.score)} / {gb.max_score}
-												</TableCell>
-												<TableCell className="text-slate-300">
-													{fmt(pct)}%
-												</TableCell>
-												<TableCell>
-													<Badge className={style.className}>
-														{style.label}
-													</Badge>
-												</TableCell>
-												<TableCell className="text-slate-400 text-xs">
-													{new Date(row.started_at).toLocaleString()}
-												</TableCell>
-											</TableRow>
-										);
-									})}
-								</TableBody>
-							</Table>
 						</div>
 					</>
 				)}

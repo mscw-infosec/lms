@@ -1172,6 +1172,7 @@ export interface components {
             started_at: string;
             /** Format: uuid */
             user_id: string;
+            username: string;
         };
         ExamAttemptSchema: {
             active: boolean;
@@ -1228,6 +1229,7 @@ export interface components {
             max_score: number;
             rows: components["schemas"]["GradebookRow"][];
             summary: components["schemas"]["GradebookSummary"];
+            tasks: components["schemas"]["GradebookTask"][];
         };
         /** @description One learner attempt in an exam gradebook. */
         GradebookRow: {
@@ -1241,6 +1243,10 @@ export interface components {
             /** Format: date-time */
             started_at: string;
             status: components["schemas"]["AttemptStatus"];
+            /** @description Per-task score for this attempt, keyed by task id (as string). */
+            task_scores: {
+                [key: string]: number;
+            };
             /** Format: uuid */
             user_id: string;
             username: string;
@@ -1258,6 +1264,14 @@ export interface components {
             on_review: number;
             participants: number;
             total_attempts: number;
+        };
+        /** @description A task in an exam, used for the per-task export columns. */
+        GradebookTask: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            max_score: number;
+            title: string;
         };
         HashMap: {
             [key: string]: string;

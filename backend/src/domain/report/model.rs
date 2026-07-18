@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
+use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -23,6 +24,14 @@ pub enum AttemptStatus {
     Graded,
 }
 
+/// A task in an exam, used for the per-task export columns.
+#[derive(Serialize, Deserialize, ToSchema, Debug, Clone)]
+pub struct GradebookTask {
+    pub id: i64,
+    pub title: String,
+    pub max_score: i64,
+}
+
 /// One learner attempt in an exam gradebook.
 #[derive(Serialize, Deserialize, ToSchema, Debug, Clone)]
 pub struct GradebookRow {
@@ -34,6 +43,8 @@ pub struct GradebookRow {
     pub ends_at: DateTime<Utc>,
     pub score: f64,
     pub status: AttemptStatus,
+    /// Per-task score for this attempt, keyed by task id (as string).
+    pub task_scores: HashMap<String, f64>,
 }
 
 /// Aggregate statistics across all attempts of an exam.
@@ -55,6 +66,7 @@ pub struct Gradebook {
     pub exam_id: Uuid,
     pub exam_name: String,
     pub max_score: i64,
+    pub tasks: Vec<GradebookTask>,
     pub rows: Vec<GradebookRow>,
     pub summary: GradebookSummary,
 }

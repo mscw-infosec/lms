@@ -2,7 +2,7 @@ use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::ExamExtendedEntity;
 use crate::domain::exam::service::ExamService;
 use crate::domain::report::model::{
-    AttemptStatus, ExportFile, Gradebook, GradebookRow, GradebookSummary,
+    AttemptStatus, ExportFile, Gradebook, GradebookRow, GradebookSummary, GradebookTask,
 };
 use crate::domain::report::repository::ReportRepository;
 use crate::dto::exam::ScoringData;
@@ -66,13 +66,18 @@ impl ReportService {
         let exam = self.exam_service.get_exam(exam_id, user, role).await?;
 
         let entities = self.exam_service.get_entities(exam_id).await?;
-        let max_score: i64 = entities
+        let tasks: Vec<GradebookTask> = entities
             .iter()
             .filter_map(|e| match e {
-                ExamExtendedEntity::Task { task } => Some(task.points),
+                ExamExtendedEntity::Task { task } => Some(GradebookTask {
+                    id: task.id,
+                    title: task.title.clone(),
+                    max_score: task.points,
+                }),
                 ExamExtendedEntity::Text { .. } => None,
             })
-            .sum();
+            .collect();
+        let max_score: i64 = tasks.iter().map(|t| t.max_score).sum();
 
         let attempts = self.exam_service.get_all_attempts_scored(exam_id).await?;
 
@@ -97,6 +102,19 @@ impl ReportService {
                     .cloned()
                     .unwrap_or_else(|| ("<unknown>".to_string(), String::new()));
                 let window_open = a.ends_at > now;
+                let task_scores = tasks
+                    .iter()
+                    .map(|task| {
+                        #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
+                        let key = task.id as usize;
+                        let score = a
+                            .scoring_data
+                            .results
+                            .get(&key)
+                            .map_or(0.0, |v| *TaskVerdict::score(v));
+                        (task.id.to_string(), score)
+                    })
+                    .collect();
                 GradebookRow {
                     user_id: a.user_id,
                     username,
@@ -106,6 +124,7 @@ impl ReportService {
                     ends_at: a.ends_at,
                     score: Self::attempt_score(&a.scoring_data),
                     status: Self::status_of(&a.scoring_data, window_open),
+                    task_scores,
                 }
             })
             .collect();
@@ -116,6 +135,7 @@ impl ReportService {
             exam_id,
             exam_name: exam.name,
             max_score,
+            tasks,
             rows,
             summary,
         })
@@ -205,11 +225,16 @@ impl ReportService {
 
     fn build_csv(gradebook: &Gradebook) -> ExportFile {
         let mut out = String::new();
-        out.push_str(&CSV_HEADER.join(","));
+
+        let mut headers: Vec<String> = CSV_HEADER.iter().map(ToString::to_string).collect();
+        for task in &gradebook.tasks {
+            headers.push(csv_escape(&format!("{} (/{})", task.title, task.max_score)));
+        }
+        out.push_str(&headers.join(","));
         out.push('\n');
 
         for row in &gradebook.rows {
-            let fields = [
+            let mut fields = vec![
                 csv_escape(&row.username),
                 csv_escape(&row.email),
                 format!("{:.2}", row.score),
@@ -219,6 +244,14 @@ impl ReportService {
                 row.started_at.to_rfc3339(),
                 row.ends_at.to_rfc3339(),
             ];
+            for task in &gradebook.tasks {
+                let score = row
+                    .task_scores
+                    .get(&task.id.to_string())
+                    .copied()
+                    .unwrap_or(0.0);
+                fields.push(format!("{score:.2}"));
+            }
             out.push_str(&fields.join(","));
             out.push('\n');
         }
@@ -245,6 +278,17 @@ impl ReportService {
                 .write_string_with_format(0, col as u16, *header, &bold)
                 .map_err(xlsx_err)?;
         }
+        let base_cols = CSV_HEADER.len() as u16;
+        for (i, task) in gradebook.tasks.iter().enumerate() {
+            worksheet
+                .write_string_with_format(
+                    0,
+                    base_cols + i as u16,
+                    format!("{} (/{})", task.title, task.max_score),
+                    &bold,
+                )
+                .map_err(xlsx_err)?;
+        }
 
         for (idx, row) in gradebook.rows.iter().enumerate() {
             let r = (idx + 1) as u32;
@@ -268,6 +312,16 @@ impl ReportService {
             worksheet
                 .write_string(r, 7, row.ends_at.to_rfc3339())
                 .map_err(xlsx_err)?;
+            for (i, task) in gradebook.tasks.iter().enumerate() {
+                let score = row
+                    .task_scores
+                    .get(&task.id.to_string())
+                    .copied()
+                    .unwrap_or(0.0);
+                worksheet
+                    .write_number(r, base_cols + i as u16, score)
+                    .map_err(xlsx_err)?;
+            }
         }
 
         let bytes = workbook.save_to_buffer().map_err(xlsx_err)?;

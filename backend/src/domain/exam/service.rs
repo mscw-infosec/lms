@@ -133,6 +133,10 @@ impl ExamService {
         Ok(attempts)
     }
 
+    pub async fn get_usernames(&self, ids: &[Uuid]) -> Result<HashMap<Uuid, String>> {
+        Ok(self.repo.get_usernames(ids).await?.into_iter().collect())
+    }
+
     pub async fn get_user_attempts_in_exam(
         &self,
         exam_id: Uuid,
