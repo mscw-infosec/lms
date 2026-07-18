@@ -5,9 +5,11 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
-        refresh_token::service::RefreshTokenService, task::service::TaskService,
-        topics::service::TopicService, video::service::VideoService,
+        courses::service::CourseService, exam::service::ExamService,
+        lectures::service::LectureService, oauth::service::OAuthService,
+        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
+        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
     errors::Result,
     infrastructure::jwt::JWT,
@@ -21,7 +23,10 @@ pub struct Services {
     pub basic_auth: BasicAuthService,
     pub course: CourseService,
     pub exam: ExamService,
+    pub lecture: LectureService,
     pub oauth: OAuthService,
+    pub practice: PracticeService,
+    pub report: ReportService,
     pub refresh_token: RefreshTokenService,
     pub task: TaskService,
     pub topic: TopicService,
@@ -88,6 +93,15 @@ pub fn generate_router(
             "/exam",
             api::exam::configure(svcs.exam, svcs.account.clone(), jwt.clone()),
         )
+        .nest(
+            "/lecture",
+            api::lecture::configure(svcs.lecture, jwt.clone()),
+        )
+        .nest(
+            "/practice",
+            api::practice::configure(svcs.practice, jwt.clone()),
+        )
+        .nest("/report", api::report::configure(svcs.report, jwt.clone()))
         .nest(
             "/topics",
             api::topics::configure(svcs.topic, svcs.account, jwt),

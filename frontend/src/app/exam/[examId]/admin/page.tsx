@@ -16,6 +16,7 @@ import {
 } from "@/api/exam";
 import type { components } from "@/api/schema/schema";
 import { AuthModal } from "@/components/auth-modal";
+import ExamGradebook from "@/components/exam/exam-gradebook";
 import { Header } from "@/components/header";
 import Markdown from "@/components/markdown";
 import {
@@ -481,6 +482,8 @@ export default function AttemptsAdminPage() {
 						{t("attempts_admin")}
 					</h1>
 				</div>
+
+				<ExamGradebook examId={examId} />
 
 				<Card className="border-slate-800 bg-slate-900">
 					<CardHeader>

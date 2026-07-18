@@ -15,13 +15,22 @@ pub struct CreateVideoRequestDTO {
 
 #[derive(Serialize, Deserialize, Validate, ToSchema)]
 pub struct CreateVideoResponseDTO {
+    /// Id of the created video entity. Store this (e.g. on a lecture) to
+    /// reference the video later; it becomes playable once the upload to `url`
+    /// finishes and Yandex transcodes it.
+    pub id: String,
+
+    /// TUS (resumable) upload URL the client should upload the file bytes to.
     #[validate(url)]
     pub url: String,
 }
 
 impl From<VideoModel> for CreateVideoResponseDTO {
     fn from(value: VideoModel) -> Self {
-        Self { url: value.url }
+        Self {
+            id: value.id,
+            url: value.url,
+        }
     }
 }
 

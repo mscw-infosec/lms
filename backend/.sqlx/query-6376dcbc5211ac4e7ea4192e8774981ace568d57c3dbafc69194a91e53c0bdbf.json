@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT p.id,\n                       p.title,\n                       p.description,\n                       p.order_index,\n                       COUNT(pt.task_id) AS \"task_count!\",\n                       COUNT(pp.task_id) FILTER (WHERE pp.solved) AS \"solved_count!\"\n                FROM practices p\n                    LEFT JOIN practice_tasks pt ON pt.practice_id = p.id\n                    LEFT JOIN practice_progress pp\n                        ON pp.task_id = pt.task_id AND pp.user_id = $2\n                WHERE p.topic_id = $1\n                GROUP BY p.id\n                ORDER BY p.order_index\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "task_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "solved_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "6376dcbc5211ac4e7ea4192e8774981ace568d57c3dbafc69194a91e53c0bdbf"
+}

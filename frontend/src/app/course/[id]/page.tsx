@@ -13,7 +13,6 @@ import {
 	getExamTasks,
 	getTopicExams,
 	updateExam,
-	updateExamTasks,
 } from "@/api/exam";
 import type { components } from "@/api/schema/schema";
 import { createTopic, deleteTopic, updateTopic } from "@/api/topics";
@@ -27,6 +26,8 @@ import { Header } from "@/components/header";
 import Markdown from "@/components/markdown";
 import CreateTopicItemDialog from "@/components/topic/create-topic-item-dialog";
 import TopicCreateForm from "@/components/topic/topic-create-form";
+import TopicLectures from "@/components/topic/topic-lectures";
+import TopicPractice from "@/components/topic/topic-practice";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -223,29 +224,6 @@ export default function CoursePage() {
 		loadExams();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [topicsQuery.isSuccess, topicsQuery.data]);
-
-	const attachTaskToExam = async (examId: string, newTaskId: number) => {
-		try {
-			const current = await getExamTasks(examId);
-			const ids = [
-				...new Set([...(current?.map((t) => t.id) ?? []), newTaskId]),
-			];
-			await updateExamTasks(examId, ids);
-			const updated = await getExamTasks(examId);
-			setTopicExams((prev) => {
-				const copy: typeof prev = { ...prev };
-				for (const [topicIdKey, exams] of Object.entries(copy)) {
-					const idx = exams.findIndex((e) => e.id === examId);
-					if (idx !== -1) {
-						const next = [...exams];
-						next[idx] = { ...next[idx], tasks: updated } as ExamLite;
-						copy[Number(topicIdKey)] = next;
-					}
-				}
-				return copy;
-			});
-		} catch (e) {}
-	};
 
 	useEffect(() => {
 		if (courseQuery.data && !isEditing) {
@@ -804,6 +782,8 @@ export default function CoursePage() {
 													</div>
 												</div>
 											))}
+											<TopicLectures topicId={topic.id} canEdit={canEdit} />
+											<TopicPractice topicId={topic.id} canEdit={canEdit} />
 										</CollapsibleContent>
 									</Collapsible>
 								))}

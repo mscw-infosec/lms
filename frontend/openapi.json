@@ -1656,6 +1656,303 @@
 				]
 			}
 		},
+		"/exam/{exam_id}/score": {
+			"post": {
+				"tags": ["Exam"],
+				"summary": "Score all unscored attempts",
+				"operationId": "score_unscored",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successfully scored attempts in exam"
+					},
+					"400": {
+						"description": "Wrong data format"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to launch exam scoring"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/lecture/new": {
+			"post": {
+				"tags": ["Lecture"],
+				"summary": "Create a new lecture inside a topic.",
+				"operationId": "create",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateLectureRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Lecture created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateLectureResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid request data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to create lectures"
+					},
+					"404": {
+						"description": "Topic or referenced video not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/lecture/topic/{topic_id}": {
+			"get": {
+				"tags": ["Lecture"],
+				"summary": "List all lectures of a topic (ordered), with the caller's completion state.",
+				"operationId": "list_in_topic",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Lectures in the topic",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/LectureSummaryDTO"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this topic's course"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/lecture/{id}": {
+			"get": {
+				"tags": ["Lecture"],
+				"summary": "Get a lecture by id, including its content and completion state.",
+				"operationId": "get_by_id",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Lecture found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LectureResponseDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this lecture's course"
+					},
+					"404": {
+						"description": "Lecture not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Lecture"],
+				"summary": "Update a lecture by id.",
+				"operationId": "update",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateLectureRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Lecture updated"
+					},
+					"400": {
+						"description": "Invalid request data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to update lectures"
+					},
+					"404": {
+						"description": "Lecture or referenced video not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Lecture"],
+				"summary": "Delete a lecture by id.",
+				"operationId": "delete",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Lecture deleted"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to delete lectures"
+					},
+					"404": {
+						"description": "Lecture not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/lecture/{id}/complete": {
+			"post": {
+				"tags": ["Lecture"],
+				"summary": "Mark a lecture as completed for the current user.",
+				"operationId": "complete",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Lecture marked as completed"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this lecture's course"
+					},
+					"404": {
+						"description": "Lecture not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/oauth/github/callback": {
 			"get": {
 				"tags": ["OAuth"],
@@ -1686,6 +1983,577 @@
 				"summary": "Redirect user to yandex oauth login page",
 				"operationId": "login",
 				"responses": {}
+			}
+		},
+		"/practice/new": {
+			"post": {
+				"tags": ["Practice"],
+				"summary": "Create a new practice inside a topic.",
+				"operationId": "create_practice",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreatePracticeRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Practice created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatePracticeResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission to manage practices"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/task/{task_id}/submit": {
+			"post": {
+				"tags": ["Practice"],
+				"summary": "Submit an answer to a practice task. Unlimited attempts, immediate verdict.",
+				"operationId": "submit",
+				"parameters": [
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskAnswer"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Graded submission with updated progress",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PracticeSubmitResultDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Answer does not match the task type"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this practice task"
+					},
+					"404": {
+						"description": "Task is not available for practice"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/topic/{topic_id}": {
+			"get": {
+				"tags": ["Practice"],
+				"summary": "List practices in a topic with the caller's aggregate progress.",
+				"operationId": "list_in_topic",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Practices in the topic",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/PracticeSummaryDTO"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this topic's course"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/{id}": {
+			"get": {
+				"tags": ["Practice"],
+				"summary": "Get a practice with its ordered tasks and the caller's progress.",
+				"operationId": "get_practice",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Practice with tasks",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PracticeDetailDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this practice"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"put": {
+				"tags": ["Practice"],
+				"summary": "Update a practice's metadata.",
+				"operationId": "update_practice",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdatePracticeRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Practice updated"
+					},
+					"400": {
+						"description": "Invalid data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Practice"],
+				"summary": "Delete a practice and all of its tasks.",
+				"operationId": "delete_practice",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Practice deleted"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/{id}/admin": {
+			"get": {
+				"tags": ["Practice"],
+				"summary": "Get a practice with full tasks (for editing). Teacher/admin only.",
+				"operationId": "get_practice_admin",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Practice with full tasks",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PracticeAdminDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/{id}/task": {
+			"post": {
+				"tags": ["Practice"],
+				"summary": "Create a new (auto-gradable) task inside a practice.",
+				"operationId": "create_task",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTaskRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Task created in practice",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateTaskResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Task is not auto-gradable / invalid data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/practice/{id}/task/{task_id}": {
+			"put": {
+				"tags": ["Practice"],
+				"summary": "Update a task inside a practice.",
+				"operationId": "update_task",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTaskRequestDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Task updated"
+					},
+					"400": {
+						"description": "Task is not auto-gradable / invalid data"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice or task not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Practice"],
+				"summary": "Remove (and delete) a task from a practice.",
+				"operationId": "remove_task",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "task_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Task removed"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no permission"
+					},
+					"404": {
+						"description": "Practice not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/report/exam/{exam_id}": {
+			"get": {
+				"tags": ["Report"],
+				"summary": "Exam gradebook: per-attempt scores plus summary statistics.",
+				"operationId": "get_exam_gradebook",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Exam gradebook",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Gradebook"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "Only teachers/admins can view reports"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/report/exam/{exam_id}/export": {
+			"get": {
+				"tags": ["Report"],
+				"summary": "Export exam results as a downloadable file (CSV or XLSX).",
+				"operationId": "export_exam_results",
+				"parameters": [
+					{
+						"name": "exam_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"format": "uuid"
+						}
+					},
+					{
+						"name": "format",
+						"in": "query",
+						"description": "csv (default) or xlsx",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Exam results file (text/csv or xlsx)"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "Only teachers/admins can export results"
+					},
+					"404": {
+						"description": "Exam not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
 			}
 		},
 		"/task/list": {
@@ -2199,6 +3067,10 @@
 	},
 	"components": {
 		"schemas": {
+			"AttemptStatus": {
+				"type": "string",
+				"enum": ["in_progress", "on_review", "graded"]
+			},
 			"AttemptVisibilityPatchRequest": {
 				"type": "object",
 				"required": ["show_results"],
@@ -2349,6 +3221,72 @@
 					}
 				}
 			},
+			"CreateLectureRequestDTO": {
+				"type": "object",
+				"required": ["topic_id", "title", "order_index"],
+				"properties": {
+					"content": {
+						"type": ["string", "null"]
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					},
+					"topic_id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"video_id": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"CreateLectureResponseDTO": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"CreatePracticeRequestDTO": {
+				"type": "object",
+				"required": ["topic_id", "title", "order_index"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					},
+					"topic_id": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
+			"CreatePracticeResponseDTO": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					}
+				}
+			},
 			"CreateTaskResponseDTO": {
 				"type": "object",
 				"required": ["id"],
@@ -2374,10 +3312,15 @@
 			},
 			"CreateVideoResponseDTO": {
 				"type": "object",
-				"required": ["url"],
+				"required": ["id", "url"],
 				"properties": {
+					"id": {
+						"type": "string",
+						"description": "Id of the created video entity. Store this (e.g. on a lecture) to\nreference the video later; it becomes playable once the upload to `url`\nfinishes and Yandex transcodes it."
+					},
 					"url": {
-						"type": "string"
+						"type": "string",
+						"description": "TUS (resumable) upload URL the client should upload the file bytes to."
 					}
 				}
 			},
@@ -2645,6 +3588,126 @@
 					}
 				}
 			},
+			"Gradebook": {
+				"type": "object",
+				"description": "Full exam gradebook: metadata, per-attempt rows and summary stats.",
+				"required": ["exam_id", "exam_name", "max_score", "rows", "summary"],
+				"properties": {
+					"exam_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"exam_name": {
+						"type": "string"
+					},
+					"max_score": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"rows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/GradebookRow"
+						}
+					},
+					"summary": {
+						"$ref": "#/components/schemas/GradebookSummary"
+					}
+				}
+			},
+			"GradebookRow": {
+				"type": "object",
+				"description": "One learner attempt in an exam gradebook.",
+				"required": [
+					"user_id",
+					"username",
+					"email",
+					"attempt_id",
+					"started_at",
+					"ends_at",
+					"score",
+					"status"
+				],
+				"properties": {
+					"attempt_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"email": {
+						"type": "string"
+					},
+					"ends_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"started_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"status": {
+						"$ref": "#/components/schemas/AttemptStatus"
+					},
+					"user_id": {
+						"type": "string",
+						"format": "uuid"
+					},
+					"username": {
+						"type": "string"
+					}
+				}
+			},
+			"GradebookSummary": {
+				"type": "object",
+				"description": "Aggregate statistics across all attempts of an exam.",
+				"required": [
+					"total_attempts",
+					"participants",
+					"graded",
+					"on_review",
+					"in_progress",
+					"average_score",
+					"highest_score",
+					"lowest_score"
+				],
+				"properties": {
+					"average_score": {
+						"type": "number",
+						"format": "double"
+					},
+					"graded": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"highest_score": {
+						"type": "number",
+						"format": "double"
+					},
+					"in_progress": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"lowest_score": {
+						"type": "number",
+						"format": "double"
+					},
+					"on_review": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"participants": {
+						"type": "integer",
+						"minimum": 0
+					},
+					"total_attempts": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			},
 			"HashMap": {
 				"type": "object",
 				"additionalProperties": {
@@ -2652,6 +3715,186 @@
 				},
 				"propertyNames": {
 					"type": "string"
+				}
+			},
+			"LectureResponseDTO": {
+				"type": "object",
+				"description": "Full lecture view, including the rich-text body and completion state.\n\nThe `video_id`, when present, is resolved to a playable URL through the\nexisting `GET /video/{video_id}` endpoint.",
+				"required": ["id", "title", "completed"],
+				"properties": {
+					"completed": {
+						"type": "boolean"
+					},
+					"content": {
+						"type": ["string", "null"]
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					},
+					"video_id": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"LectureSummaryDTO": {
+				"type": "object",
+				"description": "Lighter lecture view used when listing the lectures of a topic.",
+				"required": ["id", "title", "order_index", "completed"],
+				"properties": {
+					"completed": {
+						"type": "boolean"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					},
+					"video_id": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"PracticeAdminDTO": {
+				"type": "object",
+				"description": "Teacher/editing view of a practice: metadata plus full tasks (with answers).",
+				"required": ["id", "title", "order_index", "tasks"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"tasks": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/Task"
+						}
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"PracticeDetailDTO": {
+				"type": "object",
+				"description": "Full learner view of a practice: metadata plus its ordered tasks.",
+				"required": ["id", "title", "order_index", "tasks"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"tasks": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/PracticeTaskDTO"
+						}
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"PracticeSubmitResultDTO": {
+				"type": "object",
+				"description": "Result of a single practice submission.",
+				"required": ["verdict", "solved", "attempts"],
+				"properties": {
+					"attempts": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"solved": {
+						"type": "boolean"
+					},
+					"verdict": {
+						"$ref": "#/components/schemas/TaskVerdict"
+					}
+				}
+			},
+			"PracticeSummaryDTO": {
+				"type": "object",
+				"description": "A practice as shown in a topic list, with the caller's aggregate progress.",
+				"required": [
+					"id",
+					"title",
+					"order_index",
+					"task_count",
+					"solved_count"
+				],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
+					},
+					"id": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"solved_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"task_count": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"PracticeTaskDTO": {
+				"type": "object",
+				"description": "A practice task as shown to a learner: the public task (no answers) plus the\ncaller's own progress.",
+				"required": ["task", "order_index", "solved", "attempts"],
+				"properties": {
+					"attempts": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"solved": {
+						"type": "boolean"
+					},
+					"task": {
+						"$ref": "#/components/schemas/PublicTaskDTO"
+					}
 				}
 			},
 			"PubExamExtendedEntity": {
@@ -3336,6 +4579,44 @@
 					"id": {
 						"type": "integer",
 						"format": "int32"
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"UpdateLectureRequestDTO": {
+				"type": "object",
+				"required": ["title", "order_index"],
+				"properties": {
+					"content": {
+						"type": ["string", "null"]
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					},
+					"video_id": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"UpdatePracticeRequestDTO": {
+				"type": "object",
+				"required": ["title", "order_index"],
+				"properties": {
+					"description": {
+						"type": ["string", "null"]
 					},
 					"order_index": {
 						"type": "integer",

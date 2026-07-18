@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO practice_tasks (practice_id, task_id, order_index)\n                VALUES ($1, $2, $3)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6e400db89ae2ecc877bb5b9b7bd78bcbcf2ef0697e9dc06bd561d98d677491ba"
+}

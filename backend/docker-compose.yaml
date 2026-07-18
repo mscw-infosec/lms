@@ -1,12 +1,14 @@
 services:
   db:
-    image: postgres:alpine
+    image: postgres:18-alpine
     environment:
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=lms
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=lms
     ports:
       - 5432:5432
+    networks:
+      - net
 
   redis:
     image: redis:8.0.0-alpine3.21
@@ -17,10 +19,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - net
 
   backend:
     platform: linux/x86_64
-    image: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend:latest
+#    image: cr.yandex/crpi7be6fcnum9d5jo38/lms-backend:latest
+    build: .
     ports:
       - 8000:8000
     env_file:
@@ -30,3 +35,8 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - net
+
+networks:
+  net:

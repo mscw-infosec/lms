@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE lecture_links\n                SET order_index = $1\n                WHERE lecture_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "30418e856a02c03d6be88203aa07bcf741feefe2102277050bc2c23e1340e9a4"
+}

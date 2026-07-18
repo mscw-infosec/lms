@@ -9,7 +9,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUserStore } from "@/store/user";
-import { KeyRound, ListChecks, Shield, Users } from "lucide-react";
+import { KeyRound, Shield, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -57,19 +57,6 @@ export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 							>
 								<Users className="h-4 w-4 sm:mr-2" />
 								<span className="hidden sm:inline">{t("user_management")}</span>
-							</Button>
-						</Link>
-					) : null}
-					{user && (user.role === "Teacher" || user.role === "Admin") ? (
-						<Link href="/tasks">
-							<Button
-								variant="outline"
-								size="sm"
-								className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
-								title={t("tasks") ?? "Tasks"}
-							>
-								<ListChecks className="h-4 w-4 sm:mr-2" />
-								<span className="hidden sm:inline">{t("tasks")}</span>
 							</Button>
 						</Link>
 					) : null}

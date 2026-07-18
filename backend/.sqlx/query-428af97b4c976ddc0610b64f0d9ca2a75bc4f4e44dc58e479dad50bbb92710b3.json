@@ -1,0 +1,53 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT l.id,\n                       l.title,\n                       l.description,\n                       l.video_id,\n                       ll.order_index,\n                       (lp.user_id IS NOT NULL) AS \"completed!\"\n                FROM lecture_links ll\n                    JOIN lectures l ON l.id = ll.lecture_id\n                    LEFT JOIN lecture_progress lp\n                        ON lp.lecture_id = l.id AND lp.user_id = $2\n                WHERE ll.topic_id = $1\n                ORDER BY ll.order_index\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "video_id",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "completed!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      null
+    ]
+  },
+  "hash": "428af97b4c976ddc0610b64f0d9ca2a75bc4f4e44dc58e479dad50bbb92710b3"
+}

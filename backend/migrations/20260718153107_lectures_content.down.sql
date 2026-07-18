@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS lecture_progress;
+
+ALTER TABLE lectures
+    DROP COLUMN IF EXISTS content;
+
+ALTER TABLE lectures
+    ADD COLUMN IF NOT EXISTS order_index INTEGER NOT NULL DEFAULT 0;

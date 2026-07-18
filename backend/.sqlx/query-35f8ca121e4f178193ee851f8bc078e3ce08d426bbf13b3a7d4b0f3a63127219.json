@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT DISTINCT p.topic_id\n                FROM practice_tasks pt\n                    JOIN practices p ON p.id = pt.practice_id\n                WHERE pt.task_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "topic_id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "35f8ca121e4f178193ee851f8bc078e3ce08d426bbf13b3a7d4b0f3a63127219"
+}

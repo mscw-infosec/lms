@@ -1,3 +1,5 @@
+use crate::dto::task::TaskVerdict;
+use crate::errors::LMSError;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use std::collections::HashSet;
@@ -201,6 +203,190 @@ impl TaskConfig {
             Ok(())
         } else {
             Err(errors)
+        }
+    }
+}
+
+impl Task {
+    /// Checks that the provided answer matches this task's type and satisfies
+    /// basic constraints (e.g. text length). Does not perform any external
+    /// checks (like `CTFd` solve status) - those stay in the caller.
+    pub fn validate_answer(&self, answer: &TaskAnswer) -> crate::errors::Result<()> {
+        match (&self.configuration, answer) {
+            (
+                TaskConfig::ShortText {
+                    max_chars_count, ..
+                },
+                TaskAnswer::ShortText { answer },
+            )
+            | (TaskConfig::LongText { max_chars_count }, TaskAnswer::LongText { answer }) => {
+                if answer.len() > *max_chars_count {
+                    return Err(LMSError::ShitHappened(format!(
+                        "Your answer length is more than allowed ({max_chars_count})"
+                    )));
+                }
+                Ok(())
+            }
+            (TaskConfig::SingleChoice { .. }, TaskAnswer::SingleChoice { .. })
+            | (TaskConfig::MultipleChoice { .. }, TaskAnswer::MultipleChoice { .. })
+            | (TaskConfig::Ordering { .. }, TaskAnswer::Ordering { .. })
+            | (TaskConfig::FileUpload { .. }, TaskAnswer::FileUpload { .. })
+            | (TaskConfig::CTFd { .. }, TaskAnswer::CTFd) => Ok(()),
+            _ => Err(LMSError::ShitHappened(
+                "You've sent an answer for another task type".to_string(),
+            )),
+        }
+    }
+
+    /// Grades an answer against this task's configuration and returns a verdict.
+    ///
+    /// Types that need manual review (`LongText`, `FileUpload`, non-`auto_grade`
+    /// `ShortText`) return [`TaskVerdict::OnReview`]. Callers must ensure the
+    /// answer variant matches the task type (see [`Task::validate_answer`]);
+    /// a mismatched pair is a programming error and panics.
+    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::too_many_lines)]
+    pub fn grade(&self, answer: &TaskAnswer) -> TaskVerdict {
+        let points = self.points as f64;
+        match (answer, &self.configuration) {
+            (
+                TaskAnswer::SingleChoice { answer },
+                TaskConfig::SingleChoice {
+                    options, correct, ..
+                },
+            ) => {
+                if *answer == options[*correct] {
+                    TaskVerdict::FullScore {
+                        comment: None,
+                        score: points,
+                        max_score: points,
+                    }
+                } else {
+                    TaskVerdict::Incorrect {
+                        comment: None,
+                        score: 0f64,
+                        max_score: points,
+                    }
+                }
+            }
+            (
+                TaskAnswer::MultipleChoice { answers },
+                TaskConfig::MultipleChoice {
+                    options,
+                    correct,
+                    partial_score,
+                    ..
+                },
+            ) => {
+                let correct_answers: HashSet<_> = correct.iter().map(|&i| &options[i]).collect();
+                let user_answers: HashSet<_> = answers.iter().collect();
+
+                if user_answers == correct_answers {
+                    return TaskVerdict::FullScore {
+                        comment: None,
+                        score: points,
+                        max_score: points,
+                    };
+                }
+                if !partial_score {
+                    return TaskVerdict::Incorrect {
+                        comment: None,
+                        score: 0f64,
+                        max_score: points,
+                    };
+                }
+
+                let correct_count = correct_answers.intersection(&user_answers).count() as f64;
+                let incorrect_count = user_answers.difference(&correct_answers).count() as f64;
+                // punish for wrong answers, not for missing
+                let score_multiplier =
+                    (correct_count - incorrect_count) / correct_answers.len() as f64;
+                if score_multiplier <= 0f64 {
+                    return TaskVerdict::Incorrect {
+                        comment: None,
+                        score: 0f64,
+                        max_score: points,
+                    };
+                }
+
+                TaskVerdict::PartialScore {
+                    score: points * score_multiplier,
+                    comment: None,
+                    max_score: points,
+                }
+            }
+            (
+                TaskAnswer::ShortText { answer },
+                TaskConfig::ShortText {
+                    answers,
+                    auto_grade,
+                    case_sensitive,
+                    ..
+                },
+            ) => {
+                if !auto_grade {
+                    return TaskVerdict::OnReview;
+                }
+                let matched = if *case_sensitive {
+                    answers.contains(&answer.trim().to_string())
+                } else {
+                    let answer = answer.trim().to_lowercase();
+                    answers
+                        .iter()
+                        .map(|x| x.to_lowercase())
+                        .any(|x| x == answer)
+                };
+                if matched {
+                    TaskVerdict::FullScore {
+                        comment: None,
+                        score: points,
+                        max_score: points,
+                    }
+                } else {
+                    TaskVerdict::Incorrect {
+                        comment: None,
+                        score: 0f64,
+                        max_score: points,
+                    }
+                }
+            }
+            (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {
+                let precomputed_answers: Vec<Vec<String>> = answers
+                    .iter()
+                    .map(|correct| correct.iter().map(|&i| items[i].clone()).collect())
+                    .collect();
+                if precomputed_answers
+                    .iter()
+                    .any(|precomputed| precomputed == answer)
+                {
+                    TaskVerdict::FullScore {
+                        comment: None,
+                        score: points,
+                        max_score: points,
+                    }
+                } else {
+                    TaskVerdict::Incorrect {
+                        comment: None,
+                        score: 0f64,
+                        max_score: points,
+                    }
+                }
+            }
+            (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
+            | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
+                TaskVerdict::OnReview
+            }
+            (TaskAnswer::CTFd, TaskConfig::CTFd { .. }) => {
+                // if answer exists then task is solved
+                TaskVerdict::FullScore {
+                    comment: None,
+                    score: points,
+                    max_score: points,
+                }
+            }
+            // such cases (when TaskConfig type != TaskAnswer type) just shouldn't
+            // exist due to checks in validate_answer / modify_attempt
+            _ => unreachable!(),
         }
     }
 }

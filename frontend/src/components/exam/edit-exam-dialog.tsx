@@ -8,7 +8,8 @@ import {
 	updateText,
 } from "@/api/exam";
 import type { PublicTaskDTO } from "@/api/tasks";
-import { getTaskById } from "@/api/tasks";
+import { deleteTask } from "@/api/tasks";
+import CreateTaskDialog from "@/components/tasks/create-task-dialog";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -18,7 +19,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -85,7 +85,6 @@ export default function EditExamDialog({
 	const [busy, setBusy] = useState<
 		null | "save" | "add-task" | "add-text" | "edit-text" | "delete-text"
 	>(null);
-	const [taskIdInput, setTaskIdInput] = useState<string>("");
 	const [newText, setNewText] = useState<string>("");
 	const [editIdx, setEditIdx] = useState<number | null>(null);
 	const [editTextVal, setEditTextVal] = useState<string>("");
@@ -94,7 +93,6 @@ export default function EditExamDialog({
 	useEffect(() => {
 		if (!open) return;
 		setItems(initial);
-		setTaskIdInput("");
 		setNewText("");
 		setEditIdx(null);
 		setEditTextVal("");
@@ -134,35 +132,22 @@ export default function EditExamDialog({
 		});
 	};
 
-	const onAddTask = async () => {
-		const idNum = Number(taskIdInput);
-		if (!Number.isFinite(idNum) || idNum <= 0) {
-			toast({
-				description: t("invalid_id") ?? "Invalid ID",
-				variant: "destructive",
-			});
-			return;
-		}
-		try {
-			setBusy("add-task");
-			const task = await getTaskById(idNum);
-			// prevent duplicates of the same task id
-			setItems((prev) => {
-				if (prev.some((x) => x.type === "task" && x.task.id === task.id))
-					return prev;
-				const uid = `task-${task.id}-${safeRandomId()}`;
-				return [...prev, { uid, type: "task", task }];
-			});
-			setTaskIdInput("");
-		} catch (e) {
-			console.error(e);
-			toast({
-				description: t("failed_operation") ?? "Operation failed",
-				variant: "destructive",
-			});
-		} finally {
-			setBusy(null);
-		}
+	const onTaskCreated = (task: {
+		id: number;
+		title: string;
+		description: string | null;
+		points: number;
+	}) => {
+		const created: PublicTaskDTO = {
+			id: task.id,
+			title: task.title,
+			description: task.description,
+			points: task.points,
+		} as PublicTaskDTO;
+		setItems((prev) => {
+			const uid = `task-${created.id}-${safeRandomId()}`;
+			return [...prev, { uid, type: "task", task: created }];
+		});
 	};
 
 	const onAddText = async () => {
@@ -254,6 +239,16 @@ export default function EditExamDialog({
 					: ({ name: "text", id: it.text.id } as ExamEntity),
 			);
 			await updateExamEntities(examId, payload);
+			// Tasks are owned by the exam: delete the ones removed in this edit.
+			const keptIds = new Set(
+				items.filter((it) => it.type === "task").map((it) => it.task.id),
+			);
+			const removedTaskIds = initial
+				.filter((it) => it.type === "task" && !keptIds.has(it.task.id))
+				.map((it) => (it as { task: PublicTaskDTO }).task.id);
+			await Promise.all(
+				removedTaskIds.map((id) => deleteTask(id).catch(() => {})),
+			);
 			toast({ description: t("saved") ?? "Saved" });
 			onSaved?.();
 			onOpenChange(false);
@@ -413,24 +408,14 @@ export default function EditExamDialog({
 
 					<div className="rounded-md border border-slate-800 bg-slate-800/40 p-3">
 						<div className="mb-2 font-medium text-slate-300 text-sm">
-							{t("add_task_by_id") ?? "Add task by ID"}
+							{t("create_task") ?? "Create task"}
 						</div>
-						<div className="flex items-center gap-2">
-							<Input
-								value={taskIdInput}
-								onChange={(e) => setTaskIdInput(e.target.value)}
-								placeholder={t("task_id") ?? "Task ID"}
-								className="w-40 border-slate-700 bg-slate-800 text-white"
-							/>
-							<Button
-								onClick={onAddTask}
-								disabled={busy === "add-task"}
-								className="bg-red-600 text-white hover:bg-red-700"
-							>
+						<CreateTaskDialog onCreated={onTaskCreated}>
+							<Button className="bg-red-600 text-white hover:bg-red-700">
 								<Plus className="mr-1 h-4 w-4" />
 								{t("add_task") ?? "Add task"}
 							</Button>
-						</div>
+						</CreateTaskDialog>
 					</div>
 
 					<div className="rounded-md border border-slate-800 bg-slate-800/40 p-3">

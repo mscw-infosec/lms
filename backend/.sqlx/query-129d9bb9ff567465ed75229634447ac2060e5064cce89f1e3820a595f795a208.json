@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT COALESCE(MAX(order_index) + 1, 0) AS \"next!\"\n                FROM practice_tasks\n                WHERE practice_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "next!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "129d9bb9ff567465ed75229634447ac2060e5064cce89f1e3820a595f795a208"
+}

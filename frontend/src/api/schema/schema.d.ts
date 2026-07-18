@@ -558,6 +558,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exam/{exam_id}/score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Score all unscored attempts */
+        post: operations["score_unscored"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lecture/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a new lecture inside a topic. */
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lecture/topic/{topic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all lectures of a topic (ordered), with the caller's completion state. */
+        get: operations["list_in_topic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lecture/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a lecture by id, including its content and completion state. */
+        get: operations["get_by_id"];
+        /** Update a lecture by id. */
+        put: operations["update"];
+        post?: never;
+        /** Delete a lecture by id. */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/lecture/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a lecture as completed for the current user. */
+        post: operations["complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/oauth/github/callback": {
         parameters: {
             query?: never;
@@ -618,6 +705,162 @@ export interface paths {
         };
         /** Redirect user to yandex oauth login page */
         get: operations["login"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/new": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a new practice inside a topic. */
+        post: operations["create_practice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/task/{task_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an answer to a practice task. Unlimited attempts, immediate verdict. */
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/topic/{topic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List practices in a topic with the caller's aggregate progress. */
+        get: operations["list_in_topic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a practice with its ordered tasks and the caller's progress. */
+        get: operations["get_practice"];
+        /** Update a practice's metadata. */
+        put: operations["update_practice"];
+        post?: never;
+        /** Delete a practice and all of its tasks. */
+        delete: operations["delete_practice"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/{id}/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a practice with full tasks (for editing). Teacher/admin only. */
+        get: operations["get_practice_admin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/{id}/task": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a new (auto-gradable) task inside a practice. */
+        post: operations["create_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/practice/{id}/task/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a task inside a practice. */
+        put: operations["update_task"];
+        post?: never;
+        /** Remove (and delete) a task from a practice. */
+        delete: operations["remove_task"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/report/exam/{exam_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exam gradebook: per-attempt scores plus summary statistics. */
+        get: operations["get_exam_gradebook"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/report/exam/{exam_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export exam results as a downloadable file (CSV or XLSX). */
+        get: operations["export_exam_results"];
         put?: never;
         post?: never;
         delete?: never;
@@ -790,6 +1033,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @enum {string} */
+        AttemptStatus: "in_progress" | "on_review" | "graded";
         AttemptVisibilityPatchRequest: {
             show_results: boolean;
         };
@@ -842,6 +1087,32 @@ export interface components {
             /** Format: uuid */
             id: string;
         };
+        CreateLectureRequestDTO: {
+            content?: string | null;
+            description?: string | null;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+            /** Format: int32 */
+            topic_id: number;
+            video_id?: string | null;
+        };
+        CreateLectureResponseDTO: {
+            /** Format: int32 */
+            id: number;
+        };
+        CreatePracticeRequestDTO: {
+            description?: string | null;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+            /** Format: int32 */
+            topic_id: number;
+        };
+        CreatePracticeResponseDTO: {
+            /** Format: int32 */
+            id: number;
+        };
         CreateTaskResponseDTO: {
             /** Format: int64 */
             id: number;
@@ -852,6 +1123,11 @@ export interface components {
             size: number;
         };
         CreateVideoResponseDTO: {
+            /** @description Id of the created video entity. Store this (e.g. on a lecture) to
+             *     reference the video later; it becomes playable once the upload to `url`
+             *     finishes and Yandex transcodes it. */
+            id: string;
+            /** @description TUS (resumable) upload URL the client should upload the file bytes to. */
             url: string;
         };
         CtfdAccountData: {
@@ -943,8 +1219,122 @@ export interface components {
         GetVideoUrlResponseDTO: {
             url: string;
         };
+        /** @description Full exam gradebook: metadata, per-attempt rows and summary stats. */
+        Gradebook: {
+            /** Format: uuid */
+            exam_id: string;
+            exam_name: string;
+            /** Format: int64 */
+            max_score: number;
+            rows: components["schemas"]["GradebookRow"][];
+            summary: components["schemas"]["GradebookSummary"];
+        };
+        /** @description One learner attempt in an exam gradebook. */
+        GradebookRow: {
+            /** Format: uuid */
+            attempt_id: string;
+            email: string;
+            /** Format: date-time */
+            ends_at: string;
+            /** Format: double */
+            score: number;
+            /** Format: date-time */
+            started_at: string;
+            status: components["schemas"]["AttemptStatus"];
+            /** Format: uuid */
+            user_id: string;
+            username: string;
+        };
+        /** @description Aggregate statistics across all attempts of an exam. */
+        GradebookSummary: {
+            /** Format: double */
+            average_score: number;
+            graded: number;
+            /** Format: double */
+            highest_score: number;
+            in_progress: number;
+            /** Format: double */
+            lowest_score: number;
+            on_review: number;
+            participants: number;
+            total_attempts: number;
+        };
         HashMap: {
             [key: string]: string;
+        };
+        /** @description Full lecture view, including the rich-text body and completion state.
+         *
+         *     The `video_id`, when present, is resolved to a playable URL through the
+         *     existing `GET /video/{video_id}` endpoint. */
+        LectureResponseDTO: {
+            completed: boolean;
+            content?: string | null;
+            description?: string | null;
+            /** Format: int32 */
+            id: number;
+            title: string;
+            video_id?: string | null;
+        };
+        /** @description Lighter lecture view used when listing the lectures of a topic. */
+        LectureSummaryDTO: {
+            completed: boolean;
+            description?: string | null;
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+            video_id?: string | null;
+        };
+        /** @description Teacher/editing view of a practice: metadata plus full tasks (with answers). */
+        PracticeAdminDTO: {
+            description?: string | null;
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            order_index: number;
+            tasks: components["schemas"]["Task"][];
+            title: string;
+        };
+        /** @description Full learner view of a practice: metadata plus its ordered tasks. */
+        PracticeDetailDTO: {
+            description?: string | null;
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            order_index: number;
+            tasks: components["schemas"]["PracticeTaskDTO"][];
+            title: string;
+        };
+        /** @description Result of a single practice submission. */
+        PracticeSubmitResultDTO: {
+            /** Format: int32 */
+            attempts: number;
+            solved: boolean;
+            verdict: components["schemas"]["TaskVerdict"];
+        };
+        /** @description A practice as shown in a topic list, with the caller's aggregate progress. */
+        PracticeSummaryDTO: {
+            description?: string | null;
+            /** Format: int32 */
+            id: number;
+            /** Format: int32 */
+            order_index: number;
+            /** Format: int64 */
+            solved_count: number;
+            /** Format: int64 */
+            task_count: number;
+            title: string;
+        };
+        /** @description A practice task as shown to a learner: the public task (no answers) plus the
+         *     caller's own progress. */
+        PracticeTaskDTO: {
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            order_index: number;
+            solved: boolean;
+            task: components["schemas"]["PublicTaskDTO"];
         };
         PubExamExtendedEntity: {
             task: components["schemas"]["PublicTaskDTO"];
@@ -1151,6 +1541,20 @@ export interface components {
             course_id: number;
             /** Format: int32 */
             id: number;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+        };
+        UpdateLectureRequestDTO: {
+            content?: string | null;
+            description?: string | null;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+            video_id?: string | null;
+        };
+        UpdatePracticeRequestDTO: {
+            description?: string | null;
             /** Format: int32 */
             order_index: number;
             title: string;
@@ -2781,6 +3185,326 @@ export interface operations {
             };
         };
     };
+    score_unscored: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successfully scored attempts in exam */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Wrong data format */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to launch exam scoring */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateLectureRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Lecture created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateLectureResponseDTO"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to create lectures */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic or referenced video not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_in_topic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lectures in the topic */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LectureSummaryDTO"][];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this topic's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_by_id: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lecture found */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LectureResponseDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLectureRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Lecture updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to update lectures */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture or referenced video not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lecture deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to delete lectures */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lecture marked as completed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     callback: {
         parameters: {
             query?: never;
@@ -2820,6 +3544,570 @@ export interface operations {
         };
         requestBody?: never;
         responses: never;
+    };
+    create_practice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePracticeRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Practice created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatePracticeResponseDTO"];
+                };
+            };
+            /** @description Invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to manage practices */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskAnswer"];
+            };
+        };
+        responses: {
+            /** @description Graded submission with updated progress */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSubmitResultDTO"];
+                };
+            };
+            /** @description Answer does not match the task type */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this practice task */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is not available for practice */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_in_topic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Practices in the topic */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeSummaryDTO"][];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this topic's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_practice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Practice with tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeDetailDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this practice */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_practice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePracticeRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Practice updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_practice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Practice deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_practice_admin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Practice with full tasks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PracticeAdminDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertTaskRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Task created in practice */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTaskResponseDTO"];
+                };
+            };
+            /** @description Task is not auto-gradable / invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertTaskRequestDTO"];
+            };
+        };
+        responses: {
+            /** @description Task updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task is not auto-gradable / invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice or task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    remove_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Task removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_exam_gradebook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Exam gradebook */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Gradebook"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only teachers/admins can view reports */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_exam_results: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Exam results file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only teachers/admins can export results */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Exam not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
     };
     list_tasks: {
         parameters: {

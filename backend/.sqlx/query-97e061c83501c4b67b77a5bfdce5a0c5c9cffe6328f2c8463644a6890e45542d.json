@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM tasks\n                WHERE id IN (SELECT task_id FROM practice_tasks WHERE practice_id = $1)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "97e061c83501c4b67b77a5bfdce5a0c5c9cffe6328f2c8463644a6890e45542d"
+}

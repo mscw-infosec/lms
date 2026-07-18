@@ -30,12 +30,18 @@ interface EditTaskDialogProps {
 	task: TaskDTO;
 	children: ReactNode;
 	onUpdated?: (task: TaskDTO) => void;
+	/** Overrides how the task update is persisted (e.g. inside a practice). Defaults to the global update. */
+	submitUpdate?: (
+		taskId: number,
+		payload: UpsertTaskRequestDTO,
+	) => Promise<void>;
 }
 
 export default function EditTaskDialog({
 	task,
 	children,
 	onUpdated,
+	submitUpdate,
 }: EditTaskDialogProps) {
 	const { t } = useTranslation("common");
 	const [open, setOpen] = useState(false);
@@ -318,7 +324,7 @@ export default function EditTaskDialog({
 				configuration: config,
 			};
 
-			await updateTask(task.id, payload);
+			await (submitUpdate ?? updateTask)(task.id, payload);
 			onUpdated?.({
 				...task,
 				description: payloadDescription,

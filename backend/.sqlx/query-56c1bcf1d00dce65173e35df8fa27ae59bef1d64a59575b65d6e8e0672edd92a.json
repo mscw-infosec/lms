@@ -1,0 +1,86 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT t.id,\n                       t.title,\n                       t.description,\n                       t.task_type AS \"task_type: TaskType\",\n                       t.points,\n                       t.configuration,\n                       pt.order_index,\n                       COALESCE(pp.solved, FALSE) AS \"solved!\",\n                       COALESCE(pp.attempts, 0) AS \"attempts!\"\n                FROM practice_tasks pt\n                    JOIN tasks t ON t.id = pt.task_id\n                    LEFT JOIN practice_progress pp\n                        ON pp.task_id = t.id AND pp.user_id = $2\n                WHERE pt.practice_id = $1\n                ORDER BY pt.order_index\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "task_type: TaskType",
+        "type_info": {
+          "Custom": {
+            "name": "task_type",
+            "kind": {
+              "Enum": [
+                "single_choice",
+                "multiple_choice",
+                "short_text",
+                "long_text",
+                "ordering",
+                "file_upload",
+                "ctfd"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "points",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "configuration",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "order_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "solved!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "attempts!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "56c1bcf1d00dce65173e35df8fa27ae59bef1d64a59575b65d6e8e0672edd92a"
+}

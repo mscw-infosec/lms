@@ -36,18 +36,28 @@ interface CreateTaskDialogProps {
 		task_type: TaskType;
 		configuration: TaskConfig;
 	}) => void;
+	/** Overrides how the task is persisted (e.g. create it inside a practice/exam). Defaults to the global create. */
+	submitTask?: (payload: UpsertTaskRequestDTO) => Promise<{ id: number }>;
+	/** Restricts the selectable task types (e.g. auto-gradable only for practice). */
+	allowedTypes?: TaskType[];
 }
 
 export default function CreateTaskDialog({
 	children,
 	onCreated,
+	submitTask,
+	allowedTypes,
 }: CreateTaskDialogProps) {
 	const { t } = useTranslation("common");
 	const [open, setOpen] = useState(false);
+	const typeAllowed = (ty: TaskType) =>
+		!allowedTypes || allowedTypes.includes(ty);
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [points, setPoints] = useState<number>(1);
-	const [taskType, setTaskType] = useState<TaskType>("SingleChoice");
+	const [taskType, setTaskType] = useState<TaskType>(
+		allowedTypes?.[0] ?? "SingleChoice",
+	);
 	const [submitting, setSubmitting] = useState(false);
 	const [scOptions, setScOptions] = useState<string>("");
 	const [scCorrectInput, setScCorrectInput] = useState<string>("0");
@@ -228,7 +238,7 @@ export default function CreateTaskDialog({
 				task_type: taskType,
 				configuration: config,
 			};
-			const res = await createTask(payload);
+			const res = await (submitTask ?? createTask)(payload);
 			onCreated?.({
 				id: res.id,
 				title: payloadTitle,
@@ -322,25 +332,39 @@ export default function CreateTaskDialog({
 									/>
 								</SelectTrigger>
 								<SelectContent className="border-slate-700 bg-slate-900 text-white">
-									<SelectItem value="SingleChoice">
-										{t("single_choice") || "Single choice"}
-									</SelectItem>
-									<SelectItem value="MultipleChoice">
-										{t("multiple_choice") || "Multiple choice"}
-									</SelectItem>
-									<SelectItem value="ShortText">
-										{t("short_text") || "Short text"}
-									</SelectItem>
-									<SelectItem value="LongText">
-										{t("long_text") || "Long text"}
-									</SelectItem>
-									<SelectItem value="Ordering">
-										{t("ordering") || "Ordering"}
-									</SelectItem>
-									<SelectItem value="FileUpload">
-										{t("file_upload") || "File upload"}
-									</SelectItem>
-									<SelectItem value="ctfd">CTFd</SelectItem>
+									{typeAllowed("SingleChoice") && (
+										<SelectItem value="SingleChoice">
+											{t("single_choice") || "Single choice"}
+										</SelectItem>
+									)}
+									{typeAllowed("MultipleChoice") && (
+										<SelectItem value="MultipleChoice">
+											{t("multiple_choice") || "Multiple choice"}
+										</SelectItem>
+									)}
+									{typeAllowed("ShortText") && (
+										<SelectItem value="ShortText">
+											{t("short_text") || "Short text"}
+										</SelectItem>
+									)}
+									{typeAllowed("LongText") && (
+										<SelectItem value="LongText">
+											{t("long_text") || "Long text"}
+										</SelectItem>
+									)}
+									{typeAllowed("Ordering") && (
+										<SelectItem value="Ordering">
+											{t("ordering") || "Ordering"}
+										</SelectItem>
+									)}
+									{typeAllowed("FileUpload") && (
+										<SelectItem value="FileUpload">
+											{t("file_upload") || "File upload"}
+										</SelectItem>
+									)}
+									{typeAllowed("ctfd") && (
+										<SelectItem value="ctfd">CTFd</SelectItem>
+									)}
 								</SelectContent>
 							</Select>
 						</div>

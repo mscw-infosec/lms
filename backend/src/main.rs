@@ -15,9 +15,11 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
-        refresh_token::service::RefreshTokenService, task::service::TaskService,
-        topics::service::TopicService, video::service::VideoService,
+        courses::service::CourseService, exam::service::ExamService,
+        lectures::service::LectureService, oauth::service::OAuthService,
+        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
+        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
@@ -75,7 +77,7 @@ async fn main() -> anyhow::Result<()> {
     run_migrations(&db_repo).await?;
 
     let client = reqwest::Client::builder()
-        .user_agent("LMS Backend")
+        .user_agent("lms.infosec.moscow")
         .build()
         .expect("Failed to build client");
 
@@ -101,9 +103,12 @@ async fn main() -> anyhow::Result<()> {
         config.ctfd_token.clone(),
         topic.clone(),
     );
+    let lecture = LectureService::new(db_repo.clone(), topic.clone());
     let oauth = OAuthService::new(db_repo.clone(), s3.clone());
     let refresh_token = RefreshTokenService::new(rdb_repo.clone(), jwt.clone());
     let task = TaskService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
+    let practice = PracticeService::new(db_repo.clone(), task.clone(), topic.clone());
+    let report = ReportService::new(exam.clone(), db_repo.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
     let services = Services {
@@ -111,7 +116,10 @@ async fn main() -> anyhow::Result<()> {
         basic_auth,
         course,
         exam,
+        lecture,
         oauth,
+        practice,
+        report,
         refresh_token,
         task,
         topic,

@@ -5,9 +5,11 @@ use crate::{
     config::Config,
     domain::{
         account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService, oauth::service::OAuthService,
-        refresh_token::service::RefreshTokenService, task::service::TaskService,
-        topics::service::TopicService, video::service::VideoService,
+        courses::service::CourseService, exam::service::ExamService,
+        lectures::service::LectureService, oauth::service::OAuthService,
+        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
+        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
     infrastructure::jwt::JWT,
 };
@@ -41,9 +43,12 @@ pub fn save_openapi() {
         config.ctfd_token.clone(),
         topic.clone(),
     );
+    let lecture = LectureService::new(dummy.clone(), topic.clone());
     let oauth = OAuthService::new(dummy.clone(), dummy.clone());
     let refresh_token = RefreshTokenService::new(dummy.clone(), jwt.clone());
     let task = TaskService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
+    let practice = PracticeService::new(dummy.clone(), task.clone(), topic.clone());
+    let report = ReportService::new(exam.clone(), dummy.clone());
     let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
         .expect("Failed to create VideoService");
 
@@ -52,7 +57,10 @@ pub fn save_openapi() {
         basic_auth,
         course,
         exam,
+        lecture,
         oauth,
+        practice,
+        report,
         refresh_token,
         task,
         topic,

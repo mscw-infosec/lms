@@ -117,6 +117,22 @@ impl ExamService {
         Ok(attempts)
     }
 
+    /// Every attempt for an exam (unpaginated), scoring any whose window has
+    /// closed but were never scored. Intended for reporting/export.
+    pub async fn get_all_attempts_scored(&self, exam_id: Uuid) -> Result<Vec<ExamAttempt>> {
+        let mut attempts = self.repo.get_all_exam_attempts(exam_id).await?;
+        for attempt in &mut attempts {
+            if attempt.ends_at <= Utc::now()
+                && attempt.scoring_data.results.is_empty()
+                && !attempt.answer_data.answers.is_empty()
+            {
+                let scoring = self.score_attempt(attempt.clone()).await?;
+                attempt.scoring_data = Json(scoring);
+            }
+        }
+        Ok(attempts)
+    }
+
     pub async fn get_user_attempts_in_exam(
         &self,
         exam_id: Uuid,
@@ -307,60 +323,28 @@ impl ExamService {
             })
             .collect::<Vec<_>>();
         if let Some(task) = tasks.iter().find(|t| t.id == task_id as i64) {
-            match (&task.configuration, user_answer.clone()) {
-                (
-                    TaskConfig::ShortText {
-                        max_chars_count, ..
-                    },
-                    TaskAnswer::ShortText { answer },
-                )
-                | (
-                    TaskConfig::LongText {
-                        max_chars_count, ..
-                    },
-                    TaskAnswer::LongText { answer },
-                ) => {
-                    if answer.len() > *max_chars_count {
-                        return Err(LMSError::ShitHappened(format!(
-                            "Your answer length is more than allowed ({max_chars_count})"
-                        )));
-                    }
-                    self.repo
-                        .modify_attempt(exam_id, user_id, task_id, user_answer)
-                        .await
+            task.validate_answer(&user_answer)?;
+            // CTFd tasks additionally require verifying the solve against CTFd
+            if let (
+                TaskConfig::CTFd {
+                    task_id: ctfd_task_id,
+                },
+                TaskAnswer::CTFd,
+            ) = (&task.configuration, &user_answer)
+            {
+                let user = self.repo.get_user_by_id(attempt.user_id).await?;
+                let solve_status = self
+                    .check_if_ctfd_task_solved(*ctfd_task_id, user.email)
+                    .await?;
+                if !solve_status {
+                    return Err(LMSError::ShitHappened(
+                        "You haven't solved this task yet".to_string(),
+                    ));
                 }
-                (
-                    TaskConfig::CTFd {
-                        task_id: ctfd_task_id,
-                    },
-                    TaskAnswer::CTFd,
-                ) => {
-                    let user = self.repo.get_user_by_id(attempt.user_id).await?;
-                    let solve_status = self
-                        .check_if_ctfd_task_solved(*ctfd_task_id, user.email)
-                        .await?;
-                    if solve_status {
-                        self.repo
-                            .modify_attempt(exam_id, user_id, task_id, user_answer)
-                            .await
-                    } else {
-                        Err(LMSError::ShitHappened(
-                            "You haven't solved this task yet".to_string(),
-                        ))
-                    }
-                }
-                (TaskConfig::SingleChoice { .. }, TaskAnswer::SingleChoice { .. })
-                | (TaskConfig::MultipleChoice { .. }, TaskAnswer::MultipleChoice { .. })
-                | (TaskConfig::Ordering { .. }, TaskAnswer::Ordering { .. })
-                | (TaskConfig::FileUpload { .. }, TaskAnswer::FileUpload { .. }) => {
-                    self.repo
-                        .modify_attempt(exam_id, user_id, task_id, user_answer)
-                        .await
-                }
-                _ => Err(LMSError::ShitHappened(
-                    "You've sent an answer for another task type".to_string(),
-                )),
             }
+            self.repo
+                .modify_attempt(exam_id, user_id, task_id, user_answer)
+                .await
         } else {
             Err(LMSError::NotFound("This exam has no such task".to_string()))
         }
@@ -412,196 +396,9 @@ impl ExamService {
                 .iter()
                 .find(|t| t.id == task_id as i64)
                 .expect("There are answers for tasks that are not in exam");
-            match (user_answer.clone(), &task.configuration) {
-                (
-                    TaskAnswer::SingleChoice { answer },
-                    TaskConfig::SingleChoice {
-                        options, correct, ..
-                    },
-                ) => {
-                    if answer == options[*correct] {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::FullScore {
-                                comment: None,
-                                score: task.points as f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                        continue;
-                    }
-
-                    scoring_data.results.insert(
-                        task_id,
-                        TaskVerdict::Incorrect {
-                            comment: None,
-                            score: 0f64,
-                            max_score: task.points as f64,
-                        },
-                    );
-                }
-
-                (
-                    TaskAnswer::MultipleChoice { answers },
-                    TaskConfig::MultipleChoice {
-                        options,
-                        correct,
-                        partial_score,
-                        ..
-                    },
-                ) => {
-                    let correct_answers: HashSet<_> =
-                        correct.iter().map(|&i| &options[i]).collect();
-                    let user_answers: HashSet<_> = answers.iter().collect();
-
-                    if user_answers == correct_answers {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::FullScore {
-                                comment: None,
-                                score: task.points as f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                        continue;
-                    }
-                    if !partial_score {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::Incorrect {
-                                comment: None,
-                                score: 0f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                        continue;
-                    }
-
-                    let correct_count = correct_answers.intersection(&user_answers).count() as f64;
-                    let incorrect_count = user_answers.difference(&correct_answers).count() as f64;
-                    // punish for wrong answers, not for missing
-                    let score_multiplier =
-                        (correct_count - incorrect_count) / correct_answers.len() as f64;
-                    if score_multiplier <= 0f64 {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::Incorrect {
-                                comment: None,
-                                score: 0f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                        continue;
-                    }
-
-                    scoring_data.results.insert(
-                        task_id,
-                        TaskVerdict::PartialScore {
-                            score: task.points as f64 * score_multiplier,
-                            comment: None,
-                            max_score: task.points as f64,
-                        },
-                    );
-                }
-
-                (
-                    TaskAnswer::ShortText { answer },
-                    TaskConfig::ShortText {
-                        answers,
-                        auto_grade,
-                        case_sensitive,
-                        ..
-                    },
-                ) => {
-                    if !auto_grade {
-                        scoring_data.results.insert(task_id, TaskVerdict::OnReview);
-                        continue;
-                    }
-                    if *case_sensitive {
-                        if answers.contains(&answer.trim().to_string()) {
-                            scoring_data.results.insert(
-                                task_id,
-                                TaskVerdict::FullScore {
-                                    comment: None,
-                                    score: task.points as f64,
-                                    max_score: task.points as f64,
-                                },
-                            );
-                            continue;
-                        }
-                    } else {
-                        let answer = answer.trim().to_lowercase();
-                        if answers
-                            .iter()
-                            .map(|x| x.to_lowercase())
-                            .any(|x| x == answer)
-                        {
-                            scoring_data.results.insert(
-                                task_id,
-                                TaskVerdict::FullScore {
-                                    comment: None,
-                                    score: task.points as f64,
-                                    max_score: task.points as f64,
-                                },
-                            );
-                            continue;
-                        }
-                    }
-                    scoring_data.results.insert(
-                        task_id,
-                        TaskVerdict::Incorrect {
-                            comment: None,
-                            score: 0f64,
-                            max_score: task.points as f64,
-                        },
-                    );
-                }
-
-                (TaskAnswer::Ordering { answer }, TaskConfig::Ordering { items, answers }) => {
-                    let precomputed_answers: Vec<Vec<String>> = answers
-                        .iter()
-                        .map(|correct| correct.iter().map(|&i| items[i].clone()).collect())
-                        .collect();
-                    if precomputed_answers
-                        .iter()
-                        .any(|precomputed| precomputed == &answer)
-                    {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::FullScore {
-                                comment: None,
-                                score: task.points as f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                    } else {
-                        scoring_data.results.insert(
-                            task_id,
-                            TaskVerdict::Incorrect {
-                                comment: None,
-                                score: 0f64,
-                                max_score: task.points as f64,
-                            },
-                        );
-                    }
-                }
-                (TaskAnswer::LongText { .. }, TaskConfig::LongText { .. })
-                | (TaskAnswer::FileUpload { .. }, TaskConfig::FileUpload { .. }) => {
-                    scoring_data.results.insert(task_id, TaskVerdict::OnReview);
-                }
-                (TaskAnswer::CTFd, TaskConfig::CTFd { .. }) => {
-                    // if answer exists then task is solved
-                    scoring_data.results.insert(
-                        task_id,
-                        TaskVerdict::FullScore {
-                            comment: None,
-                            score: task.points as f64,
-                            max_score: task.points as f64,
-                        },
-                    );
-                }
-                _ => unreachable!(), // such cases (when TaskConfig type != TaskAnswer type) just shouldn't exist due to checks in modify_attempt
-            }
+            scoring_data
+                .results
+                .insert(task_id, task.grade(&user_answer));
         }
 
         if matches!(exam.r#type, ExamType::Instant) {

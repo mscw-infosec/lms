@@ -10,11 +10,15 @@ import {
 	getUserExamAttempts,
 	patchAttempt,
 } from "@/api/exam";
+import { type LectureSummaryDTO, getTopicLectures } from "@/api/lectures";
+import { type PracticeSummaryDTO, listTopicPractices } from "@/api/practice";
 import { AuthModal } from "@/components/auth-modal";
 import EditExamDialog from "@/components/exam/edit-exam-dialog";
 import { Header } from "@/components/header";
 import Markdown from "@/components/markdown";
 import { TaskPlayer } from "@/components/task-player";
+import LectureViewer from "@/components/topic/lecture-viewer";
+import PracticeRunner from "@/components/topic/practice-runner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -52,14 +56,17 @@ import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowLeft,
 	BookOpen,
+	CheckCircle2,
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	Dumbbell,
 	HelpCircle,
 	Info,
 	Menu,
 	Pencil,
 	Play,
+	Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -92,6 +99,46 @@ export default function LearnPage() {
 	>(null);
 	const [reviewTaskIndex, setReviewTaskIndex] = useState(0);
 	const [editExamOpen, setEditExamOpen] = useState(false);
+	const [selectedLectureId, setSelectedLectureId] = useState<number | null>(
+		null,
+	);
+	const [selectedLectureTopicId, setSelectedLectureTopicId] = useState<
+		number | null
+	>(null);
+	const [selectedPracticeId, setSelectedPracticeId] = useState<number | null>(
+		null,
+	);
+
+	const clearLecturePractice = () => {
+		setSelectedLectureId(null);
+		setSelectedLectureTopicId(null);
+		setSelectedPracticeId(null);
+	};
+	const closeSidebarOnMobile = () => {
+		if (typeof window !== "undefined" && window.innerWidth < 640) {
+			setSidebarOpen(false);
+		}
+	};
+	const selectLecture = (lectureId: number, topicId: number) => {
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+		setPendingExam(null);
+		setSelectedExam(null);
+		setSelectedPracticeId(null);
+		setSelectedLectureId(lectureId);
+		setSelectedLectureTopicId(topicId);
+		closeSidebarOnMobile();
+	};
+	const selectPractice = (practiceId: number) => {
+		setReviewMode(false);
+		setPendingExam(null);
+		setSelectedExam(null);
+		setSelectedLectureId(null);
+		setSelectedLectureTopicId(null);
+		setSelectedPracticeId(practiceId);
+		closeSidebarOnMobile();
+	};
 
 	const {
 		attempt,
@@ -277,6 +324,41 @@ export default function LearnPage() {
 				}),
 			);
 			return Object.fromEntries(entries) as Record<number, ExamDTO[]>;
+		},
+		enabled: topicsQuery.isSuccess,
+		retry: false,
+	});
+
+	const lecturesByTopicQuery = useQuery({
+		queryKey: ["topics-lectures", topicsQuery.data?.map((t) => t.id) ?? []],
+		queryFn: async () => {
+			const topics = topicsQuery.data ?? [];
+			const entries = await Promise.all(
+				topics.map(async (topic) => {
+					const lectures = await getTopicLectures(topic.id).catch(() => []);
+					return [topic.id, lectures] as const;
+				}),
+			);
+			return Object.fromEntries(entries) as Record<number, LectureSummaryDTO[]>;
+		},
+		enabled: topicsQuery.isSuccess,
+		retry: false,
+	});
+
+	const practiceByTopicQuery = useQuery({
+		queryKey: ["topics-practices", topicsQuery.data?.map((t) => t.id) ?? []],
+		queryFn: async () => {
+			const topics = topicsQuery.data ?? [];
+			const entries = await Promise.all(
+				topics.map(async (topic) => {
+					const items = await listTopicPractices(topic.id).catch(() => []);
+					return [topic.id, items] as const;
+				}),
+			);
+			return Object.fromEntries(entries) as Record<
+				number,
+				PracticeSummaryDTO[]
+			>;
 		},
 		enabled: topicsQuery.isSuccess,
 		retry: false,
@@ -1129,13 +1211,16 @@ export default function LearnPage() {
 					<button
 						type="button"
 						onClick={() => {
+							clearLecturePractice();
 							setPendingExam(null);
 							if (typeof window !== "undefined" && window.innerWidth < 640) {
 								setSidebarOpen(false);
 							}
 						}}
 						className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-							!(pendingExam ?? selectedExam)
+							!(pendingExam ?? selectedExam) &&
+							selectedLectureId == null &&
+							selectedPracticeId == null
 								? "bg-red-600 text-white"
 								: "text-slate-300 hover:bg-slate-700"
 						}`}
@@ -1177,6 +1262,68 @@ export default function LearnPage() {
 							<CollapsibleContent
 								className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
 							>
+								{(lecturesByTopicQuery.data?.[topic.id] ?? []).map(
+									(lecture) => (
+										<button
+											type="button"
+											key={`lec-${lecture.id}`}
+											onClick={() => selectLecture(lecture.id, topic.id)}
+											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
+												selectedLectureId === lecture.id
+													? "bg-red-600 text-white"
+													: "text-slate-300 hover:bg-slate-700"
+											}`}
+										>
+											<div
+												className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+											>
+												<Video
+													className={`h-4 w-4 flex-shrink-0 self-center text-sky-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+												/>
+												<div
+													className={`min-w-0 overflow-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
+												>
+													<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm">
+														{lecture.title}
+													</div>
+													<div className="flex items-center gap-1 text-xs opacity-80">
+														{lecture.completed ? (
+															<CheckCircle2 className="h-3 w-3 text-green-400" />
+														) : null}
+														{t("lecture") ?? "Lecture"}
+													</div>
+												</div>
+											</div>
+										</button>
+									),
+								)}
+								{(practiceByTopicQuery.data?.[topic.id] ?? []).map(
+									(practice) => (
+										<button
+											type="button"
+											key={`prac-${practice.id}`}
+											onClick={() => selectPractice(practice.id)}
+											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
+												selectedPracticeId === practice.id
+													? "bg-red-600 text-white"
+													: "text-slate-300 hover:bg-slate-700"
+											}`}
+										>
+											<div
+												className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+											>
+												<Dumbbell
+													className={`h-4 w-4 flex-shrink-0 self-center text-emerald-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+												/>
+												<span
+													className={`truncate text-sm ${sidebarOpen ? "" : "sm:hidden"}`}
+												>
+													{practice.title}
+												</span>
+											</div>
+										</button>
+									),
+								)}
 								{(examsByTopicQuery.data?.[topic.id] ?? []).map((exam) => (
 									<button
 										type="button"
@@ -1186,6 +1333,7 @@ export default function LearnPage() {
 											setReviewMode(false);
 											setSelectedReviewAttemptId(null);
 											latestAnswersRef.current = {};
+											clearLecturePractice();
 											setPendingExam(exam);
 											if (
 												typeof window !== "undefined" &&
@@ -1464,7 +1612,14 @@ export default function LearnPage() {
 					<div
 						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${((attempt?.active || isPreview) && (entities?.length ?? 0) > 0 && !reviewMode) || (reviewMode && (entities?.length ?? 0) > 0) ? "pb-24" : ""}`}
 					>
-						{!selectedExam ? (
+						{selectedLectureId != null ? (
+							<LectureViewer
+								lectureId={selectedLectureId}
+								topicId={selectedLectureTopicId ?? undefined}
+							/>
+						) : selectedPracticeId != null ? (
+							<PracticeRunner practiceId={selectedPracticeId} />
+						) : !selectedExam ? (
 							<div className="space-y-4">
 								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
 									<CardHeader className="p-4 sm:p-6">
