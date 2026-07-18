@@ -28,13 +28,17 @@ import { useTranslation } from "react-i18next";
 
 interface EditTaskDialogProps {
 	task: TaskDTO;
-	children: ReactNode;
+	/** Optional trigger. Omit when driving the dialog via the controlled `open` prop. */
+	children?: ReactNode;
 	onUpdated?: (task: TaskDTO) => void;
 	/** Overrides how the task update is persisted (e.g. inside a practice). Defaults to the global update. */
 	submitUpdate?: (
 		taskId: number,
 		payload: UpsertTaskRequestDTO,
 	) => Promise<void>;
+	/** Controlled open state (optional). */
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export default function EditTaskDialog({
@@ -42,9 +46,20 @@ export default function EditTaskDialog({
 	children,
 	onUpdated,
 	submitUpdate,
+	open: controlledOpen,
+	onOpenChange,
 }: EditTaskDialogProps) {
 	const { t } = useTranslation("common");
-	const [open, setOpen] = useState(false);
+	const [internalOpen, setInternalOpen] = useState(false);
+	const isControlled = controlledOpen !== undefined;
+	const open = isControlled ? controlledOpen : internalOpen;
+	const setOpen = (o: boolean) => {
+		if (isControlled) {
+			onOpenChange?.(o);
+		} else {
+			setInternalOpen(o);
+		}
+	};
 
 	const taskType = task.task_type;
 	const [submitting, setSubmitting] = useState(false);
@@ -338,7 +353,7 @@ export default function EditTaskDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
+			{children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
 			<DialogContent className="border-slate-800 bg-slate-900 text-slate-200">
 				<DialogHeader>
 					<DialogTitle className="text-white">
