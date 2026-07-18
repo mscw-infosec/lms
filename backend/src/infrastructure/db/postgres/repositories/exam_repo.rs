@@ -23,6 +23,7 @@ use uuid::Uuid;
 #[async_trait]
 impl ExamRepository for RepositoryPostgres {
     async fn create(&self, exam_data: UpsertExamRequestDTO) -> Result<Exam> {
+        let order_index = self.next_topic_order(exam_data.topic_id).await?;
         let mut tx = self.pool.begin().await?;
 
         let exam = sqlx::query_as!(
@@ -51,21 +52,6 @@ impl ExamRepository for RepositoryPostgres {
             _ => LMSError::DatabaseError(err),
         })?;
 
-        let new_exam_index = sqlx::query_scalar!(
-            r#"
-                SELECT CASE
-                     WHEN MAX(order_index) IS NULL THEN 0
-                     ELSE MAX(order_index) + 1
-                   END AS next_order_index
-                FROM exam_ordering
-                WHERE topic_id = $1;
-            "#,
-            exam.topic_id
-        )
-        .fetch_one(tx.as_mut())
-        .await?
-        .expect("SQL mess happened with max_order_index!");
-
         let _ = sqlx::query!(
             r#"
                 INSERT INTO exam_ordering (exam_id, topic_id, order_index)
@@ -73,7 +59,7 @@ impl ExamRepository for RepositoryPostgres {
             "#,
             exam.id,
             exam.topic_id,
-            new_exam_index
+            order_index
         )
         .execute(tx.as_mut())
         .await?;

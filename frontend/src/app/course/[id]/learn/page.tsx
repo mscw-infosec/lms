@@ -6,12 +6,11 @@ import {
 	type ExamAttempt,
 	type ExamDTO,
 	type PublicTaskDTO,
-	getTopicExams,
+	getExamById,
 	getUserExamAttempts,
 	patchAttempt,
 } from "@/api/exam";
-import { type LectureSummaryDTO, getTopicLectures } from "@/api/lectures";
-import { type PracticeSummaryDTO, listTopicPractices } from "@/api/practice";
+import { type TopicContentItemDTO, getTopicContent } from "@/api/topics";
 import { AuthModal } from "@/components/auth-modal";
 import EditExamDialog from "@/components/exam/edit-exam-dialog";
 import { Header } from "@/components/header";
@@ -61,6 +60,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Dumbbell,
+	FileText,
 	HelpCircle,
 	Info,
 	Menu,
@@ -109,10 +109,14 @@ export default function LearnPage() {
 		null,
 	);
 
+	const [selectedText, setSelectedText] = useState<TopicContentItemDTO | null>(
+		null,
+	);
 	const clearLecturePractice = () => {
 		setSelectedLectureId(null);
 		setSelectedLectureTopicId(null);
 		setSelectedPracticeId(null);
+		setSelectedText(null);
 	};
 	const closeSidebarOnMobile = () => {
 		if (typeof window !== "undefined" && window.innerWidth < 640) {
@@ -126,6 +130,7 @@ export default function LearnPage() {
 		setPendingExam(null);
 		setSelectedExam(null);
 		setSelectedPracticeId(null);
+		setSelectedText(null);
 		setSelectedLectureId(lectureId);
 		setSelectedLectureTopicId(topicId);
 		closeSidebarOnMobile();
@@ -136,7 +141,27 @@ export default function LearnPage() {
 		setSelectedExam(null);
 		setSelectedLectureId(null);
 		setSelectedLectureTopicId(null);
+		setSelectedText(null);
 		setSelectedPracticeId(practiceId);
+		closeSidebarOnMobile();
+	};
+	const selectText = (item: TopicContentItemDTO) => {
+		setReviewMode(false);
+		setPendingExam(null);
+		setSelectedExam(null);
+		setSelectedLectureId(null);
+		setSelectedLectureTopicId(null);
+		setSelectedPracticeId(null);
+		setSelectedText(item);
+		closeSidebarOnMobile();
+	};
+	const selectExam = async (examId: string) => {
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+		clearLecturePractice();
+		const exam = await getExamById(examId).catch(() => null);
+		if (exam) setPendingExam(exam as ExamDTO);
 		closeSidebarOnMobile();
 	};
 
@@ -313,62 +338,24 @@ export default function LearnPage() {
 		retry: false,
 	});
 
-	const examsByTopicQuery = useQuery({
-		queryKey: ["topics-exams", topicsQuery.data?.map((t) => t.id) ?? []],
+	const contentByTopicQuery = useQuery({
+		queryKey: ["topics-content", topicsQuery.data?.map((t) => t.id) ?? []],
 		queryFn: async () => {
 			const topics = topicsQuery.data ?? [];
 			const entries = await Promise.all(
 				topics.map(async (topic) => {
-					const exams = await getTopicExams(topic.id).catch(() => []);
-					return [topic.id, exams as ExamDTO[]] as const;
-				}),
-			);
-			return Object.fromEntries(entries) as Record<number, ExamDTO[]>;
-		},
-		enabled: topicsQuery.isSuccess,
-		retry: false,
-	});
-
-	const lecturesByTopicQuery = useQuery({
-		queryKey: ["topics-lectures", topicsQuery.data?.map((t) => t.id) ?? []],
-		queryFn: async () => {
-			const topics = topicsQuery.data ?? [];
-			const entries = await Promise.all(
-				topics.map(async (topic) => {
-					const lectures = await getTopicLectures(topic.id).catch(() => []);
-					return [topic.id, lectures] as const;
-				}),
-			);
-			return Object.fromEntries(entries) as Record<number, LectureSummaryDTO[]>;
-		},
-		enabled: topicsQuery.isSuccess,
-		retry: false,
-	});
-
-	const practiceByTopicQuery = useQuery({
-		queryKey: ["topics-practices", topicsQuery.data?.map((t) => t.id) ?? []],
-		queryFn: async () => {
-			const topics = topicsQuery.data ?? [];
-			const entries = await Promise.all(
-				topics.map(async (topic) => {
-					const items = await listTopicPractices(topic.id).catch(() => []);
-					return [topic.id, items] as const;
+					const content = await getTopicContent(topic.id).catch(() => []);
+					return [topic.id, content] as const;
 				}),
 			);
 			return Object.fromEntries(entries) as Record<
 				number,
-				PracticeSummaryDTO[]
+				TopicContentItemDTO[]
 			>;
 		},
 		enabled: topicsQuery.isSuccess,
 		retry: false,
 	});
-
-	const topicsCount = (topicsQuery.data ?? []).length;
-	const examsCount = Object.values(examsByTopicQuery.data ?? {}).reduce(
-		(acc, arr) => acc + arr.length,
-		0,
-	);
 
 	const courseQuery = useQuery({
 		queryKey: ["course", courseId],
@@ -1262,49 +1249,45 @@ export default function LearnPage() {
 							<CollapsibleContent
 								className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
 							>
-								{(lecturesByTopicQuery.data?.[topic.id] ?? []).map(
-									(lecture) => (
+								{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
+									const selected =
+										item.kind === "lecture"
+											? selectedLectureId === Number(item.id)
+											: item.kind === "practice"
+												? selectedPracticeId === Number(item.id)
+												: item.kind === "exam"
+													? (pendingExam ?? selectedExam)?.id === item.id
+													: selectedText?.id === item.id;
+									const Icon =
+										item.kind === "lecture"
+											? Video
+											: item.kind === "practice"
+												? Dumbbell
+												: item.kind === "exam"
+													? HelpCircle
+													: FileText;
+									const iconColor =
+										item.kind === "lecture"
+											? "text-sky-400"
+											: item.kind === "practice"
+												? "text-emerald-400"
+												: item.kind === "exam"
+													? "text-orange-400"
+													: "text-slate-400";
+									return (
 										<button
 											type="button"
-											key={`lec-${lecture.id}`}
-											onClick={() => selectLecture(lecture.id, topic.id)}
-											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
-												selectedLectureId === lecture.id
-													? "bg-red-600 text-white"
-													: "text-slate-300 hover:bg-slate-700"
-											}`}
-										>
-											<div
-												className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
-											>
-												<Video
-													className={`h-4 w-4 flex-shrink-0 self-center text-sky-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
-												/>
-												<div
-													className={`min-w-0 overflow-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
-												>
-													<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm">
-														{lecture.title}
-													</div>
-													<div className="flex items-center gap-1 text-xs opacity-80">
-														{lecture.completed ? (
-															<CheckCircle2 className="h-3 w-3 text-green-400" />
-														) : null}
-														{t("lecture") ?? "Lecture"}
-													</div>
-												</div>
-											</div>
-										</button>
-									),
-								)}
-								{(practiceByTopicQuery.data?.[topic.id] ?? []).map(
-									(practice) => (
-										<button
-											type="button"
-											key={`prac-${practice.id}`}
-											onClick={() => selectPractice(practice.id)}
+											key={`${item.kind}-${item.id}`}
+											onClick={() => {
+												if (item.kind === "lecture")
+													selectLecture(Number(item.id), topic.id);
+												else if (item.kind === "practice")
+													selectPractice(Number(item.id));
+												else if (item.kind === "exam") selectExam(item.id);
+												else selectText(item);
+											}}
 											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
-												selectedPracticeId === practice.id
+												selected
 													? "bg-red-600 text-white"
 													: "text-slate-300 hover:bg-slate-700"
 											}`}
@@ -1312,60 +1295,18 @@ export default function LearnPage() {
 											<div
 												className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
 											>
-												<Dumbbell
-													className={`h-4 w-4 flex-shrink-0 self-center text-emerald-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+												<Icon
+													className={`h-4 w-4 flex-shrink-0 self-center ${iconColor} ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
 												/>
 												<span
 													className={`truncate text-sm ${sidebarOpen ? "" : "sm:hidden"}`}
 												>
-													{practice.title}
+													{item.title}
 												</span>
 											</div>
 										</button>
-									),
-								)}
-								{(examsByTopicQuery.data?.[topic.id] ?? []).map((exam) => (
-									<button
-										type="button"
-										key={exam.id}
-										onClick={() => {
-											// Reset review state immediately to avoid flashing review UI
-											setReviewMode(false);
-											setSelectedReviewAttemptId(null);
-											latestAnswersRef.current = {};
-											clearLecturePractice();
-											setPendingExam(exam);
-											if (
-												typeof window !== "undefined" &&
-												window.innerWidth < 640
-											)
-												setSidebarOpen(false);
-										}}
-										className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
-											(pendingExam ?? selectedExam)?.id === exam.id
-												? "bg-red-600 text-white"
-												: "text-slate-300 hover:bg-slate-700"
-										}`}
-									>
-										<div
-											className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
-										>
-											<HelpCircle
-												className={`h-4 w-4 flex-shrink-0 self-center text-orange-400 ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
-											/>
-											<div
-												className={`min-w-0 overflow-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
-											>
-												<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
-													{exam.name}
-												</div>
-												<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
-													{t("exam") ?? "Exam"}
-												</div>
-											</div>
-										</div>
-									</button>
-								))}
+									);
+								})}
 							</CollapsibleContent>
 						</Collapsible>
 					))}
@@ -1612,7 +1553,16 @@ export default function LearnPage() {
 					<div
 						className={`max-w-full flex-1 overflow-x-auto p-3 lg:p-6 ${((attempt?.active || isPreview) && (entities?.length ?? 0) > 0 && !reviewMode) || (reviewMode && (entities?.length ?? 0) > 0) ? "pb-24" : ""}`}
 					>
-						{selectedLectureId != null ? (
+						{selectedText != null ? (
+							<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
+								<CardContent className="p-4 sm:p-6">
+									<Markdown
+										content={selectedText.content ?? ""}
+										className="markdown-body max-w-none text-slate-200 text-sm sm:text-base"
+									/>
+								</CardContent>
+							</Card>
+						) : selectedLectureId != null ? (
 							<LectureViewer
 								lectureId={selectedLectureId}
 								topicId={selectedLectureTopicId ?? undefined}
@@ -1620,111 +1570,28 @@ export default function LearnPage() {
 						) : selectedPracticeId != null ? (
 							<PracticeRunner practiceId={selectedPracticeId} />
 						) : !selectedExam ? (
-							<div className="space-y-4">
-								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
-									<CardHeader className="p-4 sm:p-6">
-										<CardTitle className="text-2xl text-white">
-											{courseQuery.data?.name ?? t("course_structure")}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
-										{courseQuery.data?.description ? (
-											<Markdown
-												content={courseQuery.data.description}
-												className="markdown-body max-w-none text-slate-300 text-sm sm:text-base"
-											/>
-										) : null}
-										<div className="grid grid-cols-1 gap-2 text-slate-300 sm:grid-cols-2">
-											<div className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
-												<strong className="mr-2 text-white">
-													{t("topics") ?? "Topics"}:
-												</strong>
-												<span>{topicsCount}</span>
-											</div>
-											<div className="flex w-full items-center justify-between rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm">
-												<strong className="mr-2 text-white">
-													{t("exams") ?? "Exams"}:
-												</strong>
-												<span>{examsCount}</span>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-								<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
-									<CardHeader>
-										<CardTitle className="text-white">
-											{t("course_structure")}
-										</CardTitle>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{(topicsQuery.data ?? []).map((topic) => (
-											<Collapsible key={topic.id} defaultOpen>
-												<CollapsibleTrigger className="group flex w-full items-center justify-between overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700">
-													<div className="flex min-w-0 items-center">
-														<BookOpen className="mr-2 h-4 w-4 text-slate-400" />
-														<span className="truncate font-medium text-sm text-white">
-															{topic.title}
-														</span>
-													</div>
-													<ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-												</CollapsibleTrigger>
-												<CollapsibleContent className="mt-2 w-full space-y-1 overflow-x-hidden">
-													{(examsByTopicQuery.data?.[topic.id] ?? []).map(
-														(exam) => (
-															<button
-																type="button"
-																key={exam.id}
-																onClick={() => {
-																	setReviewMode(false);
-																	setSelectedReviewAttemptId(null);
-																	latestAnswersRef.current = {};
-																	setPendingExam(exam);
-																}}
-																className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors hover:overflow-hidden ${
-																	(pendingExam ?? selectedExam)?.id === exam.id
-																		? "bg-slate-700 text-white"
-																		: "text-slate-300 hover:bg-slate-700"
-																}`}
-															>
-																<div className="flex flex-1 items-center">
-																	<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 self-center text-orange-400" />
-																	<div className="min-w-0 overflow-hidden">
-																		<div className="w-full truncate text-ellipsis whitespace-nowrap font-medium text-sm hover:truncate">
-																			{exam.name}
-																		</div>
-																		<div className="w-full truncate text-ellipsis whitespace-nowrap text-xs opacity-80 hover:truncate">
-																			{t("exam") ?? "Exam"}
-																		</div>
-																		<div className="w-full truncate text-ellipsis whitespace-nowrap text-[11px] text-slate-400">
-																			{[
-																				t(
-																					exam.type === "Instant"
-																						? "exam_type_instant"
-																						: "exam_type_delayed",
-																				),
-																				(exam.duration ?? 0) === 0
-																					? t("no_timer") || "No timer"
-																					: `${Math.ceil((exam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
-																				(exam.tries_count ?? 0) === 0
-																					? t("attempts_up_to_infty") ||
-																						`up to ${t("infty_attempts")}`
-																					: t("attempts_up_to", {
-																							count: exam.tries_count,
-																						}) ||
-																						`up to ${exam.tries_count} attempts`,
-																			].join(" · ")}
-																		</div>
-																	</div>
-																</div>
-															</button>
-														),
-													)}
-												</CollapsibleContent>
-											</Collapsible>
-										))}
-									</CardContent>
-								</Card>
-							</div>
+							<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
+								<CardHeader className="p-4 sm:p-6">
+									<CardTitle className="text-2xl text-white">
+										{t("about_course") ?? "About the course"}
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-4 p-4 pt-0 sm:p-6 sm:pt-0">
+									<h2 className="font-semibold text-white text-xl">
+										{courseQuery.data?.name}
+									</h2>
+									{courseQuery.data?.description ? (
+										<Markdown
+											content={courseQuery.data.description}
+											className="markdown-body max-w-none text-slate-300 text-sm sm:text-base"
+										/>
+									) : (
+										<p className="text-slate-400 text-sm">
+											{t("no_description") ?? "No description provided."}
+										</p>
+									)}
+								</CardContent>
+							</Card>
 						) : switching ? (
 							<Card className="border-slate-800 bg-slate-900">
 								<CardContent className="space-y-3 p-6">

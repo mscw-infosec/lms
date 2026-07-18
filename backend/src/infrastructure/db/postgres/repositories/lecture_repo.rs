@@ -13,6 +13,7 @@ use uuid::Uuid;
 #[async_trait]
 impl LectureRepository for RepositoryPostgres {
     async fn create(&self, lecture: CreateLectureRequestDTO) -> Result<LectureModel> {
+        let order_index = self.next_topic_order(lecture.topic_id).await?;
         let mut tx = self.pool.begin().await?;
 
         let created = sqlx::query_as!(
@@ -43,7 +44,7 @@ impl LectureRepository for RepositoryPostgres {
             "#,
             lecture.topic_id,
             created.id,
-            lecture.order_index
+            order_index
         )
         .execute(&mut *tx)
         .await
@@ -119,8 +120,7 @@ impl LectureRepository for RepositoryPostgres {
     }
 
     async fn update(&self, id: i32, lecture: UpdateLectureRequestDTO) -> Result<LectureModel> {
-        let mut tx = self.pool.begin().await?;
-
+        // Ordering is managed by the topic's unified reorder, not here.
         let updated = sqlx::query_as!(
             LectureModel,
             r#"
@@ -135,7 +135,7 @@ impl LectureRepository for RepositoryPostgres {
             lecture.video_id,
             id
         )
-        .fetch_optional(&mut *tx)
+        .fetch_optional(&self.pool)
         .await
         .map_err(|err| match err {
             sqlx::Error::Database(ref e) if e.constraint().is_some() => {
@@ -144,20 +144,6 @@ impl LectureRepository for RepositoryPostgres {
             _ => err.into(),
         })?
         .ok_or_else(|| LMSError::NotFound("Lecture not found".to_string()))?;
-
-        sqlx::query!(
-            r#"
-                UPDATE lecture_links
-                SET order_index = $1
-                WHERE lecture_id = $2
-            "#,
-            lecture.order_index,
-            id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        tx.commit().await?;
 
         Ok(updated)
     }

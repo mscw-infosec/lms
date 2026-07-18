@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM topic_texts\n                WHERE id = $1 AND topic_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bcce093dceefa288eefac61d062982e2fe5c1a5d752ccb7d61a8ef4fb913364f"
+}

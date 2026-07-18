@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT COALESCE(MAX(order_index) + 1, 0) AS \"next!\"\n                FROM (\n                    SELECT order_index FROM lecture_links WHERE topic_id = $1\n                    UNION ALL\n                    SELECT order_index FROM practices WHERE topic_id = $1\n                    UNION ALL\n                    SELECT order_index FROM exam_ordering WHERE topic_id = $1\n                    UNION ALL\n                    SELECT order_index FROM topic_texts WHERE topic_id = $1\n                ) AS all_orders\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "next!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "83c22e374a5e85bfd8d390de5e9b477009949e6319164e64fd37b9d65dcb4e0f"
+}

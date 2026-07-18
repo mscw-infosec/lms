@@ -8,13 +8,6 @@ import {
 	getCourseById,
 	getCourseTopics,
 } from "@/api/courses";
-import {
-	deleteExam,
-	getExamTasks,
-	getTopicExams,
-	updateExam,
-} from "@/api/exam";
-import type { components } from "@/api/schema/schema";
 import { createTopic, deleteTopic, updateTopic } from "@/api/topics";
 import AttributeFilterEditor, {
 	type AttributeFilter as LocalAttributeFilter,
@@ -24,10 +17,8 @@ import ConfirmDialog from "@/components/common/confirm-dialog";
 import CourseHeaderActions from "@/components/course/course-header-actions";
 import { Header } from "@/components/header";
 import Markdown from "@/components/markdown";
-import CreateTopicItemDialog from "@/components/topic/create-topic-item-dialog";
+import TopicContentList from "@/components/topic/topic-content-list";
 import TopicCreateForm from "@/components/topic/topic-create-form";
-import TopicLectures from "@/components/topic/topic-lectures";
-import TopicPractice from "@/components/topic/topic-practice";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -41,13 +32,6 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -58,7 +42,6 @@ import {
 	BookOpen,
 	ChevronDown,
 	Edit,
-	HelpCircle,
 	Loader2,
 	Play,
 	Save,
@@ -73,7 +56,7 @@ import { useTranslation } from "react-i18next";
 
 export default function CoursePage() {
 	const { t } = useTranslation("common");
-	const { user } = useUserStore();
+	const { user, loading: userLoading } = useUserStore();
 	const { toast } = useToast();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 	const params = useParams<{ id: string }>();
@@ -125,21 +108,14 @@ export default function CoursePage() {
 
 	const canEdit = user?.role === "Teacher" || user?.role === "Admin";
 
-	const toLocalInputValue = (iso?: string | null): string => {
-		if (!iso) return "";
-		try {
-			const d = new Date(iso);
-			const pad = (n: number) => String(n).padStart(2, "0");
-			const yyyy = d.getFullYear();
-			const mm = pad(d.getMonth() + 1);
-			const dd = pad(d.getDate());
-			const hh = pad(d.getHours());
-			const mi = pad(d.getMinutes());
-			return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
-		} catch {
-			return "";
+	// The course page is the editor surface only. Everyone who can't edit
+	// (students and anonymous users) is sent straight to the learner view.
+	useEffect(() => {
+		if (userLoading || !Number.isFinite(courseId)) return;
+		if (!canEdit) {
+			router.replace(`/course/${courseId}/learn`);
 		}
-	};
+	}, [userLoading, canEdit, router, courseId]);
 
 	const [isEditing, setIsEditing] = useState(false);
 	const [name, setName] = useState("");
@@ -161,69 +137,6 @@ export default function CoursePage() {
 	const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
 	const [editTopicTitle, setEditTopicTitle] = useState("");
 	const [editTopicOrderIndex, setEditTopicOrderIndex] = useState<number>(1);
-
-	type PublicTaskDTO = components["schemas"]["PublicTaskDTO"];
-	type ExamLite = {
-		id: string;
-		name: string;
-		description?: string | null;
-		type: components["schemas"]["UpsertExamRequestDTO"]["type"];
-		duration: number;
-		tries_count: number;
-		topic_id: number;
-		starts_at?: string | null;
-		ends_at?: string | null;
-		tasks?: PublicTaskDTO[];
-	};
-	const [topicExams, setTopicExams] = useState<Record<number, ExamLite[]>>({});
-	const [deletingExamIds, setDeletingExamIds] = useState<Set<string>>(
-		new Set(),
-	);
-	const [editingExamId, setEditingExamId] = useState<string | null>(null);
-	const [editingExamTopicId, setEditingExamTopicId] = useState<number | null>(
-		null,
-	);
-	const [editExamName, setEditExamName] = useState<string>("");
-	const [editExamDescription, setEditExamDescription] = useState<string>("");
-	const [editExamDuration, setEditExamDuration] = useState<number>(0);
-	const [editExamTries, setEditExamTries] = useState<number>(1);
-	const [editExamStartsAt, setEditExamStartsAt] = useState<string>("");
-	const [editExamEndsAt, setEditExamEndsAt] = useState<string>("");
-
-	useEffect(() => {
-		async function loadExams() {
-			if (!topicsQuery.isSuccess || !topicsQuery.data) return;
-			try {
-				const entries = await Promise.all(
-					topicsQuery.data.map(async (topic) => {
-						try {
-							const exams = await getTopicExams(topic.id);
-							const simplified = await Promise.all(
-								exams.map(async (e) => ({
-									id: e.id,
-									name: e.name,
-									description: e.description ?? null,
-									type: e.type,
-									duration: e.duration,
-									tries_count: e.tries_count,
-									topic_id: e.topic_id,
-									starts_at: e.starts_at ?? null,
-									ends_at: e.ends_at ?? null,
-									tasks: await getExamTasks(e.id).catch(() => []),
-								})),
-							);
-							return [topic.id, simplified] as const;
-						} catch (_) {
-							return [topic.id, []] as const;
-						}
-					}),
-				);
-				setTopicExams(Object.fromEntries(entries));
-			} catch (_) {}
-		}
-		loadExams();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [topicsQuery.isSuccess, topicsQuery.data]);
 
 	useEffect(() => {
 		if (courseQuery.data && !isEditing) {
@@ -302,6 +215,16 @@ export default function CoursePage() {
 			toast({ description: t("delete_failed") || "Failed to delete" });
 		},
 	});
+
+	// While the user is loading, or a non-editor is being redirected to /learn,
+	// show a spinner instead of flashing the editor page.
+	if (userLoading || !canEdit) {
+		return (
+			<div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+				<Loader2 className="h-8 w-8 animate-spin text-slate-300" />
+			</div>
+		);
+	}
 
 	if (courseQuery.isLoading) {
 		return (
@@ -606,27 +529,6 @@ export default function CoursePage() {
 															>
 																<Edit className="h-4 w-4" />
 															</Button>
-															<CreateTopicItemDialog
-																topicId={topic.id}
-																onCreatedExam={(exam) => {
-																	setTopicExams((prev) => {
-																		const list = prev[topic.id] ?? [];
-																		const nextExam = {
-																			id: exam.id,
-																			name: exam.name,
-																			description: exam.description ?? null,
-																			type: exam.type,
-																			duration: exam.duration,
-																			tries_count: exam.tries_count,
-																			topic_id: topic.id,
-																		} as ExamLite;
-																		return {
-																			...prev,
-																			[topic.id]: [...list, nextExam],
-																		};
-																	});
-																}}
-															/>
 															<ConfirmDialog
 																title={t("delete") || "Delete"}
 																description={
@@ -656,134 +558,7 @@ export default function CoursePage() {
 											</div>
 										</CollapsibleTrigger>
 										<CollapsibleContent className="mt-2 ml-8 space-y-2">
-											{(topicExams[topic.id] ?? []).map((exam) => (
-												<div key={exam.id} className="space-y-2">
-													<div className="flex items-center justify-between rounded-lg bg-slate-800/50 p-3">
-														<div className="flex min-w-0 items-center gap-3">
-															<HelpCircle className="mr-2 h-4 w-4 flex-shrink-0 text-orange-400" />
-															<div className="min-w-0">
-																<>
-																	<div className="truncate font-medium text-slate-200">
-																		{exam.name || t("exam")}
-																	</div>
-																	<div className="mt-1 hidden text-slate-500 text-xs sm:block">
-																		{t("exam_card", {
-																			type: t(
-																				exam.type === "Instant"
-																					? "exam_type_instant"
-																					: "exam_type_delayed",
-																			),
-																			duration:
-																				(exam.duration ?? 0) === 0
-																					? t("no_timer") || "No timer"
-																					: `${Math.ceil((exam.duration ?? 0) / 60)} ${t("minutes_short") || "min"}`,
-																			tries:
-																				(exam.tries_count ?? 0) === 0
-																					? t("infty_attempts") ||
-																						"Infinite attempts"
-																					: `${exam.tries_count}`,
-																		})}
-																	</div>
-																</>
-															</div>
-														</div>
-														<div className="flex flex-shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
-															{user &&
-															(user.role === "Teacher" ||
-																user.role === "Admin") ? (
-																<div className="hidden text-slate-400 text-xs sm:block">
-																	ID: {exam.id}
-																</div>
-															) : null}
-															{user &&
-															(user.role === "Teacher" ||
-																user.role === "Admin") ? (
-																editingExamId === exam.id ? null : (
-																	<>
-																		<Button
-																			variant="ghost"
-																			size="icon"
-																			title={t("edit") ?? "Edit"}
-																			aria-label={t("edit") ?? "Edit"}
-																			onClick={() => {
-																				setEditingExamId(exam.id);
-																				setEditingExamTopicId(topic.id);
-																				setEditExamName(exam.name ?? "");
-																				setEditExamDescription(
-																					exam.description ?? "",
-																				);
-																				setEditExamDuration(exam.duration ?? 0);
-																				setEditExamTries(exam.tries_count ?? 1);
-																				setEditExamStartsAt(
-																					toLocalInputValue(
-																						exam.starts_at ?? null,
-																					),
-																				);
-																				setEditExamEndsAt(
-																					toLocalInputValue(
-																						exam.ends_at ?? null,
-																					),
-																				);
-																			}}
-																			className="bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
-																		>
-																			<Edit className="h-4 w-4" />
-																		</Button>
-																	</>
-																)
-															) : null}
-															{canEdit ? (
-																<ConfirmDialog
-																	title={t("delete") || "Delete"}
-																	description={
-																		t("confirm_delete_exam") ||
-																		"Are you sure you want to delete this exam?"
-																	}
-																	confirmText={t("delete") || "Delete"}
-																	cancelText={t("cancel") || "Cancel"}
-																	onConfirm={async () => {
-																		setDeletingExamIds((prev) =>
-																			new Set(prev).add(exam.id),
-																		);
-																		try {
-																			await deleteExam(exam.id);
-																			setTopicExams((prev) => ({
-																				...prev,
-																				[topic.id]: (
-																					prev[topic.id] ?? []
-																				).filter((e) => e.id !== exam.id),
-																			}));
-																		} finally {
-																			setDeletingExamIds((prev) => {
-																				const next = new Set(prev);
-																				next.delete(exam.id);
-																				return next;
-																			});
-																		}
-																	}}
-																>
-																	<Button
-																		variant="ghost"
-																		size="icon"
-																		title={t("delete") ?? "Delete"}
-																		aria-label={t("delete") ?? "Delete"}
-																		disabled={deletingExamIds.has(exam.id)}
-																		className="bg-transparent text-red-400 hover:bg-transparent hover:text-red-300"
-																	>
-																		{deletingExamIds.has(exam.id) ? (
-																			<Loader2 className="h-4 w-4 animate-spin" />
-																		) : (
-																			<Trash2 className="h-4 w-4" />
-																		)}
-																	</Button>
-																</ConfirmDialog>
-															) : null}
-														</div>
-													</div>
-												</div>
-											))}
-											<TopicLectures topicId={topic.id} canEdit={canEdit} />
-											<TopicPractice topicId={topic.id} canEdit={canEdit} />
+											<TopicContentList topicId={topic.id} canEdit={canEdit} />
 										</CollapsibleContent>
 									</Collapsible>
 								))}
@@ -792,198 +567,6 @@ export default function CoursePage() {
 					) : null}
 				</div>
 			</main>
-
-			{/* Centralized Exam Edit Dialog */}
-			<Dialog
-				open={!!editingExamId}
-				onOpenChange={(open) => {
-					if (!open) {
-						setEditingExamId(null);
-						setEditingExamTopicId(null);
-						setEditExamName("");
-						setEditExamDescription("");
-						setEditExamDuration(0);
-						setEditExamTries(1);
-						setEditExamStartsAt("");
-						setEditExamEndsAt("");
-					}
-				}}
-			>
-				<DialogContent className="border-slate-800 bg-slate-900">
-					<DialogHeader>
-						<DialogTitle className="text-white">
-							{t("edit_exam") || "Edit exam"}
-						</DialogTitle>
-					</DialogHeader>
-					<div className="space-y-3 text-slate-200">
-						<Input
-							value={editExamName}
-							onChange={(e) => setEditExamName(e.target.value)}
-							placeholder={t("exam_name") || "Exam name"}
-							className="border-slate-700 bg-slate-800 text-white"
-						/>
-						<Textarea
-							value={editExamDescription}
-							onChange={(e) => setEditExamDescription(e.target.value)}
-							placeholder={t("exam_description") || "Description"}
-							className="min-h-20 border-slate-700 bg-slate-800 text-white"
-						/>
-						<div className="mt-2 flex flex-wrap gap-3 text-slate-300">
-							<div className="flex items-center gap-2">
-								<label
-									htmlFor="edit-exam-duration"
-									className="text-sm opacity-80"
-								>
-									{t("exam_duration") || "Duration (seconds)"}
-								</label>
-								<Input
-									id="edit-exam-duration"
-									type="number"
-									min={0}
-									value={
-										Number.isFinite(editExamDuration) ? editExamDuration : 0
-									}
-									onChange={(e) => setEditExamDuration(Number(e.target.value))}
-									className="w-32 border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
-							<div className="flex items-center gap-2">
-								<label htmlFor="edit-exam-tries" className="text-sm opacity-80">
-									{t("exam_tries") || "Attempts"}
-								</label>
-								<Input
-									id="edit-exam-tries"
-									type="number"
-									min={0}
-									value={Number.isFinite(editExamTries) ? editExamTries : 0}
-									onChange={(e) => setEditExamTries(Number(e.target.value))}
-									className="w-28 border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
-						</div>
-						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-							<div className="flex flex-col gap-1">
-								<label
-									className="text-slate-300 text-sm"
-									htmlFor="edit-exam-starts"
-								>
-									{t("starts_at") || "Starts at (optional)"}
-								</label>
-								<Input
-									id="edit-exam-starts"
-									type="datetime-local"
-									value={editExamStartsAt}
-									onChange={(e) => setEditExamStartsAt(e.target.value)}
-									className="border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
-							<div className="flex flex-col gap-1">
-								<label
-									className="text-slate-300 text-sm"
-									htmlFor="edit-exam-ends"
-								>
-									{t("ends_at") || "Ends at (optional)"}
-								</label>
-								<Input
-									id="edit-exam-ends"
-									type="datetime-local"
-									value={editExamEndsAt}
-									onChange={(e) => setEditExamEndsAt(e.target.value)}
-									className="border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
-						</div>
-						<DialogFooter>
-							<div className="flex w-full justify-end gap-2 pt-2">
-								<Button
-									variant="ghost"
-									onClick={() => {
-										setEditingExamId(null);
-										setEditingExamTopicId(null);
-										setEditExamName("");
-										setEditExamDescription("");
-										setEditExamDuration(0);
-										setEditExamTries(1);
-									}}
-									className="text-slate-300 hover:bg-slate-800"
-								>
-									{t("cancel") ?? "Cancel"}
-								</Button>
-								<Button
-									onClick={async () => {
-										if (!editingExamId || editingExamTopicId == null) return;
-										const list = topicExams[editingExamTopicId] ?? [];
-										const prevExam = list.find((e) => e.id === editingExamId);
-										if (!prevExam) return;
-										const payload = {
-											name: editExamName.trim(),
-											description: editExamDescription.trim()
-												? editExamDescription.trim()
-												: undefined,
-											type: prevExam.type,
-											duration: Number(editExamDuration) || 0,
-											tries_count: Number(editExamTries) || 0,
-											starts_at: editExamStartsAt
-												? new Date(editExamStartsAt).toISOString()
-												: undefined,
-											ends_at: editExamEndsAt
-												? new Date(editExamEndsAt).toISOString()
-												: undefined,
-											topic_id: prevExam.topic_id,
-										} as components["schemas"]["UpsertExamRequestDTO"];
-										try {
-											await updateExam(editingExamId, payload);
-											setTopicExams((prev) => {
-												const copy: typeof prev = { ...prev };
-												const tl = copy[editingExamTopicId] ?? [];
-												const idx = tl.findIndex((e) => e.id === editingExamId);
-												if (idx !== -1) {
-													const next = [...tl];
-													const curr = next[idx];
-													if (!curr) return copy;
-													const updatedExam: ExamLite = {
-														id: curr.id,
-														name: payload.name,
-														description: payload.description ?? null,
-														type: curr.type,
-														duration: payload.duration,
-														tries_count: payload.tries_count,
-														topic_id: curr.topic_id,
-														starts_at: payload.starts_at ?? null,
-														ends_at: payload.ends_at ?? null,
-														tasks: curr.tasks,
-													};
-													next[idx] = updatedExam;
-													copy[editingExamTopicId] = next;
-												}
-												return copy;
-											});
-											toast({
-												description: t("saved_successfully") || "Saved",
-											});
-											setEditingExamId(null);
-											setEditingExamTopicId(null);
-											setEditExamName("");
-											setEditExamDescription("");
-											setEditExamDuration(0);
-											setEditExamTries(1);
-											setEditExamStartsAt("");
-											setEditExamEndsAt("");
-										} catch (_) {
-											toast({
-												description: t("save_failed") || "Failed to save",
-											});
-										}
-									}}
-									className="bg-red-600 text-white hover:bg-red-700"
-								>
-									{t("save") ?? "Save"}
-								</Button>
-							</div>
-						</DialogFooter>
-					</div>
-				</DialogContent>
-			</Dialog>
 
 			{authModal ? (
 				<AuthModal type={authModal} onClose={() => setAuthModal(null)} />

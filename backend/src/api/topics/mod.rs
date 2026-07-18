@@ -37,5 +37,9 @@ pub fn configure(
             add_topic_to_course
         ))
         .routes(routes!(get_exams))
+        .routes(routes!(get_topic_content))
+        .routes(routes!(reorder_topic_content))
+        .routes(routes!(create_topic_text))
+        .routes(routes!(update_topic_text, delete_topic_text))
         .with_state(state)
 }

@@ -978,6 +978,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/topics/{topic_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a topic's unified, ordered content list (lectures, practices, exams, texts). */
+        get: operations["get_topic_content"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/topics/{topic_id}/content/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Reorder a topic's content across all item kinds. */
+        put: operations["reorder_topic_content"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/topics/{topic_id}/exams": {
         parameters: {
             query?: never;
@@ -990,6 +1024,41 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/topics/{topic_id}/text": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a text item to a topic. */
+        post: operations["create_topic_text"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/topics/{topic_id}/text/{text_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a topic text item. */
+        put: operations["update_topic_text"];
+        post?: never;
+        /** Delete a topic text item. */
+        delete: operations["delete_topic_text"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1115,6 +1184,10 @@ export interface components {
         };
         CreateTaskResponseDTO: {
             /** Format: int64 */
+            id: number;
+        };
+        CreateTopicTextResponseDTO: {
+            /** Format: int32 */
             id: number;
         };
         CreateVideoRequestDTO: {
@@ -1410,6 +1483,13 @@ export interface components {
         RefreshResponse: {
             access_token: string;
         };
+        ReorderItemDTO: {
+            id: string;
+            kind: string;
+        };
+        ReorderTopicContentDTO: {
+            items: components["schemas"]["ReorderItemDTO"][];
+        };
         ScoringData: {
             results: {
                 [key: string]: components["schemas"]["TaskVerdict"];
@@ -1550,6 +1630,18 @@ export interface components {
         TextUpsertDTO: {
             text: string;
         };
+        /** @description One item in a topic's unified content list. */
+        TopicContentItemDTO: {
+            /** @description Full text body, only present for `text` items. */
+            content?: string | null;
+            /** @description Item id as a string (int for lecture/practice/text, uuid for exam). */
+            id: string;
+            /** @description `lecture` | `practice` | `exam` | `text`. */
+            kind: string;
+            /** Format: int32 */
+            order_index: number;
+            title: string;
+        };
         TopicResponseDTO: {
             /** Format: int32 */
             course_id: number;
@@ -1657,6 +1749,9 @@ export interface components {
             /** Format: int32 */
             order_index: number;
             title: string;
+        };
+        UpsertTopicTextDTO: {
+            content: string;
         };
         /** @enum {string} */
         UserRole: "Student" | "Teacher" | "Admin";
@@ -4512,6 +4607,101 @@ export interface operations {
             };
         };
     };
+    get_topic_content: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ordered topic content */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopicContentItemDTO"][];
+                };
+            };
+            /** @description No auth data */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No access to this topic's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reorder_topic_content: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderTopicContentDTO"];
+            };
+        };
+        responses: {
+            /** @description Reordered */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid item id/kind */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User cannot manage topic content */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     get_exams: {
         parameters: {
             query?: never;
@@ -4539,6 +4729,155 @@ export interface operations {
             };
             /** @description No auth data */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_topic_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertTopicTextDTO"];
+            };
+        };
+        responses: {
+            /** @description Text created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateTopicTextResponseDTO"];
+                };
+            };
+            /** @description Invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User cannot manage topic content */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_topic_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+                text_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertTopicTextDTO"];
+            };
+        };
+        responses: {
+            /** @description Text updated */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User cannot manage topic content */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_topic_text: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                topic_id: number;
+                text_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Text deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User cannot manage topic content */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Topic not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

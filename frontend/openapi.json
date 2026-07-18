@@ -2956,6 +2956,103 @@
 				]
 			}
 		},
+		"/topics/{topic_id}/content": {
+			"get": {
+				"tags": ["Topic"],
+				"summary": "Get a topic's unified, ordered content list (lectures, practices, exams, texts).",
+				"operationId": "get_topic_content",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Ordered topic content",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/TopicContentItemDTO"
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "No auth data"
+					},
+					"403": {
+						"description": "No access to this topic's course"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/{topic_id}/content/order": {
+			"put": {
+				"tags": ["Topic"],
+				"summary": "Reorder a topic's content across all item kinds.",
+				"operationId": "reorder_topic_content",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ReorderTopicContentDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Reordered"
+					},
+					"400": {
+						"description": "Invalid item id/kind"
+					},
+					"401": {
+						"description": "No auth data"
+					},
+					"403": {
+						"description": "User cannot manage topic content"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/topics/{topic_id}/exams": {
 			"get": {
 				"tags": ["Topic"],
@@ -2981,6 +3078,166 @@
 					},
 					"401": {
 						"description": "No auth data"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/{topic_id}/text": {
+			"post": {
+				"tags": ["Topic"],
+				"summary": "Add a text item to a topic.",
+				"operationId": "create_topic_text",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTopicTextDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "Text created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreateTopicTextResponseDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid data"
+					},
+					"401": {
+						"description": "No auth data"
+					},
+					"403": {
+						"description": "User cannot manage topic content"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/topics/{topic_id}/text/{text_id}": {
+			"put": {
+				"tags": ["Topic"],
+				"summary": "Update a topic text item.",
+				"operationId": "update_topic_text",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "text_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpsertTopicTextDTO"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Text updated"
+					},
+					"400": {
+						"description": "Invalid data"
+					},
+					"401": {
+						"description": "No auth data"
+					},
+					"403": {
+						"description": "User cannot manage topic content"
+					},
+					"404": {
+						"description": "Topic not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["Topic"],
+				"summary": "Delete a topic text item.",
+				"operationId": "delete_topic_text",
+				"parameters": [
+					{
+						"name": "topic_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					},
+					{
+						"name": "text_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Text deleted"
+					},
+					"401": {
+						"description": "No auth data"
+					},
+					"403": {
+						"description": "User cannot manage topic content"
+					},
+					"404": {
+						"description": "Topic not found"
 					}
 				},
 				"security": [
@@ -3294,6 +3551,16 @@
 					"id": {
 						"type": "integer",
 						"format": "int64"
+					}
+				}
+			},
+			"CreateTopicTextResponseDTO": {
+				"type": "object",
+				"required": ["id"],
+				"properties": {
+					"id": {
+						"type": "integer",
+						"format": "int32"
 					}
 				}
 			},
@@ -4142,6 +4409,30 @@
 					}
 				}
 			},
+			"ReorderItemDTO": {
+				"type": "object",
+				"required": ["kind", "id"],
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"kind": {
+						"type": "string"
+					}
+				}
+			},
+			"ReorderTopicContentDTO": {
+				"type": "object",
+				"required": ["items"],
+				"properties": {
+					"items": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/ReorderItemDTO"
+						}
+					}
+				}
+			},
 			"ScoringData": {
 				"type": "object",
 				"required": ["show_results", "results"],
@@ -4615,6 +4906,32 @@
 					}
 				}
 			},
+			"TopicContentItemDTO": {
+				"type": "object",
+				"description": "One item in a topic's unified content list.",
+				"required": ["kind", "id", "title", "order_index"],
+				"properties": {
+					"content": {
+						"type": ["string", "null"],
+						"description": "Full text body, only present for `text` items."
+					},
+					"id": {
+						"type": "string",
+						"description": "Item id as a string (int for lecture/practice/text, uuid for exam)."
+					},
+					"kind": {
+						"type": "string",
+						"description": "`lecture` | `practice` | `exam` | `text`."
+					},
+					"order_index": {
+						"type": "integer",
+						"format": "int32"
+					},
+					"title": {
+						"type": "string"
+					}
+				}
+			},
 			"TopicResponseDTO": {
 				"type": "object",
 				"required": ["id", "title", "course_id", "order_index"],
@@ -4843,6 +5160,15 @@
 						"format": "int32"
 					},
 					"title": {
+						"type": "string"
+					}
+				}
+			},
+			"UpsertTopicTextDTO": {
+				"type": "object",
+				"required": ["content"],
+				"properties": {
+					"content": {
 						"type": "string"
 					}
 				}

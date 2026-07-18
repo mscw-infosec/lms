@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT 'lecture'      AS \"kind!\",\n                       l.id::text     AS \"item_id!\",\n                       l.title        AS \"title!\",\n                       NULL::text     AS \"content?\",\n                       ll.order_index AS \"order_index!\"\n                FROM lecture_links ll\n                    JOIN lectures l ON l.id = ll.lecture_id\n                WHERE ll.topic_id = $1\n                UNION ALL\n                SELECT 'practice', p.id::text, p.title, NULL::text, p.order_index\n                FROM practices p\n                WHERE p.topic_id = $1\n                UNION ALL\n                SELECT 'exam', e.id::text, e.name, NULL::text, eo.order_index\n                FROM exam_ordering eo\n                    JOIN exams e ON e.id = eo.exam_id\n                WHERE eo.topic_id = $1\n                UNION ALL\n                SELECT 'text', tt.id::text, LEFT(tt.content, 60), tt.content, tt.order_index\n                FROM topic_texts tt\n                WHERE tt.topic_id = $1\n                ORDER BY \"order_index!\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kind!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "item_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "title!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "content?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "order_index!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "d6aefa73e65b097d307885ca9e5bf0bc17c9e9e8e50b537724c405b489a41db3"
+}

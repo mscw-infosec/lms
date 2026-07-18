@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE practices SET order_index = $1 WHERE id = $2 AND topic_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c24571e4dfa014baacc8bbb75e286f50e3154ae7b8f5962ae4e905a3f71404e5"
+}

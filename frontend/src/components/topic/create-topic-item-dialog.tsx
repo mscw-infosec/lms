@@ -4,6 +4,7 @@ import { createExam } from "@/api/exam";
 import { createLecture } from "@/api/lectures";
 import { createPractice } from "@/api/practice";
 import type { components } from "@/api/schema/schema";
+import { createTopicText } from "@/api/topics";
 import VideoUploadField from "@/components/topic/video-upload-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,53 +26,45 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-// Types from schema
 type UpsertExamRequestDTO = components["schemas"]["UpsertExamRequestDTO"];
-
-type ItemKind = "lecture" | "exam" | "practice";
+type ItemKind = "lecture" | "exam" | "practice" | "text";
 
 type Props = {
 	topicId: number;
 	triggerClassName?: string;
-	onCreatedExam?: (exam: {
-		id: string;
-		name: string;
-		description?: string | null;
-		type: UpsertExamRequestDTO["type"];
-		duration: number;
-		tries_count: number;
-	}) => void;
+	/** Called after any item is created, so the parent can refresh its content. */
+	onChanged?: () => void;
 };
 
 export default function CreateTopicItemDialog({
 	topicId,
 	triggerClassName,
-	onCreatedExam,
+	onChanged,
 }: Props) {
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
-	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
-
 	const [kind, setKind] = useState<ItemKind>("lecture");
 
-	// Lecture state
+	// Lecture
 	const [lectureTitle, setLectureTitle] = useState("");
 	const [lectureDescription, setLectureDescription] = useState("");
 	const [lectureContent, setLectureContent] = useState("");
 	const [lectureVideoId, setLectureVideoId] = useState("");
-	const [lectureOrder, setLectureOrder] = useState<number>(0);
 
-	// Practice state
-	const [practiceTitle, setPracticeTitle] = useState<string>("");
-	const [practiceDescription, setPracticeDescription] = useState<string>("");
-	const [practiceOrder, setPracticeOrder] = useState<number>(0);
+	// Practice
+	const [practiceTitle, setPracticeTitle] = useState("");
+	const [practiceDescription, setPracticeDescription] = useState("");
 
+	// Text
+	const [textContent, setTextContent] = useState("");
+
+	// Exam
 	const [examState, setExamState] = useState<UpsertExamRequestDTO>({
 		name: "",
 		description: "",
@@ -80,8 +73,8 @@ export default function CreateTopicItemDialog({
 		tries_count: 1,
 		topic_id: topicId,
 	});
-	const [startsAtLocal, setStartsAtLocal] = useState<string>("");
-	const [endsAtLocal, setEndsAtLocal] = useState<string>("");
+	const [startsAtLocal, setStartsAtLocal] = useState("");
+	const [endsAtLocal, setEndsAtLocal] = useState("");
 
 	const reset = () => {
 		setKind("lecture");
@@ -89,10 +82,9 @@ export default function CreateTopicItemDialog({
 		setLectureDescription("");
 		setLectureContent("");
 		setLectureVideoId("");
-		setLectureOrder(0);
 		setPracticeTitle("");
 		setPracticeDescription("");
-		setPracticeOrder(0);
+		setTextContent("");
 		setExamState({
 			name: "",
 			description: "",
@@ -105,52 +97,52 @@ export default function CreateTopicItemDialog({
 		setEndsAtLocal("");
 	};
 
+	const done = () => {
+		toast({ description: t("saved_successfully") || "Saved" });
+		onChanged?.();
+		setOpen(false);
+		reset();
+	};
+	const fail = (e: unknown) =>
+		toast({
+			description:
+				e instanceof Error ? e.message : t("save_failed") || "Failed to save",
+		});
+
 	const lectureMutation = useMutation({
-		mutationFn: async () =>
+		mutationFn: () =>
 			createLecture({
 				topic_id: topicId,
 				title: lectureTitle.trim(),
 				description: lectureDescription.trim() || undefined,
 				content: lectureContent.trim() || undefined,
 				video_id: lectureVideoId.trim() || undefined,
-				order_index: Number(lectureOrder) || 0,
+				order_index: 0,
 			}),
-		onSuccess: async () => {
-			toast({ description: t("saved_successfully") || "Saved" });
-			await queryClient.invalidateQueries({
-				queryKey: ["topic-lectures", topicId],
-			});
-			setOpen(false);
-			reset();
-		},
-		onError: () => toast({ description: t("save_failed") || "Failed to save" }),
+		onSuccess: done,
+		onError: fail,
 	});
 
 	const practiceMutation = useMutation({
-		mutationFn: async () =>
+		mutationFn: () =>
 			createPractice({
 				topic_id: topicId,
 				title: practiceTitle.trim(),
 				description: practiceDescription.trim() || undefined,
-				order_index: Number(practiceOrder) || 0,
+				order_index: 0,
 			}),
-		onSuccess: async () => {
-			toast({ description: t("saved_successfully") || "Saved" });
-			await queryClient.invalidateQueries({
-				queryKey: ["topic-practices", topicId],
-			});
-			setOpen(false);
-			reset();
-		},
-		onError: (e: unknown) =>
-			toast({
-				description:
-					e instanceof Error ? e.message : t("save_failed") || "Failed to save",
-			}),
+		onSuccess: done,
+		onError: fail,
+	});
+
+	const textMutation = useMutation({
+		mutationFn: () => createTopicText(topicId, textContent.trim()),
+		onSuccess: done,
+		onError: fail,
 	});
 
 	const examMutation = useMutation({
-		mutationFn: async () =>
+		mutationFn: () =>
 			createExam({
 				...examState,
 				topic_id: topicId,
@@ -165,24 +157,15 @@ export default function CreateTopicItemDialog({
 				toast({ description: t("save_failed") || "Failed to save" });
 				return;
 			}
-			toast({ description: t("saved_successfully") || "Saved" });
-			onCreatedExam?.({
-				id: String(res.id),
-				name: examState.name,
-				description: examState.description ?? undefined,
-				type: examState.type,
-				duration: Number(examState.duration),
-				tries_count: examState.tries_count,
-			});
-			setOpen(false);
-			reset();
+			done();
 		},
-		onError: () => toast({ description: t("save_failed") || "Failed to save" }),
+		onError: fail,
 	});
 
 	const canSubmit = () => {
 		if (kind === "lecture") return !!lectureTitle.trim();
 		if (kind === "practice") return !!practiceTitle.trim();
+		if (kind === "text") return !!textContent.trim();
 		const hasBoth = !!startsAtLocal && !!endsAtLocal;
 		const invalidRange = hasBoth
 			? new Date(endsAtLocal).getTime() < new Date(startsAtLocal).getTime()
@@ -198,12 +181,14 @@ export default function CreateTopicItemDialog({
 	const submit = () => {
 		if (kind === "lecture") lectureMutation.mutate();
 		else if (kind === "practice") practiceMutation.mutate();
+		else if (kind === "text") textMutation.mutate();
 		else examMutation.mutate();
 	};
 
 	const pending =
 		lectureMutation.isPending ||
 		practiceMutation.isPending ||
+		textMutation.isPending ||
 		examMutation.isPending;
 
 	return (
@@ -217,42 +202,38 @@ export default function CreateTopicItemDialog({
 			<DialogTrigger asChild>
 				<Button
 					variant="ghost"
-					size="icon"
 					className={
 						triggerClassName ??
 						"bg-transparent text-slate-300 hover:bg-transparent hover:text-slate-400"
 					}
-					aria-label={t("create") || "Create"}
 				>
-					<Plus className="h-4 w-4" />
+					<Plus className="mr-2 h-4 w-4" />
+					{t("add_item") || "Add item"}
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="max-h-[85vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-200">
 				<DialogHeader>
-					<DialogTitle>{t("create_item") || "Create Item"}</DialogTitle>
+					<DialogTitle>{t("create_item") || "Create item"}</DialogTitle>
 				</DialogHeader>
 
 				<div className="space-y-4">
-					<div className="flex gap-4">
-						<div className="flex-1">
-							<Label className="text-slate-300">{t("type") || "Type"}</Label>
-							<Select value={kind} onValueChange={(v: ItemKind) => setKind(v)}>
-								<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
-									<SelectValue
-										placeholder={t("select_type") || "Select type"}
-									/>
-								</SelectTrigger>
-								<SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
-									<SelectItem value="lecture">
-										{t("lecture") || "Lecture"}
-									</SelectItem>
-									<SelectItem value="exam">{t("exam") || "Exam"}</SelectItem>
-									<SelectItem value="practice">
-										{t("practice") || "Practice"}
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
+					<div>
+						<Label className="text-slate-300">{t("type") || "Type"}</Label>
+						<Select value={kind} onValueChange={(v: ItemKind) => setKind(v)}>
+							<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+								<SelectValue placeholder={t("select_type") || "Select type"} />
+							</SelectTrigger>
+							<SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
+								<SelectItem value="lecture">
+									{t("lecture") || "Lecture"}
+								</SelectItem>
+								<SelectItem value="text">{t("text") || "Text"}</SelectItem>
+								<SelectItem value="practice">
+									{t("practice") || "Practice"}
+								</SelectItem>
+								<SelectItem value="exam">{t("exam") || "Exam"}</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 
 					{kind === "lecture" ? (
@@ -275,7 +256,6 @@ export default function CreateTopicItemDialog({
 								<Input
 									value={lectureDescription}
 									onChange={(e) => setLectureDescription(e.target.value)}
-									placeholder={t("optional") || "Optional short description"}
 									className="border-slate-700 bg-slate-800 text-white"
 								/>
 							</div>
@@ -286,10 +266,6 @@ export default function CreateTopicItemDialog({
 								<Textarea
 									value={lectureContent}
 									onChange={(e) => setLectureContent(e.target.value)}
-									placeholder={
-										t("lecture_content_placeholder") ||
-										"Lecture body in Markdown…"
-									}
 									className="min-h-32 border-slate-700 bg-slate-800 text-white"
 								/>
 							</div>
@@ -297,18 +273,18 @@ export default function CreateTopicItemDialog({
 								value={lectureVideoId}
 								onChange={setLectureVideoId}
 							/>
-							<div className="space-y-2">
-								<Label className="text-slate-300">
-									{t("order_index") || "Order"}
-								</Label>
-								<Input
-									type="number"
-									min={0}
-									value={lectureOrder}
-									onChange={(e) => setLectureOrder(Number(e.target.value))}
-									className="w-32 border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
+						</div>
+					) : kind === "text" ? (
+						<div className="space-y-2">
+							<Label className="text-slate-300">
+								{t("lecture_content") || "Content (Markdown)"}
+							</Label>
+							<Textarea
+								value={textContent}
+								onChange={(e) => setTextContent(e.target.value)}
+								placeholder={t("enter_text") || "Enter text…"}
+								className="min-h-40 border-slate-700 bg-slate-800 text-white"
+							/>
 						</div>
 					) : kind === "practice" ? (
 						<div className="space-y-4">
@@ -330,25 +306,12 @@ export default function CreateTopicItemDialog({
 								<Input
 									value={practiceDescription}
 									onChange={(e) => setPracticeDescription(e.target.value)}
-									placeholder={t("optional") || "Optional short description"}
 									className="border-slate-700 bg-slate-800 text-white"
-								/>
-							</div>
-							<div className="space-y-2">
-								<Label className="text-slate-300">
-									{t("order_index") || "Order"}
-								</Label>
-								<Input
-									type="number"
-									min={0}
-									value={practiceOrder}
-									onChange={(e) => setPracticeOrder(Number(e.target.value))}
-									className="w-32 border-slate-700 bg-slate-800 text-white"
 								/>
 							</div>
 							<p className="text-slate-500 text-xs">
 								{t("practice_create_hint") ||
-									"Create the practice, then add tasks to it from the topic list."}
+									"Create the practice, then add tasks to it from the list."}
 							</p>
 						</div>
 					) : (
@@ -374,9 +337,6 @@ export default function CreateTopicItemDialog({
 									value={(examState.description as string | undefined) ?? ""}
 									onChange={(e) =>
 										setExamState((s) => ({ ...s, description: e.target.value }))
-									}
-									placeholder={
-										t("exam_description_placeholder") || "Optional description"
 									}
 									className="min-h-24 border-slate-700 bg-slate-800 text-white"
 								/>

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE exam_ordering SET order_index = order_index + 1000000 WHERE topic_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "097673b1c78d04e029e854785dec9946e6aec0c9971803e24615c17546b791ed"
+}

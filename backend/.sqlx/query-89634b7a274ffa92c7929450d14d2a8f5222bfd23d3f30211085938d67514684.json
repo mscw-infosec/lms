@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                UPDATE practices\n                SET title = $1, description = $2, order_index = $3\n                WHERE id = $4\n                RETURNING id, topic_id, title, description, order_index\n            ",
+  "query": "\n                UPDATE practices\n                SET title = $1, description = $2\n                WHERE id = $3\n                RETURNING id, topic_id, title, description, order_index\n            ",
   "describe": {
     "columns": [
       {
@@ -33,7 +33,6 @@
       "Left": [
         "Text",
         "Text",
-        "Int4",
         "Int4"
       ]
     },
@@ -45,5 +44,5 @@
       false
     ]
   },
-  "hash": "f1b029708517227c66f78daf68e5fb3df35efaa764f5b49131035c226a7cecab"
+  "hash": "89634b7a274ffa92c7929450d14d2a8f5222bfd23d3f30211085938d67514684"
 }

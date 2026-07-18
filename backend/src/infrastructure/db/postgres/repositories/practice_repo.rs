@@ -17,6 +17,7 @@ use uuid::Uuid;
 #[async_trait]
 impl PracticeRepository for RepositoryPostgres {
     async fn create_practice(&self, practice: CreatePracticeRequestDTO) -> Result<PracticeModel> {
+        let order_index = self.next_topic_order(practice.topic_id).await?;
         let created = sqlx::query_as!(
             PracticeModel,
             r#"
@@ -27,7 +28,7 @@ impl PracticeRepository for RepositoryPostgres {
             practice.topic_id,
             practice.title,
             practice.description,
-            practice.order_index
+            order_index
         )
         .fetch_one(&self.pool)
         .await
@@ -90,17 +91,17 @@ impl PracticeRepository for RepositoryPostgres {
         id: i32,
         practice: UpdatePracticeRequestDTO,
     ) -> Result<PracticeModel> {
+        // Ordering is managed by the topic's unified reorder, not here.
         let updated = sqlx::query_as!(
             PracticeModel,
             r#"
                 UPDATE practices
-                SET title = $1, description = $2, order_index = $3
-                WHERE id = $4
+                SET title = $1, description = $2
+                WHERE id = $3
                 RETURNING id, topic_id, title, description, order_index
             "#,
             practice.title,
             practice.description,
-            practice.order_index,
             id
         )
         .fetch_optional(&self.pool)

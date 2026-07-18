@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::domain::topics::model::TopicModel;
+use crate::domain::topics::model::{TopicContentRow, TopicModel};
 
 #[derive(Deserialize, Serialize, Validate, ToSchema)]
 pub struct UpsertTopicRequestDTO {
@@ -37,4 +37,51 @@ impl From<TopicModel> for TopicResponseDTO {
             order_index: topic.order_index,
         }
     }
+}
+
+/// One item in a topic's unified content list.
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct TopicContentItemDTO {
+    /// `lecture` | `practice` | `exam` | `text`.
+    pub kind: String,
+    /// Item id as a string (int for lecture/practice/text, uuid for exam).
+    pub id: String,
+    pub title: String,
+    /// Full text body, only present for `text` items.
+    pub content: Option<String>,
+    pub order_index: i32,
+}
+
+impl From<TopicContentRow> for TopicContentItemDTO {
+    fn from(row: TopicContentRow) -> Self {
+        Self {
+            kind: row.kind,
+            id: row.item_id,
+            title: row.title,
+            content: row.content,
+            order_index: row.order_index,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Validate, ToSchema)]
+pub struct UpsertTopicTextDTO {
+    #[validate(length(min = 1, max = 20000, message = "Text must be 1..20000 characters"))]
+    pub content: String,
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct CreateTopicTextResponseDTO {
+    pub id: i32,
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct ReorderItemDTO {
+    pub kind: String,
+    pub id: String,
+}
+
+#[derive(Deserialize, Serialize, ToSchema)]
+pub struct ReorderTopicContentDTO {
+    pub items: Vec<ReorderItemDTO>,
 }
