@@ -1,7 +1,7 @@
 use crate::domain::account::model::UserModel;
 use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::{
-    Exam, ExamEntity, ExamEntityType, ExamExtendedEntity, ExamType, TextEntity,
+    Exam, ExamEntity, ExamEntityType, ExamExtendedEntity, ExamScoringPolicy, ExamType, TextEntity,
 };
 use crate::domain::exam::repository::ExamRepository;
 use crate::domain::task::model::TaskType;
@@ -30,9 +30,9 @@ impl ExamRepository for RepositoryPostgres {
             Exam,
             r#"
                 INSERT INTO exams
-                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType", name, description, starts_at, ends_at
+                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at, scoring_policy)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING id, topic_id, tries_count, duration, type AS "type: ExamType", name, description, starts_at, ends_at, scoring_policy AS "scoring_policy: ExamScoringPolicy"
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
@@ -41,7 +41,8 @@ impl ExamRepository for RepositoryPostgres {
             exam_data.description,
             exam_data.name,
             exam_data.starts_at,
-            exam_data.ends_at
+            exam_data.ends_at,
+            exam_data.scoring_policy as ExamScoringPolicy
         )
         .fetch_one(tx.as_mut())
         .await
@@ -73,7 +74,7 @@ impl ExamRepository for RepositoryPostgres {
         let exam = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, name, description, tries_count, duration, type AS "type: ExamType", starts_at, ends_at
+                SELECT id, topic_id, name, description, tries_count, duration, type AS "type: ExamType", starts_at, ends_at, scoring_policy AS "scoring_policy: ExamScoringPolicy"
                 FROM exams
                 WHERE id = $1
             "#,
@@ -103,9 +104,10 @@ impl ExamRepository for RepositoryPostgres {
                     name = $5,
                     description = $6,
                     starts_at = $7,
-                    ends_at = $8
-                WHERE id = $9
-                RETURNING id, topic_id, tries_count, name, description, duration, type AS "type: ExamType", starts_at, ends_at
+                    ends_at = $8,
+                    scoring_policy = $9
+                WHERE id = $10
+                RETURNING id, topic_id, tries_count, name, description, duration, type AS "type: ExamType", starts_at, ends_at, scoring_policy AS "scoring_policy: ExamScoringPolicy"
             "#,
             exam_data.topic_id,
             exam_data.tries_count,
@@ -115,6 +117,7 @@ impl ExamRepository for RepositoryPostgres {
             exam_data.description,
             exam_data.starts_at,
             exam_data.ends_at,
+            exam_data.scoring_policy as ExamScoringPolicy,
             id
         )
         .fetch_one(&self.pool)
@@ -205,7 +208,7 @@ impl ExamRepository for RepositoryPostgres {
                     }
                 }
             }).collect::<Vec<(i32, ExamExtendedEntity)>>();
-            orders.sort_by(|x1, x2| x1.0.cmp(&x2.0));
+            orders.sort_by_key(|x1| x1.0);
             return Ok(orders.into_iter().map(|x| x.1).collect())
         }
         Err(LMSError::ServerError(

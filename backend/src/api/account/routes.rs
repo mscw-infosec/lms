@@ -3,9 +3,9 @@ use crate::{
     api::account::AccountState,
     domain::account::model::{Attributes, UserModel, UserRole},
     dto::account::{
-        AvatarUploadResponse, CtfdStatus, GetUserResponseDTO, PublicAccountDTO, UpdateUserRoleDTO,
+        AccountListQuery, AvatarUploadResponse, CtfdStatus, GetUserResponseDTO, PagedAccountsDTO,
+        UpdateUserRoleDTO,
     },
-    dto::task::LimitOffsetDTO,
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
     utils::ValidatedQuery,
@@ -259,13 +259,14 @@ pub async fn check_ctfd(
     get,
     tag = "Account",
     path = "/list",
-    description = "List all accounts. Limit <= 20.",
+    description = "List accounts with optional search. Limit <= 100.",
     params(
         ("limit" = i32, Query),
-        ("offset" = i32, Query)
+        ("offset" = i32, Query),
+        ("search" = Option<String>, Query, description = "Substring match on username or email")
     ),
     responses(
-        (status = 200, description = "Successfully got accounts list", body = [PublicAccountDTO]),
+        (status = 200, description = "Successfully got accounts page", body = PagedAccountsDTO),
         (status = 401, description = "No auth data found"),
         (status = 403, description = "Only admins can list accounts")
     ),
@@ -276,16 +277,19 @@ pub async fn check_ctfd(
 pub async fn list_accounts(
     AccessTokenClaim { role, .. }: AccessTokenClaim,
     State(state): State<AccountState>,
-    ValidatedQuery(query): ValidatedQuery<LimitOffsetDTO>,
-) -> Result<Json<Vec<PublicAccountDTO>>, LMSError> {
+    ValidatedQuery(query): ValidatedQuery<AccountListQuery>,
+) -> Result<Json<PagedAccountsDTO>, LMSError> {
     if role != UserRole::Admin {
         return Err(LMSError::Forbidden("Only admins can list accounts".into()));
     }
 
-    let users = state
+    let (users, total) = state
         .account_service
-        .list_accounts(query.limit, query.offset)
+        .list_accounts(query.limit, query.offset, query.search)
         .await?;
 
-    Ok(Json(users.into_iter().map(Into::into).collect()))
+    Ok(Json(PagedAccountsDTO {
+        total,
+        users: users.into_iter().map(Into::into).collect(),
+    }))
 }

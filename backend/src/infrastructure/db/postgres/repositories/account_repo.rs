@@ -172,20 +172,32 @@ impl AccountRepository for RepositoryPostgres {
         Ok(tasks)
     }
 
-    async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
+    async fn list_users(
+        &self,
+        limit: i32,
+        offset: i32,
+        search: Option<String>,
+    ) -> Result<Vec<UserModel>> {
         let mut tx = self.pool.begin().await?;
 
         let mut users = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
-                       u.role as "role: UserRole", ac.password_hash as password
+                       u.role as "role: UserRole",
+                       (SELECT ac.password_hash
+                        FROM auth_credentials ac
+                        WHERE ac.user_id = u.id AND ac.provider = 'basic'
+                        LIMIT 1) as password
                 FROM users u
-                LEFT JOIN auth_credentials ac ON ac.user_id = u.id
+                WHERE $3::text IS NULL
+                   OR u.username ILIKE '%' || $3 || '%'
+                   OR u.email ILIKE '%' || $3 || '%'
                 ORDER BY u.created_at DESC
                 LIMIT $1 OFFSET $2
             "#,
             i64::from(limit),
-            i64::from(offset)
+            i64::from(offset),
+            search
         )
         .fetch_all(tx.as_mut())
         .await?
@@ -230,6 +242,23 @@ impl AccountRepository for RepositoryPostgres {
 
         tx.commit().await?;
         Ok(users)
+    }
+
+    async fn count_users(&self, search: Option<String>) -> Result<i64> {
+        let count = sqlx::query_scalar!(
+            r#"
+                SELECT COUNT(*) AS "count!"
+                FROM users u
+                WHERE $1::text IS NULL
+                   OR u.username ILIKE '%' || $1 || '%'
+                   OR u.email ILIKE '%' || $1 || '%'
+            "#,
+            search
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
     }
 
     async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()> {

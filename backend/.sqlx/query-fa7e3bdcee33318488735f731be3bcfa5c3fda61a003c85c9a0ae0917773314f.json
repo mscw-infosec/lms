@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT id, topic_id, name, description, tries_count, duration, type AS \"type: ExamType\", starts_at, ends_at\n                FROM exams\n                WHERE id = $1\n            ",
+  "query": "\n                SELECT id, topic_id, name, description, tries_count, duration, type AS \"type: ExamType\", starts_at, ends_at, scoring_policy AS \"scoring_policy: ExamScoringPolicy\"\n                FROM exams\n                WHERE id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -57,6 +57,22 @@
         "ordinal": 8,
         "name": "ends_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "scoring_policy: ExamScoringPolicy",
+        "type_info": {
+          "Custom": {
+            "name": "exam_scoring_policy",
+            "kind": {
+              "Enum": [
+                "best",
+                "latest",
+                "average"
+              ]
+            }
+          }
+        }
       }
     ],
     "parameters": {
@@ -73,8 +89,9 @@
       false,
       false,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "1ff4915661dc57a0af83b23cc69a23004742f355416e344796b89f774a61702e"
+  "hash": "fa7e3bdcee33318488735f731be3bcfa5c3fda61a003c85c9a0ae0917773314f"
 }

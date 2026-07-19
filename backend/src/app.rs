@@ -7,9 +7,9 @@ use crate::{
         account::service::AccountService, basic::service::BasicAuthService,
         courses::service::CourseService, exam::service::ExamService,
         lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
-        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
-        video::service::VideoService,
+        practice::service::PracticeService, rating::service::RatingService,
+        refresh_token::service::RefreshTokenService, report::service::ReportService,
+        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
     },
     errors::Result,
     infrastructure::jwt::JWT,
@@ -26,6 +26,7 @@ pub struct Services {
     pub lecture: LectureService,
     pub oauth: OAuthService,
     pub practice: PracticeService,
+    pub rating: RatingService,
     pub report: ReportService,
     pub refresh_token: RefreshTokenService,
     pub task: TaskService,
@@ -101,6 +102,7 @@ pub fn generate_router(
             "/practice",
             api::practice::configure(svcs.practice, jwt.clone()),
         )
+        .nest("/rating", api::rating::configure(svcs.rating, jwt.clone()))
         .nest("/report", api::report::configure(svcs.report, jwt.clone()))
         .nest(
             "/topics",

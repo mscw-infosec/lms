@@ -5,6 +5,7 @@ pub mod exam;
 pub mod lectures;
 pub mod oauth;
 pub mod practice;
+pub mod rating;
 pub mod refresh_token;
 pub mod report;
 pub mod task;

@@ -96,6 +96,12 @@ export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 								>
 									{t("account") || "Account"}
 								</Link>
+								<Link
+									href="/rating"
+									className="block rounded-sm px-3 py-2 text-sm hover:bg-slate-800"
+								>
+									{t("rating_my_overall_title") || "My rating"}
+								</Link>
 								<button
 									type="button"
 									onClick={async () => {
@@ -139,6 +145,12 @@ export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 									className="block rounded-sm px-3 py-2 text-sm hover:bg-slate-800"
 								>
 									{t("account") || "Account"}
+								</Link>
+								<Link
+									href="/rating"
+									className="block rounded-sm px-3 py-2 text-sm hover:bg-slate-800"
+								>
+									{t("rating_my_overall_title") || "My rating"}
 								</Link>
 							</DropdownMenuContent>
 						</DropdownMenu>

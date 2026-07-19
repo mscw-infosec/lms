@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT a.exam_id,\n                       a.user_id,\n                       a.started_at,\n                       a.scoring_data AS \"scoring_data: _\"\n                FROM attempts a\n                    JOIN exams e ON e.id = a.exam_id\n                    JOIN topics tp ON tp.id = e.topic_id\n                WHERE tp.course_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exam_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "started_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "scoring_data: _",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c781bdeff2a3cd403ad8dcfd3ae39cf5059a398973da90207a8c16d7f8ea4cfb"
+}

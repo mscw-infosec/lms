@@ -342,7 +342,7 @@ pub enum ExportFormat {
 }
 
 /// Quotes a CSV field if it contains a comma, quote or newline (RFC 4180).
-fn csv_escape(field: &str) -> String {
+pub(crate) fn csv_escape(field: &str) -> String {
     if field.contains([',', '"', '\n', '\r']) {
         format!("\"{}\"", field.replace('"', "\"\""))
     } else {

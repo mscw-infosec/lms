@@ -14,7 +14,13 @@ pub trait AccountRepository {
     async fn get_user_by_email(&self, email: String) -> Result<Option<UserModel>>;
     async fn upsert_attributes(&self, id: Uuid, attributes: Attributes) -> Result<Attributes>;
     async fn get_user_active_ctfd_tasks(&self, user_id: Uuid) -> Result<Vec<usize>>;
-    async fn list_users(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>>;
+    async fn list_users(
+        &self,
+        limit: i32,
+        offset: i32,
+        search: Option<String>,
+    ) -> Result<Vec<UserModel>>;
+    async fn count_users(&self, search: Option<String>) -> Result<i64>;
     async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()>;
     async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes>;
     async fn delete_user_predefined_attribute(&self, email: String) -> Result<()>;

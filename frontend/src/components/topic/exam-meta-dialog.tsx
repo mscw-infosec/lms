@@ -27,6 +27,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 type ExamType = components["schemas"]["UpsertExamRequestDTO"]["type"];
+type ScoringPolicy = NonNullable<
+	components["schemas"]["UpsertExamRequestDTO"]["scoring_policy"]
+>;
 
 function toLocalInput(iso?: string | null): string {
 	if (!iso) return "";
@@ -56,6 +59,7 @@ export default function ExamMetaDialog({
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
 	const [type, setType] = useState<ExamType>("Instant");
+	const [scoringPolicy, setScoringPolicy] = useState<ScoringPolicy>("best");
 	const [duration, setDuration] = useState(0);
 	const [tries, setTries] = useState(1);
 	const [startsAt, setStartsAt] = useState("");
@@ -75,6 +79,7 @@ export default function ExamMetaDialog({
 			setName(e.name);
 			setDescription(e.description ?? "");
 			setType(e.type);
+			setScoringPolicy(e.scoring_policy ?? "best");
 			setDuration(e.duration);
 			setTries(e.tries_count);
 			setStartsAt(toLocalInput(e.starts_at));
@@ -89,6 +94,7 @@ export default function ExamMetaDialog({
 				name: name.trim(),
 				description: description.trim() || undefined,
 				type,
+				scoring_policy: scoringPolicy,
 				duration: Number(duration) || 0,
 				tries_count: Number(tries) || 0,
 				topic_id: topicId,
@@ -182,6 +188,30 @@ export default function ExamMetaDialog({
 									className="border-slate-700 bg-slate-800 text-white"
 								/>
 							</div>
+						</div>
+						<div className="space-y-2">
+							<Label className="text-slate-300">
+								{t("scoring_policy") || "Rating: which attempt counts"}
+							</Label>
+							<Select
+								value={scoringPolicy}
+								onValueChange={(v: ScoringPolicy) => setScoringPolicy(v)}
+							>
+								<SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent className="border-slate-700 bg-slate-800 text-slate-200">
+									<SelectItem value="best">
+										{t("scoring_policy_best") || "Best attempt"}
+									</SelectItem>
+									<SelectItem value="latest">
+										{t("scoring_policy_latest") || "Latest attempt"}
+									</SelectItem>
+									<SelectItem value="average">
+										{t("scoring_policy_average") || "Average of attempts"}
+									</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="grid grid-cols-2 gap-3">
 							<div className="flex flex-col gap-1">

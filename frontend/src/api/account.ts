@@ -4,6 +4,7 @@ import { http } from "./http";
 export type CtfdStatus = components["schemas"]["CtfdStatus"]; // { status: boolean }
 export type UserRole = components["schemas"]["UserRole"]; // "Student" | "Teacher" | "Admin"
 export type PublicAccountDTO = components["schemas"]["PublicAccountDTO"];
+export type PagedAccounts = components["schemas"]["PagedAccountsDTO"];
 
 /**
  * Checks whether the current authenticated user has a CTFd account registered.
@@ -13,17 +14,20 @@ export async function checkCtfdRegistered(): Promise<CtfdStatus> {
 }
 
 /**
- * List accounts (admin only).
+ * List accounts with optional search (admin only). Returns a page plus the
+ * total count of matching users.
  */
 export async function listAccounts(
 	limit: number,
 	offset: number,
-): Promise<PublicAccountDTO[]> {
+	search?: string,
+): Promise<PagedAccounts> {
 	const params = new URLSearchParams({
 		limit: String(limit),
 		offset: String(offset),
 	});
-	return http<PublicAccountDTO[]>(`/api/account/list?${params.toString()}`, {
+	if (search?.trim()) params.set("search", search.trim());
+	return http<PagedAccounts>(`/api/account/list?${params.toString()}`, {
 		withAuth: true,
 	});
 }

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT tp.course_id AS \"course_id!\"\n                FROM attempts a\n                    JOIN exams e ON e.id = a.exam_id\n                    JOIN topics tp ON tp.id = e.topic_id\n                WHERE a.user_id = $1\n                UNION\n                SELECT tp.course_id\n                FROM practice_progress pp\n                    JOIN practice_tasks ptk ON ptk.task_id = pp.task_id\n                    JOIN practices p ON p.id = ptk.practice_id\n                    JOIN topics tp ON tp.id = p.topic_id\n                WHERE pp.user_id = $1 AND pp.solved = TRUE\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "course_id!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "d3927145cc0414f576cc9e777911ae20d4341e127906c6d7260f12e040da5462"
+}

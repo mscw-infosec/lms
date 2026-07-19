@@ -294,6 +294,7 @@ export default function CoursePage() {
 										<CourseHeaderActions
 											isEditing={isEditing}
 											canEdit={canEdit}
+											courseId={courseId}
 											onEdit={() => setIsEditing(true)}
 											onSave={() => saveMutation.mutate()}
 											savePending={saveMutation.isPending}
@@ -352,6 +353,7 @@ export default function CoursePage() {
 											<CourseHeaderActions
 												isEditing={isEditing}
 												canEdit={canEdit}
+												courseId={courseId}
 												onEdit={() => setIsEditing(true)}
 												onSave={() => saveMutation.mutate()}
 												savePending={saveMutation.isPending}
@@ -445,8 +447,8 @@ export default function CoursePage() {
 
 								{(topicsQuery.data ?? []).map((topic) => (
 									<Collapsible key={topic.id} defaultOpen>
-										<CollapsibleTrigger className="group flex w-full items-center justify-between rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
-											<div className="flex items-center gap-3">
+										<div className="flex w-full items-center justify-between gap-2 rounded-lg bg-slate-800 p-4 transition-colors hover:bg-slate-700">
+											<div className="flex flex-1 items-center gap-3">
 												<BookOpen className="h-5 w-5 text-slate-400" />
 												{editingTopicId === topic.id ? (
 													<>
@@ -467,9 +469,14 @@ export default function CoursePage() {
 														/>
 													</>
 												) : (
-													<span className="font-medium text-white">
-														{topic.title}
-													</span>
+													<CollapsibleTrigger asChild>
+														<button
+															type="button"
+															className="text-left font-medium text-white hover:text-slate-300"
+														>
+															{topic.title}
+														</button>
+													</CollapsibleTrigger>
 												)}
 											</div>
 											<div className="flex items-center gap-2">
@@ -548,9 +555,17 @@ export default function CoursePage() {
 															</ConfirmDialog>
 														</>
 													))}
-												<ChevronDown className="h-5 w-5 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+												<CollapsibleTrigger asChild>
+													<button
+														type="button"
+														aria-label={t("toggle") ?? "Toggle"}
+														className="group text-slate-400 hover:text-slate-200"
+													>
+														<ChevronDown className="h-5 w-5 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+													</button>
+												</CollapsibleTrigger>
 											</div>
-										</CollapsibleTrigger>
+										</div>
 										<CollapsibleContent className="mt-2 ml-8 space-y-2">
 											<TopicContentList topicId={topic.id} canEdit={canEdit} />
 										</CollapsibleContent>

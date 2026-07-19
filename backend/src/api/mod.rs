@@ -7,6 +7,7 @@ pub mod lecture;
 pub mod middlewares;
 pub mod oauth;
 pub mod practice;
+pub mod rating;
 pub mod report;
 pub mod task;
 pub mod topics;

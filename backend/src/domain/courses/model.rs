@@ -26,9 +26,9 @@ pub enum AttributeFilter {
         value: serde_json::Value,
     },
     #[schema(no_recursion)]
-    And(Vec<AttributeFilter>),
+    And(Vec<Self>),
     #[schema(no_recursion)]
-    Or(Vec<AttributeFilter>),
+    Or(Vec<Self>),
 }
 
 impl<'r> sqlx::Decode<'r, sqlx::Postgres> for AttributeFilter {

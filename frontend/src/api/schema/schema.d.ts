@@ -64,7 +64,7 @@ export interface paths {
         };
         /**
          * List accounts with public data and attributes (admin only)
-         * @description List all accounts. Limit <= 20.
+         * @description List accounts with optional search. Limit <= 100.
          */
         get: operations["list_accounts"];
         put?: never;
@@ -835,6 +835,176 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/rating/course/{course_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leaderboard of all participants in a course. Teacher/admin only. */
+        get: operations["get_course_leaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/course/{course_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export a course leaderboard. Teacher/admin only. */
+        get: operations["export_course_leaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/course/{course_id}/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The authenticated user's detailed rating within a course. */
+        get: operations["get_my_course_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/course/{course_id}/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export the authenticated user's per-course rating (CSV or XLSX). */
+        get: operations["export_my_course_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/course/{course_id}/user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A specific user's detailed rating within a course. Self or teacher/admin. */
+        get: operations["get_user_course_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/course/{course_id}/user/{user_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export a specific user's per-course rating. Self or teacher/admin. */
+        get: operations["export_user_course_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overall rating of the authenticated user across all their courses. */
+        get: operations["get_my_overall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export the authenticated user's overall rating (CSV or XLSX). */
+        get: operations["export_my_overall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/user/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overall rating of a specific user. Self or teacher/admin only. */
+        get: operations["get_user_overall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rating/user/{user_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export a specific user's overall rating. Self or teacher/admin only. */
+        get: operations["export_user_overall"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/report/exam/{exam_id}": {
         parameters: {
             query?: never;
@@ -1152,6 +1322,48 @@ export interface components {
         };
         /** @enum {string} */
         ConditionOp: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "in" | "nin";
+        /** @description A page of a course leaderboard: participants ranked by earned score.
+         *     `total` is the number of participants matching the search (for pagination),
+         *     while `entries` holds only the requested page. */
+        CourseLeaderboardDTO: {
+            /** Format: int32 */
+            course_id: number;
+            entries: components["schemas"]["LeaderboardEntryDTO"][];
+            /** Format: double */
+            max: number;
+            title: string;
+            /** Format: int64 */
+            total: number;
+        };
+        /** @description A user's score within a single course (used in the overall breakdown). */
+        CourseScoreDTO: {
+            /** Format: int32 */
+            course_id: number;
+            /** Format: double */
+            earned: number;
+            /** Format: double */
+            max: number;
+            /** Format: double */
+            percent: number;
+            title: string;
+        };
+        /** @description A single user's detailed rating within one course. */
+        CourseUserRatingDTO: {
+            breakdown: components["schemas"]["RatingBreakdownItemDTO"][];
+            /** Format: int32 */
+            course_id: number;
+            /** Format: double */
+            earned: number;
+            email: string;
+            /** Format: double */
+            max: number;
+            /** Format: double */
+            percent: number;
+            title: string;
+            /** Format: uuid */
+            user_id: string;
+            username: string;
+        };
         CreateExamResponseDTO: {
             /** Format: uuid */
             id: string;
@@ -1219,6 +1431,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            scoring_policy: components["schemas"]["ExamScoringPolicy"];
             /** Format: date-time */
             starts_at?: string | null;
             /** Format: int32 */
@@ -1281,6 +1494,12 @@ export interface components {
             /** @enum {string} */
             name: "text";
         };
+        /**
+         * @description How a user's multiple attempts at an exam are collapsed into a single score
+         *     for the rating. Chosen by the teacher when creating/editing the exam.
+         * @enum {string}
+         */
+        ExamScoringPolicy: "best" | "latest" | "average";
         /** @enum {string} */
         ExamType: "Instant" | "Delayed";
         GetUserResponseDTO: {
@@ -1349,6 +1568,20 @@ export interface components {
         HashMap: {
             [key: string]: string;
         };
+        /** @description One ranked participant in a course leaderboard. */
+        LeaderboardEntryDTO: {
+            /** Format: double */
+            earned: number;
+            email: string;
+            /** Format: double */
+            max: number;
+            /** Format: double */
+            percent: number;
+            rank: number;
+            /** Format: uuid */
+            user_id: string;
+            username: string;
+        };
         /** @description Full lecture view, including the rich-text body and completion state.
          *
          *     The `video_id`, when present, is resolved to a playable URL through the
@@ -1372,6 +1605,12 @@ export interface components {
             order_index: number;
             title: string;
             video_id?: string | null;
+        };
+        /** @description A page of accounts plus the total count matching the (optional) search. */
+        PagedAccountsDTO: {
+            /** Format: int64 */
+            total: number;
+            users: components["schemas"]["PublicAccountDTO"][];
         };
         /** @description Teacher/editing view of a practice: metadata plus full tasks (with answers). */
         PracticeAdminDTO: {
@@ -1482,6 +1721,18 @@ export interface components {
             task_type: components["schemas"]["TaskType"];
             title: string;
         };
+        /** @description One line of a per-course, per-user breakdown (one exam or one practice). */
+        RatingBreakdownItemDTO: {
+            /** Format: double */
+            earned: number;
+            /** @description Exam UUID or practice id, as a string. */
+            id: string;
+            /** @description `"exam"` or `"practice"`. */
+            kind: string;
+            /** Format: double */
+            max: number;
+            title: string;
+        };
         RefreshResponse: {
             access_token: string;
         };
@@ -1589,10 +1840,12 @@ export interface components {
             name: "ctfd";
             task_id: number;
         };
-        /** @description The canonical correct answer for a task, exposed to a learner only after
-         *     they have already solved it (e.g. in practice) so they can review what the
-         *     right answer was. Only auto-gradable types have a solution; manual-review
-         *     and CTFd tasks return `None` from [`Task::solution`]. */
+        /** @description The canonical correct answer for a task.
+         *
+         *     Exposed to a learner only after they have already solved it (e.g. in
+         *     practice) so they can review what the right answer was. Only auto-gradable
+         *     types have a solution; manual-review and `CTFd` tasks return `None` from
+         *     [`Task::solution`]. */
         TaskSolution: {
             answer: string;
             /** @enum {string} */
@@ -1750,6 +2003,7 @@ export interface components {
             /** Format: date-time */
             ends_at?: string | null;
             name: string;
+            scoring_policy?: components["schemas"]["ExamScoringPolicy"];
             /** Format: date-time */
             starts_at?: string | null;
             /** Format: int32 */
@@ -1776,6 +2030,20 @@ export interface components {
         UpsertTopicTextDTO: {
             content: string;
             title: string;
+        };
+        /** @description A user's overall rating across every course they have activity in. */
+        UserOverallRatingDTO: {
+            courses: components["schemas"]["CourseScoreDTO"][];
+            email: string;
+            /** Format: double */
+            percent: number;
+            /** Format: double */
+            total_earned: number;
+            /** Format: double */
+            total_max: number;
+            /** Format: uuid */
+            user_id: string;
+            username: string;
         };
         /** @enum {string} */
         UserRole: "Student" | "Teacher" | "Admin";
@@ -1851,6 +2119,8 @@ export interface operations {
             query: {
                 limit: number;
                 offset: number;
+                /** @description Substring match on username or email */
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -1858,13 +2128,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successfully got accounts list */
+            /** @description Successfully got accounts page */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PublicAccountDTO"][];
+                    "application/json": components["schemas"]["PagedAccountsDTO"];
                 };
             };
             /** @description No auth data found */
@@ -4147,6 +4417,410 @@ export interface operations {
                 content?: never;
             };
             /** @description Practice not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_course_leaderboard: {
+        parameters: {
+            query: {
+                /** @description Page size (1..=100) */
+                limit: number;
+                offset: number;
+                /** @description Substring match on username or email */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Course leaderboard page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseLeaderboardDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only teachers/admins can view a leaderboard */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_course_leaderboard: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Leaderboard file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only teachers/admins can export a leaderboard */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_my_course_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Per-course rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseUserRatingDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You do not have access to this course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_my_course_rating: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rating file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_user_course_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                course_id: number;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Per-course rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseUserRatingDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can only view your own rating */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course or user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_user_course_rating: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path: {
+                course_id: number;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rating file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can only view your own rating */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Course or user not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_my_overall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Overall rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOverallRatingDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_my_overall: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rating file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_user_overall: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Overall rating */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserOverallRatingDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can only view your own rating */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    export_user_overall: {
+        parameters: {
+            query?: {
+                /** @description csv (default) or xlsx */
+                format?: string;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Rating file (text/csv or xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description You can only view your own rating */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User not found */
             404: {
                 headers: {
                     [name: string]: unknown;

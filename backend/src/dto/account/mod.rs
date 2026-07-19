@@ -4,12 +4,32 @@ use s3::post_policy::PresignedPost;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
+use validator::Validate;
 
 use crate::domain::account::model::{Attributes, UserModel, UserRole};
 
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct UpdateUserRoleDTO {
     pub role: UserRole,
+}
+
+/// Paginated + searchable account listing query.
+#[derive(Serialize, Deserialize, ToSchema, Validate)]
+pub struct AccountListQuery {
+    #[validate(range(min = 1, max = 100))]
+    pub limit: i32,
+    #[validate(range(min = 0))]
+    pub offset: i32,
+    /// Case-insensitive substring match on username or email.
+    #[serde(default)]
+    pub search: Option<String>,
+}
+
+/// A page of accounts plus the total count matching the (optional) search.
+#[derive(Serialize, ToSchema)]
+pub struct PagedAccountsDTO {
+    pub total: i64,
+    pub users: Vec<PublicAccountDTO>,
 }
 
 #[derive(Serialize, ToSchema)]

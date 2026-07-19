@@ -1,0 +1,57 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT e.id                                        AS exam_id,\n                       e.name                                      AS exam_name,\n                       e.scoring_policy AS \"scoring_policy: ExamScoringPolicy\",\n                       t.id                                        AS task_id,\n                       t.points\n                FROM topics tp\n                    JOIN exams e ON e.topic_id = tp.id\n                    JOIN exam_entities ee ON ee.exam_id = e.id AND ee.entity_type = 'task'\n                    JOIN tasks t ON t.id = ee.task_id\n                WHERE tp.course_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exam_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "exam_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "scoring_policy: ExamScoringPolicy",
+        "type_info": {
+          "Custom": {
+            "name": "exam_scoring_policy",
+            "kind": {
+              "Enum": [
+                "best",
+                "latest",
+                "average"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "task_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "points",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f956b4d3234ffec9b66f62938eaadcf4b0c6f18e7c25aa225c4c4ee4c2726a28"
+}

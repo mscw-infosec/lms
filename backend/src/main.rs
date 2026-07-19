@@ -17,9 +17,9 @@ use crate::{
         account::service::AccountService, basic::service::BasicAuthService,
         courses::service::CourseService, exam::service::ExamService,
         lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
-        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
-        video::service::VideoService,
+        practice::service::PracticeService, rating::service::RatingService,
+        refresh_token::service::RefreshTokenService, report::service::ReportService,
+        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
@@ -109,6 +109,7 @@ async fn main() -> anyhow::Result<()> {
     let task = TaskService::new(db_repo.clone(), client.clone(), config.ctfd_token.clone());
     let practice = PracticeService::new(db_repo.clone(), task.clone(), topic.clone());
     let report = ReportService::new(exam.clone(), db_repo.clone());
+    let rating = RatingService::new(course.clone(), db_repo.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
     let services = Services {
@@ -119,6 +120,7 @@ async fn main() -> anyhow::Result<()> {
         lecture,
         oauth,
         practice,
+        rating,
         report,
         refresh_token,
         task,

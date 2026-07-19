@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT p.id       AS practice_id,\n                       p.title    AS practice_name,\n                       t.id       AS task_id,\n                       t.points\n                FROM topics tp\n                    JOIN practices p ON p.topic_id = tp.id\n                    JOIN practice_tasks ptk ON ptk.practice_id = p.id\n                    JOIN tasks t ON t.id = ptk.task_id\n                WHERE tp.course_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "practice_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "practice_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "task_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "points",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "42e5831b9c9dadb244e54b5e7f509424446fdc9761406103e44576217216790c"
+}

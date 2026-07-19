@@ -1,4 +1,4 @@
-use crate::domain::exam::model::{Exam, ExamType};
+use crate::domain::exam::model::{Exam, ExamScoringPolicy, ExamType};
 use crate::{
     domain::topics::{
         model::{TopicContentRow, TopicModel},
@@ -101,7 +101,7 @@ impl TopicRepository for RepositoryPostgres {
         let exams = sqlx::query_as!(
             Exam,
             r#"
-                SELECT id, topic_id, tries_count, duration, type as "type: ExamType", description, name, starts_at, ends_at
+                SELECT id, topic_id, tries_count, duration, type as "type: ExamType", description, name, starts_at, ends_at, scoring_policy AS "scoring_policy: ExamScoringPolicy"
                 FROM exams
                 WHERE topic_id = $1
             "#,

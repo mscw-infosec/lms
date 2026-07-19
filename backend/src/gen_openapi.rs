@@ -7,9 +7,9 @@ use crate::{
         account::service::AccountService, basic::service::BasicAuthService,
         courses::service::CourseService, exam::service::ExamService,
         lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, refresh_token::service::RefreshTokenService,
-        report::service::ReportService, task::service::TaskService, topics::service::TopicService,
-        video::service::VideoService,
+        practice::service::PracticeService, rating::service::RatingService,
+        refresh_token::service::RefreshTokenService, report::service::ReportService,
+        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
     },
     infrastructure::jwt::JWT,
 };
@@ -49,6 +49,7 @@ pub fn save_openapi() {
     let task = TaskService::new(dummy.clone(), client.clone(), config.ctfd_token.clone());
     let practice = PracticeService::new(dummy.clone(), task.clone(), topic.clone());
     let report = ReportService::new(exam.clone(), dummy.clone());
+    let rating = RatingService::new(course.clone(), dummy.clone());
     let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
         .expect("Failed to create VideoService");
 
@@ -60,6 +61,7 @@ pub fn save_openapi() {
         lecture,
         oauth,
         practice,
+        rating,
         report,
         refresh_token,
         task,

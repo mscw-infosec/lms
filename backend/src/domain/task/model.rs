@@ -398,9 +398,11 @@ impl Task {
         match &self.configuration {
             TaskConfig::SingleChoice {
                 options, correct, ..
-            } => options.get(*correct).map(|label| TaskSolution::SingleChoice {
-                answer: label.clone(),
-            }),
+            } => options
+                .get(*correct)
+                .map(|label| TaskSolution::SingleChoice {
+                    answer: label.clone(),
+                }),
             TaskConfig::MultipleChoice {
                 options, correct, ..
             } => Some(TaskSolution::MultipleChoice {
@@ -424,7 +426,10 @@ impl Task {
             }
             TaskConfig::Ordering { items, answers } => {
                 answers.first().map(|order| TaskSolution::Ordering {
-                    answer: order.iter().filter_map(|&i| items.get(i).cloned()).collect(),
+                    answer: order
+                        .iter()
+                        .filter_map(|&i| items.get(i).cloned())
+                        .collect(),
                 })
             }
             TaskConfig::LongText { .. }

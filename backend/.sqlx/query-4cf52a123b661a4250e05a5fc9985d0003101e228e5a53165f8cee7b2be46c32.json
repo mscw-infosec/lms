@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT u.id, u.username, u.email\n                FROM users u\n                WHERE u.id IN (\n                    SELECT a.user_id\n                    FROM attempts a\n                        JOIN exams e ON e.id = a.exam_id\n                        JOIN topics tp ON tp.id = e.topic_id\n                    WHERE tp.course_id = $1\n                    UNION\n                    SELECT pp.user_id\n                    FROM practice_progress pp\n                        JOIN practice_tasks ptk ON ptk.task_id = pp.task_id\n                        JOIN practices p ON p.id = ptk.practice_id\n                        JOIN topics tp ON tp.id = p.topic_id\n                    WHERE tp.course_id = $1 AND pp.solved = TRUE\n                )\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4cf52a123b661a4250e05a5fc9985d0003101e228e5a53165f8cee7b2be46c32"
+}

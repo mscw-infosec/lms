@@ -138,8 +138,20 @@ impl AccountService {
         Ok(false)
     }
 
-    pub async fn list_accounts(&self, limit: i32, offset: i32) -> Result<Vec<UserModel>> {
-        self.db_repo.list_users(limit, offset).await
+    pub async fn list_accounts(
+        &self,
+        limit: i32,
+        offset: i32,
+        search: Option<String>,
+    ) -> Result<(Vec<UserModel>, i64)> {
+        // Treat blank search as "no filter".
+        let search = search.filter(|s| !s.trim().is_empty());
+        let users = self
+            .db_repo
+            .list_users(limit, offset, search.clone())
+            .await?;
+        let total = self.db_repo.count_users(search).await?;
+        Ok((users, total))
     }
 
     pub async fn set_user_role(&self, id: Uuid, role: UserRole) -> Result<UserModel> {

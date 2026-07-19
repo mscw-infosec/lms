@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                INSERT INTO exams\n                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\", name, description, starts_at, ends_at\n            ",
+  "query": "\n                INSERT INTO exams\n                (topic_id, tries_count, duration, type, description, name, starts_at, ends_at, scoring_policy)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\n                RETURNING id, topic_id, tries_count, duration, type AS \"type: ExamType\", name, description, starts_at, ends_at, scoring_policy AS \"scoring_policy: ExamScoringPolicy\"\n            ",
   "describe": {
     "columns": [
       {
@@ -57,6 +57,22 @@
         "ordinal": 8,
         "name": "ends_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "scoring_policy: ExamScoringPolicy",
+        "type_info": {
+          "Custom": {
+            "name": "exam_scoring_policy",
+            "kind": {
+              "Enum": [
+                "best",
+                "latest",
+                "average"
+              ]
+            }
+          }
+        }
       }
     ],
     "parameters": {
@@ -78,7 +94,19 @@
         "Text",
         "Text",
         "Timestamptz",
-        "Timestamptz"
+        "Timestamptz",
+        {
+          "Custom": {
+            "name": "exam_scoring_policy",
+            "kind": {
+              "Enum": [
+                "best",
+                "latest",
+                "average"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": [
@@ -90,8 +118,9 @@
       false,
       true,
       true,
-      true
+      true,
+      false
     ]
   },
-  "hash": "8e60a2ea3d74f82dd3b8af1254a78d4557adec8784f4087e904e562df0d95350"
+  "hash": "fdce6080410051b4eb6f26769717d82f80685e654487f887d30894575d6fa48d"
 }

@@ -17,6 +17,7 @@ pub struct Exam {
     pub r#type: ExamType,
     pub starts_at: Option<DateTime<Utc>>,
     pub ends_at: Option<DateTime<Utc>>,
+    pub scoring_policy: ExamScoringPolicy,
 }
 
 #[derive(Serialize, Deserialize, sqlx::Type, ToSchema)]
@@ -24,6 +25,22 @@ pub struct Exam {
 pub enum ExamType {
     Instant,
     Delayed, // delayed results
+}
+
+/// How a user's multiple attempts at an exam are collapsed into a single score
+/// for the rating. Chosen by the teacher when creating/editing the exam.
+#[derive(Serialize, Deserialize, sqlx::Type, ToSchema, Clone, Copy, Default, Debug)]
+#[sqlx(type_name = "EXAM_SCORING_POLICY")]
+#[sqlx(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
+pub enum ExamScoringPolicy {
+    /// Highest-scoring attempt.
+    #[default]
+    Best,
+    /// Most recent attempt.
+    Latest,
+    /// Mean across all attempts.
+    Average,
 }
 
 #[derive(

@@ -1,4 +1,4 @@
-use crate::domain::exam::model::{Exam, ExamType};
+use crate::domain::exam::model::{Exam, ExamScoringPolicy, ExamType};
 use crate::domain::task::model::TaskAnswer;
 use crate::dto::task::TaskVerdict;
 use chrono::{DateTime, Utc};
@@ -21,6 +21,8 @@ pub struct UpsertExamRequestDTO {
     pub r#type: ExamType,
     pub starts_at: Option<DateTime<Utc>>,
     pub ends_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub scoring_policy: ExamScoringPolicy,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, FromRow)]

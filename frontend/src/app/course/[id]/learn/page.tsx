@@ -49,7 +49,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import type { UiAnswerPayload } from "@/lib/answers";
 import { buildTaskAnswer } from "@/lib/answers";
-import { getCtfdDomain, getPointsPlural } from "@/lib/utils";
+import { getCtfdDomain, getPointsPlural, parseServerDateMs } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -228,11 +228,12 @@ export default function LearnPage() {
 		return () => {
 			if (!attempt?.active || !selectedExam?.duration) return null;
 			try {
-				const started = new Date(attempt.started_at).getTime();
+				// Parse as UTC regardless of viewer timezone (see parseServerDateMs).
+				const started = parseServerDateMs(attempt.started_at);
 				// duration is stored in seconds; convert to milliseconds
 				const attemptEndAt = started + Number(selectedExam.duration) * 1_000;
 				const examEndsAt = selectedExam?.ends_at
-					? new Date(selectedExam.ends_at).getTime()
+					? parseServerDateMs(selectedExam.ends_at)
 					: Number.POSITIVE_INFINITY;
 				const endAt = Math.min(attemptEndAt, examEndsAt);
 				const secs = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
@@ -412,7 +413,7 @@ export default function LearnPage() {
 		const list = attemptsListQuery.data?.attempts ?? [];
 		return [...list].sort(
 			(a, b) =>
-				new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+				parseServerDateMs(b.started_at) - parseServerDateMs(a.started_at),
 		);
 	}, [attemptsListQuery.data?.attempts]);
 

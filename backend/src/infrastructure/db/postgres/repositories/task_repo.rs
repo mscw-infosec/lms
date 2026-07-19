@@ -1,4 +1,5 @@
 use crate::domain::exam::model::Exam;
+use crate::domain::exam::model::ExamScoringPolicy;
 use crate::domain::exam::model::ExamType;
 use crate::domain::task::model::{Task, TaskType};
 use crate::domain::task::repository::TaskRepository;
@@ -60,7 +61,8 @@ impl TaskRepository for RepositoryPostgres {
             Exam,
             r#"
                 SELECT e.id, e.topic_id, e.tries_count, e.duration, e.type AS "type: ExamType",
-                       e.description, e.name, e.starts_at, e.ends_at
+                       e.description, e.name, e.starts_at, e.ends_at,
+                       e.scoring_policy AS "scoring_policy: ExamScoringPolicy"
                 FROM exam_entities et
                 LEFT JOIN exams e ON e.id = et.exam_id
                 WHERE et.task_id = $1 AND et.entity_type = 'task'

@@ -10,6 +10,7 @@ import {
 	stopAttempt,
 } from "@/api/exam";
 import { useToast } from "@/components/ui/use-toast";
+import { parseServerDateMs } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,7 +83,7 @@ export function useAttempt(
 		if (list.length === 0) return null;
 		const sorted = [...list].sort(
 			(a, b) =>
-				new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
+				parseServerDateMs(b.started_at) - parseServerDateMs(a.started_at),
 		);
 		return sorted[0] ?? null;
 	})();

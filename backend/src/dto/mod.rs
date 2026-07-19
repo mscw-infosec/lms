@@ -6,6 +6,7 @@ pub mod exam;
 pub mod lectures;
 pub mod oauth;
 pub mod practice;
+pub mod rating;
 pub mod report;
 pub mod task;
 pub mod topics;
