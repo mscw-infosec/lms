@@ -3,7 +3,7 @@ use crate::domain::practice::model::{
     PracticeModel, PracticeProgressModel, PracticeSummary, PracticeTaskRow,
 };
 use crate::domain::practice::repository::PracticeRepository;
-use crate::domain::task::model::{Task, TaskAnswer, TaskConfig};
+use crate::domain::task::model::{Task, TaskAnswer, TaskConfig, TaskSolution};
 use crate::domain::task::service::TaskService;
 use crate::domain::topics::service::TopicService;
 use crate::dto::practice::{CreatePracticeRequestDTO, UpdatePracticeRequestDTO};
@@ -190,7 +190,7 @@ impl PracticeService {
         role: UserRole,
         task_id: i32,
         answer: TaskAnswer,
-    ) -> Result<(TaskVerdict, PracticeProgressModel)> {
+    ) -> Result<(TaskVerdict, PracticeProgressModel, Option<TaskSolution>)> {
         // The task must be published as practice, and the user must have access
         // to at least one topic that offers it.
         let topic_ids = self.repo.get_practice_topic_ids(task_id).await?;
@@ -216,6 +216,7 @@ impl PracticeService {
         task.validate_answer(&answer)?;
         let verdict = task.grade(&answer);
         let solved = matches!(verdict, TaskVerdict::FullScore { .. });
+        let solution = if solved { task.solution() } else { None };
 
         let last_answer = to_value(&answer)
             .map_err(|e| LMSError::ShitHappened(format!("Failed to serialize answer: {e}")))?;
@@ -224,6 +225,6 @@ impl PracticeService {
             .record_attempt(user, task_id, solved, last_answer)
             .await?;
 
-        Ok((verdict, progress))
+        Ok((verdict, progress, solution))
     }
 }

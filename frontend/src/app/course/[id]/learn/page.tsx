@@ -1383,7 +1383,7 @@ export default function LearnPage() {
 									<Menu className="h-4 w-4" />
 								</Button>
 							) : null}
-							<Link href={`/course/${courseId}`}>
+							<Link href={isStaff ? `/course/${courseId}` : "/"}>
 								<Button
 									variant="ghost"
 									size="sm"
@@ -1555,7 +1555,12 @@ export default function LearnPage() {
 					>
 						{selectedText != null ? (
 							<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
-								<CardContent className="p-4 sm:p-6">
+								<CardHeader className="p-4 sm:p-6">
+									<CardTitle className="text-2xl text-white">
+										{selectedText.title}
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
 									<Markdown
 										content={selectedText.content ?? ""}
 										className="markdown-body max-w-none text-slate-200 text-sm sm:text-base"

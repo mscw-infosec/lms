@@ -1397,6 +1397,7 @@ export interface components {
         PracticeSubmitResultDTO: {
             /** Format: int32 */
             attempts: number;
+            solution?: null | components["schemas"]["TaskSolution"];
             solved: boolean;
             verdict: components["schemas"]["TaskVerdict"];
         };
@@ -1420,6 +1421,7 @@ export interface components {
             attempts: number;
             /** Format: int32 */
             order_index: number;
+            solution?: null | components["schemas"]["TaskSolution"];
             solved: boolean;
             task: components["schemas"]["PublicTaskDTO"];
         };
@@ -1587,6 +1589,27 @@ export interface components {
             name: "ctfd";
             task_id: number;
         };
+        /** @description The canonical correct answer for a task, exposed to a learner only after
+         *     they have already solved it (e.g. in practice) so they can review what the
+         *     right answer was. Only auto-gradable types have a solution; manual-review
+         *     and CTFd tasks return `None` from [`Task::solution`]. */
+        TaskSolution: {
+            answer: string;
+            /** @enum {string} */
+            name: "single_choice";
+        } | {
+            answers: string[];
+            /** @enum {string} */
+            name: "multiple_choice";
+        } | {
+            answers: string[];
+            /** @enum {string} */
+            name: "short_text";
+        } | {
+            answer: string[];
+            /** @enum {string} */
+            name: "ordering";
+        };
         /** @enum {string} */
         TaskType: "SingleChoice" | "MultipleChoice" | "ShortText" | "LongText" | "Ordering" | "FileUpload" | "ctfd";
         TaskVerdict: {
@@ -1752,6 +1775,7 @@ export interface components {
         };
         UpsertTopicTextDTO: {
             content: string;
+            title: string;
         };
         /** @enum {string} */
         UserRole: "Student" | "Teacher" | "Admin";

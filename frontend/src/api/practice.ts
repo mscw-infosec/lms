@@ -12,6 +12,7 @@ export type CreatePracticeRequestDTO =
 export type UpdatePracticeRequestDTO =
 	components["schemas"]["UpdatePracticeRequestDTO"];
 export type TaskAnswer = components["schemas"]["TaskAnswer"];
+export type TaskSolution = components["schemas"]["TaskSolution"];
 export type UpsertTaskRequestDTO =
 	components["schemas"]["UpsertTaskRequestDTO"];
 

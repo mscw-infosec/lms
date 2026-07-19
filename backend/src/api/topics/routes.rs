@@ -252,7 +252,13 @@ pub async fn create_topic_text(
     ensure_staff(claims.role)?;
     let id = state
         .topic_service
-        .create_topic_text(claims.sub, claims.role, topic_id, payload.content)
+        .create_topic_text(
+            claims.sub,
+            claims.role,
+            topic_id,
+            payload.title,
+            payload.content,
+        )
         .await?;
     Ok((StatusCode::CREATED, Json(CreateTopicTextResponseDTO { id })))
 }
@@ -282,7 +288,14 @@ pub async fn update_topic_text(
     ensure_staff(claims.role)?;
     state
         .topic_service
-        .update_topic_text(claims.sub, claims.role, topic_id, text_id, payload.content)
+        .update_topic_text(
+            claims.sub,
+            claims.role,
+            topic_id,
+            text_id,
+            payload.title,
+            payload.content,
+        )
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }

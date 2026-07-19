@@ -66,6 +66,8 @@ impl From<TopicContentRow> for TopicContentItemDTO {
 
 #[derive(Deserialize, Serialize, Validate, ToSchema)]
 pub struct UpsertTopicTextDTO {
+    #[validate(length(min = 1, max = 200, message = "Heading must be 1..200 characters"))]
+    pub title: String,
     #[validate(length(min = 1, max = 20000, message = "Text must be 1..20000 characters"))]
     pub content: String,
 }

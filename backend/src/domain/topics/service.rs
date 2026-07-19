@@ -98,10 +98,11 @@ impl TopicService {
         user: Uuid,
         role: UserRole,
         topic_id: i32,
+        title: String,
         content: String,
     ) -> Result<i32> {
         let _ = self.get_topic_by_id(user, role, topic_id).await?;
-        self.repo.create_topic_text(topic_id, content).await
+        self.repo.create_topic_text(topic_id, title, content).await
     }
 
     pub async fn update_topic_text(
@@ -110,11 +111,12 @@ impl TopicService {
         role: UserRole,
         topic_id: i32,
         text_id: i32,
+        title: String,
         content: String,
     ) -> Result<()> {
         let _ = self.get_topic_by_id(user, role, topic_id).await?;
         self.repo
-            .update_topic_text(topic_id, text_id, content)
+            .update_topic_text(topic_id, text_id, title, content)
             .await
     }
 

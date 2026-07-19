@@ -22,7 +22,14 @@ pub trait TopicRepository {
     async fn get_topic_content(&self, topic_id: i32) -> Result<Vec<TopicContentRow>>;
     /// Reassigns order indices across all content kinds to match the given order.
     async fn reorder_topic_content(&self, topic_id: i32, items: &[(String, String)]) -> Result<()>;
-    async fn create_topic_text(&self, topic_id: i32, content: String) -> Result<i32>;
-    async fn update_topic_text(&self, topic_id: i32, text_id: i32, content: String) -> Result<()>;
+    async fn create_topic_text(&self, topic_id: i32, title: String, content: String)
+    -> Result<i32>;
+    async fn update_topic_text(
+        &self,
+        topic_id: i32,
+        text_id: i32,
+        title: String,
+        content: String,
+    ) -> Result<()>;
     async fn delete_topic_text(&self, topic_id: i32, text_id: i32) -> Result<()>;
 }

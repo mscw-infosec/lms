@@ -430,12 +430,6 @@ export default function CoursePage() {
 								<CardTitle className="text-white">
 									{t("course_structure")}
 								</CardTitle>
-								<CardDescription className="text-slate-400">
-									{t("course_structure_modules_lessons", {
-										modules: (topicsQuery.data ?? []).length,
-										lessons: 0,
-									})}
-								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								{canEdit && (

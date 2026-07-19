@@ -389,6 +389,64 @@ impl Task {
             _ => unreachable!(),
         }
     }
+
+    /// Returns the canonical correct answer for this task, if it has one that can
+    /// be shown to a learner who already solved it. Manual-review types
+    /// (`LongText`, `FileUpload`), non-`auto_grade` `ShortText`, and `CTFd`
+    /// return `None`.
+    pub fn solution(&self) -> Option<TaskSolution> {
+        match &self.configuration {
+            TaskConfig::SingleChoice {
+                options, correct, ..
+            } => options.get(*correct).map(|label| TaskSolution::SingleChoice {
+                answer: label.clone(),
+            }),
+            TaskConfig::MultipleChoice {
+                options, correct, ..
+            } => Some(TaskSolution::MultipleChoice {
+                answers: correct
+                    .iter()
+                    .filter_map(|&i| options.get(i).cloned())
+                    .collect(),
+            }),
+            TaskConfig::ShortText {
+                auto_grade,
+                answers,
+                ..
+            } => {
+                if *auto_grade && !answers.is_empty() {
+                    Some(TaskSolution::ShortText {
+                        answers: answers.clone(),
+                    })
+                } else {
+                    None
+                }
+            }
+            TaskConfig::Ordering { items, answers } => {
+                answers.first().map(|order| TaskSolution::Ordering {
+                    answer: order.iter().filter_map(|&i| items.get(i).cloned()).collect(),
+                })
+            }
+            TaskConfig::LongText { .. }
+            | TaskConfig::FileUpload { .. }
+            | TaskConfig::CTFd { .. } => None,
+        }
+    }
+}
+
+/// The canonical correct answer for a task.
+///
+/// Exposed to a learner only after they have already solved it (e.g. in
+/// practice) so they can review what the right answer was. Only auto-gradable
+/// types have a solution; manual-review and `CTFd` tasks return `None` from
+/// [`Task::solution`].
+#[derive(Serialize, Deserialize, ToSchema, Clone)]
+#[serde(tag = "name", rename_all = "snake_case")]
+pub enum TaskSolution {
+    SingleChoice { answer: String },
+    MultipleChoice { answers: Vec<String> },
+    ShortText { answers: Vec<String> },
+    Ordering { answer: Vec<String> },
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Clone)]

@@ -3,6 +3,7 @@
 import {
 	type PracticeDetailDTO,
 	type PracticeSubmitResultDTO,
+	type TaskSolution,
 	getPractice,
 	submitPractice,
 } from "@/api/practice";
@@ -15,6 +16,28 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+/**
+ * Turns a solved task's canonical solution into a value the TaskPlayer can
+ * render read-only via its `initial` prop, so learners see the right answer.
+ */
+function solutionToInitial(
+	solution: TaskSolution | null | undefined,
+): string | string[] | undefined {
+	if (!solution) return undefined;
+	switch (solution.name) {
+		case "single_choice":
+			return solution.answer;
+		case "multiple_choice":
+			return solution.answers;
+		case "short_text":
+			return solution.answers[0];
+		case "ordering":
+			return solution.answer;
+		default:
+			return undefined;
+	}
+}
 
 function verdictTone(verdict: string): { label: string; className: string } {
 	switch (verdict) {
@@ -120,6 +143,11 @@ export default function PracticeRunner({ practiceId }: { practiceId: number }) {
 					const result = results[item.task.id];
 					const solved = result ? result.solved : item.solved;
 					const tone = result ? verdictTone(result.verdict.verdict) : null;
+					// Once solved, reveal the correct answer (read-only) so the
+					// learner can remember what it was, even after a reload.
+					const solutionInitial = solved
+						? solutionToInitial(result?.solution ?? item.solution)
+						: undefined;
 					return (
 						<div key={item.task.id} className="space-y-2">
 							<div className="flex items-center justify-between text-slate-400 text-sm">
@@ -140,6 +168,7 @@ export default function PracticeRunner({ practiceId }: { practiceId: number }) {
 								previewMode={false}
 								disabled={solved}
 								isLast
+								initial={solutionInitial}
 								onAnswer={(payload) => {
 									latestAnswer.current[item.task.id] = payload;
 								}}

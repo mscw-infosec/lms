@@ -5,7 +5,7 @@ use validator::Validate;
 use crate::domain::practice::model::{
     PracticeModel, PracticeProgressModel, PracticeSummary, PracticeTaskRow,
 };
-use crate::domain::task::model::Task;
+use crate::domain::task::model::{Task, TaskSolution};
 use crate::dto::task::{PublicTaskDTO, TaskVerdict};
 
 #[derive(Deserialize, Serialize, Validate, ToSchema)]
@@ -79,16 +79,21 @@ pub struct PracticeTaskDTO {
     pub order_index: i32,
     pub solved: bool,
     pub attempts: i32,
+    /// The correct answer, revealed only once the caller has solved the task so
+    /// they can review it. `None` while unsolved or for non-reviewable types.
+    pub solution: Option<TaskSolution>,
 }
 
 impl From<PracticeTaskRow> for PracticeTaskDTO {
     fn from(row: PracticeTaskRow) -> Self {
         let (task, order_index, solved, attempts) = row.into_task();
+        let solution = if solved { task.solution() } else { None };
         Self {
             task: task.into(),
             order_index,
             solved,
             attempts,
+            solution,
         }
     }
 }
@@ -119,14 +124,21 @@ pub struct PracticeSubmitResultDTO {
     pub verdict: TaskVerdict,
     pub solved: bool,
     pub attempts: i32,
+    /// The correct answer, present only when the submission solved the task.
+    pub solution: Option<TaskSolution>,
 }
 
 impl PracticeSubmitResultDTO {
-    pub const fn new(verdict: TaskVerdict, progress: &PracticeProgressModel) -> Self {
+    pub fn new(
+        verdict: TaskVerdict,
+        progress: &PracticeProgressModel,
+        solution: Option<TaskSolution>,
+    ) -> Self {
         Self {
             verdict,
             solved: progress.solved,
             attempts: progress.attempts,
+            solution: if progress.solved { solution } else { None },
         }
     }
 }

@@ -296,6 +296,7 @@ export default function TopicContentList({
 				<TextEditDialog
 					topicId={topicId}
 					textId={Number(editText.id)}
+					initialTitle={editText.title ?? ""}
 					initialContent={editText.content ?? ""}
 					open={editText != null}
 					onOpenChange={(o) => {

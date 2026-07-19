@@ -135,7 +135,7 @@ impl TopicRepository for RepositoryPostgres {
                     JOIN exams e ON e.id = eo.exam_id
                 WHERE eo.topic_id = $1
                 UNION ALL
-                SELECT 'text', tt.id::text, LEFT(tt.content, 60), tt.content, tt.order_index
+                SELECT 'text', tt.id::text, tt.title, tt.content, tt.order_index
                 FROM topic_texts tt
                 WHERE tt.topic_id = $1
                 ORDER BY "order_index!"
@@ -210,15 +210,21 @@ impl TopicRepository for RepositoryPostgres {
         Ok(())
     }
 
-    async fn create_topic_text(&self, topic_id: i32, content: String) -> Result<i32> {
+    async fn create_topic_text(
+        &self,
+        topic_id: i32,
+        title: String,
+        content: String,
+    ) -> Result<i32> {
         let order_index = self.next_topic_order(topic_id).await?;
         let id = sqlx::query_scalar!(
             r#"
-                INSERT INTO topic_texts (topic_id, content, order_index)
-                VALUES ($1, $2, $3)
+                INSERT INTO topic_texts (topic_id, title, content, order_index)
+                VALUES ($1, $2, $3, $4)
                 RETURNING id
             "#,
             topic_id,
+            title,
             content,
             order_index
         )
@@ -234,13 +240,20 @@ impl TopicRepository for RepositoryPostgres {
         Ok(id)
     }
 
-    async fn update_topic_text(&self, topic_id: i32, text_id: i32, content: String) -> Result<()> {
+    async fn update_topic_text(
+        &self,
+        topic_id: i32,
+        text_id: i32,
+        title: String,
+        content: String,
+    ) -> Result<()> {
         sqlx::query!(
             r#"
                 UPDATE topic_texts
-                SET content = $1
-                WHERE id = $2 AND topic_id = $3
+                SET title = $1, content = $2
+                WHERE id = $3 AND topic_id = $4
             "#,
+            title,
             content,
             text_id,
             topic_id

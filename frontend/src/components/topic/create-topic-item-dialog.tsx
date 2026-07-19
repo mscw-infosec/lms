@@ -62,6 +62,7 @@ export default function CreateTopicItemDialog({
 	const [practiceDescription, setPracticeDescription] = useState("");
 
 	// Text
+	const [textTitle, setTextTitle] = useState("");
 	const [textContent, setTextContent] = useState("");
 
 	// Exam
@@ -84,6 +85,7 @@ export default function CreateTopicItemDialog({
 		setLectureVideoId("");
 		setPracticeTitle("");
 		setPracticeDescription("");
+		setTextTitle("");
 		setTextContent("");
 		setExamState({
 			name: "",
@@ -136,7 +138,8 @@ export default function CreateTopicItemDialog({
 	});
 
 	const textMutation = useMutation({
-		mutationFn: () => createTopicText(topicId, textContent.trim()),
+		mutationFn: () =>
+			createTopicText(topicId, textTitle.trim(), textContent.trim()),
 		onSuccess: done,
 		onError: fail,
 	});
@@ -165,7 +168,7 @@ export default function CreateTopicItemDialog({
 	const canSubmit = () => {
 		if (kind === "lecture") return !!lectureTitle.trim();
 		if (kind === "practice") return !!practiceTitle.trim();
-		if (kind === "text") return !!textContent.trim();
+		if (kind === "text") return !!textTitle.trim() && !!textContent.trim();
 		const hasBoth = !!startsAtLocal && !!endsAtLocal;
 		const invalidRange = hasBoth
 			? new Date(endsAtLocal).getTime() < new Date(startsAtLocal).getTime()
@@ -275,16 +278,29 @@ export default function CreateTopicItemDialog({
 							/>
 						</div>
 					) : kind === "text" ? (
-						<div className="space-y-2">
-							<Label className="text-slate-300">
-								{t("lecture_content") || "Content (Markdown)"}
-							</Label>
-							<Textarea
-								value={textContent}
-								onChange={(e) => setTextContent(e.target.value)}
-								placeholder={t("enter_text") || "Enter text…"}
-								className="min-h-40 border-slate-700 bg-slate-800 text-white"
-							/>
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label className="text-slate-300">
+									{t("heading") || "Heading"}
+								</Label>
+								<Input
+									value={textTitle}
+									onChange={(e) => setTextTitle(e.target.value)}
+									placeholder={t("text_heading") || "Heading"}
+									className="border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label className="text-slate-300">
+									{t("lecture_content") || "Content (Markdown)"}
+								</Label>
+								<Textarea
+									value={textContent}
+									onChange={(e) => setTextContent(e.target.value)}
+									placeholder={t("enter_text") || "Enter text…"}
+									className="min-h-40 border-slate-700 bg-slate-800 text-white"
+								/>
+							</div>
 						</div>
 					) : kind === "practice" ? (
 						<div className="space-y-4">

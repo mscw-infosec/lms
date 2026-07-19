@@ -75,7 +75,7 @@ interface TaskPlayerProps {
 	onAnswer?: (payload: UiAnswerPayload) => void;
 	disabled?: boolean;
 	isLast?: boolean;
-	initial?: number | number[] | string | Record<number, number>;
+	initial?: number | number[] | string | string[] | Record<number, number>;
 	onCtfdSync?: (taskId: number) => Promise<void> | void;
 	/** If true, the CTFd task is already synced; show success banner initially */
 	ctfdAlreadySynced?: boolean;

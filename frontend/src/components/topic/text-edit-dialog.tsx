@@ -9,6 +9,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +21,7 @@ import { useTranslation } from "react-i18next";
 export default function TextEditDialog({
 	topicId,
 	textId,
+	initialTitle,
 	initialContent,
 	open,
 	onOpenChange,
@@ -28,6 +30,7 @@ export default function TextEditDialog({
 	topicId: number;
 	/** null to create a new text item. */
 	textId: number | null;
+	initialTitle?: string;
 	initialContent?: string;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -35,17 +38,23 @@ export default function TextEditDialog({
 }) {
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
+	const [title, setTitle] = useState("");
 	const [content, setContent] = useState("");
 
 	useEffect(() => {
-		if (open) setContent(initialContent ?? "");
-	}, [open, initialContent]);
+		if (open) {
+			setTitle(initialTitle ?? "");
+			setContent(initialContent ?? "");
+		}
+	}, [open, initialTitle, initialContent]);
 
 	const saveMutation = useMutation({
 		mutationFn: () =>
 			textId == null
-				? createTopicText(topicId, content.trim()).then(() => undefined)
-				: updateTopicText(topicId, textId, content.trim()),
+				? createTopicText(topicId, title.trim(), content.trim()).then(
+						() => undefined,
+					)
+				: updateTopicText(topicId, textId, title.trim(), content.trim()),
 		onSuccess: () => {
 			toast({ description: t("saved_successfully") || "Saved" });
 			onSaved?.();
@@ -64,16 +73,29 @@ export default function TextEditDialog({
 							: t("edit_text") || "Edit text"}
 					</DialogTitle>
 				</DialogHeader>
-				<div className="space-y-2">
-					<Label className="text-slate-300">
-						{t("lecture_content") || "Content (Markdown)"}
-					</Label>
-					<Textarea
-						value={content}
-						onChange={(e) => setContent(e.target.value)}
-						placeholder={t("enter_text") || "Enter text…"}
-						className="min-h-40 border-slate-700 bg-slate-800 text-white"
-					/>
+				<div className="space-y-4">
+					<div className="space-y-2">
+						<Label className="text-slate-300">
+							{t("heading") || "Heading"}
+						</Label>
+						<Input
+							value={title}
+							onChange={(e) => setTitle(e.target.value)}
+							placeholder={t("text_heading") || "Heading"}
+							className="border-slate-700 bg-slate-800 text-white"
+						/>
+					</div>
+					<div className="space-y-2">
+						<Label className="text-slate-300">
+							{t("lecture_content") || "Content (Markdown)"}
+						</Label>
+						<Textarea
+							value={content}
+							onChange={(e) => setContent(e.target.value)}
+							placeholder={t("enter_text") || "Enter text…"}
+							className="min-h-40 border-slate-700 bg-slate-800 text-white"
+						/>
+					</div>
 				</div>
 				<DialogFooter>
 					<Button
@@ -85,7 +107,9 @@ export default function TextEditDialog({
 					</Button>
 					<Button
 						onClick={() => saveMutation.mutate()}
-						disabled={saveMutation.isPending || !content.trim()}
+						disabled={
+							saveMutation.isPending || !title.trim() || !content.trim()
+						}
 						className="bg-red-600 text-white hover:bg-red-700"
 					>
 						{saveMutation.isPending ? (

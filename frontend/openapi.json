@@ -4147,6 +4147,17 @@
 						"type": "integer",
 						"format": "int32"
 					},
+					"solution": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/TaskSolution",
+								"description": "The correct answer, present only when the submission solved the task."
+							}
+						]
+					},
 					"solved": {
 						"type": "boolean"
 					},
@@ -4202,6 +4213,17 @@
 					"order_index": {
 						"type": "integer",
 						"format": "int32"
+					},
+					"solution": {
+						"oneOf": [
+							{
+								"type": "null"
+							},
+							{
+								"$ref": "#/components/schemas/TaskSolution",
+								"description": "The correct answer, revealed only once the caller has solved the task so\nthey can review it. `None` while unsolved or for non-reviewable types."
+							}
+						]
 					},
 					"solved": {
 						"type": "boolean"
@@ -4782,6 +4804,72 @@
 					}
 				]
 			},
+			"TaskSolution": {
+				"oneOf": [
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "string"
+							},
+							"name": {
+								"type": "string",
+								"enum": ["single_choice"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answers", "name"],
+						"properties": {
+							"answers": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["multiple_choice"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answers", "name"],
+						"properties": {
+							"answers": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["short_text"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"required": ["answer", "name"],
+						"properties": {
+							"answer": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"name": {
+								"type": "string",
+								"enum": ["ordering"]
+							}
+						}
+					}
+				],
+				"description": "The canonical correct answer for a task, exposed to a learner only after\nthey have already solved it (e.g. in practice) so they can review what the\nright answer was. Only auto-gradable types have a solution; manual-review\nand CTFd tasks return `None` from [`Task::solution`]."
+			},
 			"TaskType": {
 				"type": "string",
 				"enum": [
@@ -5166,9 +5254,12 @@
 			},
 			"UpsertTopicTextDTO": {
 				"type": "object",
-				"required": ["content"],
+				"required": ["title", "content"],
 				"properties": {
 					"content": {
+						"type": "string"
+					},
+					"title": {
 						"type": "string"
 					}
 				}

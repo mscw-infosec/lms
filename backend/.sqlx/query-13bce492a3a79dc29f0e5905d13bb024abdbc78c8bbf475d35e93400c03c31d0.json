@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE topic_texts\n                SET title = $1, content = $2\n                WHERE id = $3 AND topic_id = $4\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "13bce492a3a79dc29f0e5905d13bb024abdbc78c8bbf475d35e93400c03c31d0"
+}

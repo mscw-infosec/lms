@@ -57,11 +57,12 @@ export async function reorderTopicContent(
 
 export async function createTopicText(
 	topicId: number,
+	title: string,
 	content: string,
 ): Promise<{ id: number }> {
 	return http<{ id: number }>(`/api/topics/${topicId}/text`, {
 		method: "POST",
-		body: JSON.stringify({ content }),
+		body: JSON.stringify({ title, content }),
 		withAuth: true,
 	});
 }
@@ -69,11 +70,12 @@ export async function createTopicText(
 export async function updateTopicText(
 	topicId: number,
 	textId: number,
+	title: string,
 	content: string,
 ): Promise<void> {
 	await http<void>(`/api/topics/${topicId}/text/${textId}`, {
 		method: "PUT",
-		body: JSON.stringify({ content }),
+		body: JSON.stringify({ title, content }),
 		withAuth: true,
 	});
 }

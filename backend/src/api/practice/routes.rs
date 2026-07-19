@@ -316,9 +316,11 @@ pub async fn submit(
     State(state): State<PracticeState>,
     Json(answer): Json<TaskAnswer>,
 ) -> Result<Json<PracticeSubmitResultDTO>, LMSError> {
-    let (verdict, progress) = state
+    let (verdict, progress, solution) = state
         .practice_service
         .submit(claims.sub, claims.role, task_id, answer)
         .await?;
-    Ok(Json(PracticeSubmitResultDTO::new(verdict, &progress)))
+    Ok(Json(PracticeSubmitResultDTO::new(
+        verdict, &progress, solution,
+    )))
 }
