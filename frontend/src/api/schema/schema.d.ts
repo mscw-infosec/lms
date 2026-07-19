@@ -1751,6 +1751,9 @@ export interface components {
         };
         SessionInfo: {
             device_id: string;
+            /** @description Human-friendly device label, e.g. "Chrome on Windows". */
+            device_label: string;
+            ip?: string | null;
             is_current: boolean;
             /** Format: date-time */
             issued_at: string;
@@ -1758,6 +1761,7 @@ export interface components {
             jti: string;
             /** Format: date-time */
             last_used: string;
+            user_agent?: string | null;
         };
         Task: {
             configuration: components["schemas"]["TaskConfig"];

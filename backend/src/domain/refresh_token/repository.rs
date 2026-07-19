@@ -28,5 +28,11 @@ pub trait RefreshTokenRepository {
         user_id: Uuid,
         current_jti: Uuid,
     ) -> Result<Vec<SessionInfo>, LMSError>;
+    /// All `(jti, data)` for a user's active sessions, used to match device
+    /// fingerprints when deduplicating sessions.
+    async fn get_user_token_data(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<(Uuid, RefreshTokenData)>, LMSError>;
     async fn delete_all_user_sessions(&self, user_id: Uuid) -> Result<(), LMSError>;
 }

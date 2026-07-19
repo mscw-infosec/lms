@@ -1,5 +1,6 @@
 use axum::{
     extract::{Query, State},
+    http::HeaderMap,
     response::Redirect,
 };
 use tower_cookies::Cookies;
@@ -9,7 +10,7 @@ use crate::{
     domain::oauth::service::{OAuthProvider, OAuthService},
     dto::oauth::OAuthCallbackQuery,
     errors::LMSError,
-    utils::{add_cookie, remove_cookie},
+    utils::{add_cookie, device_from_headers, remove_cookie},
 };
 
 /// Redirect user to yandex oauth login page
@@ -28,6 +29,7 @@ pub async fn login(cookies: Cookies, State(state): State<YandexState>) -> Redire
 #[utoipa::path(get, path = "/callback", tag = "OAuth")]
 pub async fn callback(
     cookies: Cookies,
+    headers: HeaderMap,
     Query(query): Query<OAuthCallbackQuery>,
     State(state): State<YandexState>,
 ) -> Result<Redirect, LMSError> {
@@ -46,7 +48,7 @@ pub async fn callback(
 
     let (refresh_token, _) = state
         .refresh_token_service
-        .create_refresh_token(user_id)
+        .create_refresh_token(user_id, device_from_headers(&headers))
         .await?;
 
     let role = state.account_service.get_user(user_id).await?.role;

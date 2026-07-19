@@ -417,8 +417,15 @@ export default function AccountPage() {
 													<Smartphone className="h-4 w-4 text-slate-300" />
 												</div>
 												<div>
-													<div className="text-sm text-white">
-														{t("device_label", { id: s.device_id })}
+													<div className="flex items-center gap-2 text-sm text-white">
+														{s.device_label ||
+															t("unknown_device") ||
+															"Unknown device"}
+														{s.is_current ? (
+															<span className="rounded bg-red-600/20 px-1.5 py-0.5 text-red-300 text-xs">
+																{t("this_device") || "This device"}
+															</span>
+														) : null}
 													</div>
 													<div className="text-slate-400 text-xs">
 														{t("issued_last_used", {
@@ -426,6 +433,11 @@ export default function AccountPage() {
 															lastUsed: new Date(s.last_used).toLocaleString(),
 														})}
 													</div>
+													{s.ip ? (
+														<div className="text-slate-500 text-xs">
+															{t("ip_label", { ip: s.ip }) || `IP: ${s.ip}`}
+														</div>
+													) : null}
 												</div>
 											</div>
 											<Button

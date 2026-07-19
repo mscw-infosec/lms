@@ -110,6 +110,9 @@ impl RefreshTokenRepository for RepositoryRedis {
                     jti,
                     is_current: jti == current_jti,
                     device_id: token_data.device_id.clone(),
+                    device_label: token_data.device_label.clone(),
+                    user_agent: token_data.user_agent.clone(),
+                    ip: token_data.ip.clone(),
                     last_used: token_data.last_used,
                     issued_at: token_data.issued_at,
                 });
@@ -117,6 +120,27 @@ impl RefreshTokenRepository for RepositoryRedis {
         }
 
         Ok(sessions)
+    }
+
+    async fn get_user_token_data(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<(Uuid, RefreshTokenData)>, LMSError> {
+        let mut conn = self.conn();
+        let key = Self::user_sessions_key(user_id);
+
+        let jtis = conn.smembers(&key).await?;
+        let mut result = Vec::new();
+
+        for jti_str in jtis {
+            if let Ok(jti) = Uuid::parse_str(&jti_str)
+                && let Some(token_data) = self.get_token(jti).await?
+            {
+                result.push((jti, token_data));
+            }
+        }
+
+        Ok(result)
     }
 
     async fn delete_all_user_sessions(&self, user_id: Uuid) -> Result<(), LMSError> {

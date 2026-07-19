@@ -1,6 +1,7 @@
 use std::{collections::HashMap, hash::BuildHasher};
 
 use axum::extract::Query;
+use axum::http::HeaderMap;
 use axum::{
     Json,
     extract::{FromRequest, Request},
@@ -11,6 +12,7 @@ use tower_cookies::{Cookie, Cookies, cookie::SameSite};
 use tracing::warn;
 use validator::Validate;
 
+use crate::domain::refresh_token::model::DeviceInfo;
 use crate::errors::LMSError;
 
 pub struct ValidatedJson<T>(pub T);
@@ -74,6 +76,32 @@ pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
 pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
     let cookie = Cookie::build((name, "")).removal().build();
     cookies.remove(cookie);
+}
+
+/// Builds a fresh [`DeviceInfo`] fingerprint from request headers.
+///
+/// Uses the `User-Agent` plus the client IP (`X-Forwarded-For` first hop,
+/// falling back to `X-Real-IP`). Used at login/OAuth to identify the session.
+#[must_use]
+pub fn device_from_headers(headers: &HeaderMap) -> DeviceInfo {
+    let header_str = |name: &str| {
+        headers
+            .get(name)
+            .and_then(|v| v.to_str().ok())
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(ToString::to_string)
+    };
+
+    let user_agent = header_str("user-agent");
+    let ip = header_str("x-forwarded-for")
+        .map(|xff| {
+            // X-Forwarded-For may be a comma-separated list; the client is first.
+            xff.split(',').next().unwrap_or(&xff).trim().to_string()
+        })
+        .or_else(|| header_str("x-real-ip"));
+
+    DeviceInfo::new(user_agent, ip)
 }
 
 pub async fn send_and_parse<T: serde::de::DeserializeOwned>(

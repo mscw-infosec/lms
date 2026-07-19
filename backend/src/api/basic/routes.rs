@@ -1,4 +1,4 @@
-use axum::{Json, extract::State};
+use axum::{Json, extract::State, http::HeaderMap};
 use tower_cookies::Cookies;
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
         BasicLoginRequest, BasicLoginResponse, BasicRegisterRequest, BasicRegisterResponse,
     },
     errors::LMSError,
-    utils::{ValidatedJson, add_cookie},
+    utils::{ValidatedJson, add_cookie, device_from_headers},
 };
 
 use super::BasicAuthState;
@@ -26,6 +26,7 @@ use super::BasicAuthState;
 )]
 pub async fn register(
     cookies: Cookies,
+    headers: HeaderMap,
     State(state): State<BasicAuthState>,
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
 ) -> Result<Json<BasicRegisterResponse>, LMSError> {
@@ -40,7 +41,10 @@ pub async fn register(
         .register(username, email, password)
         .await?;
 
-    let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
+    let (refresh_token, _) = state
+        .refresh_service
+        .create_refresh_token(user.id, device_from_headers(&headers))
+        .await?;
     let access_token = state.jwt.generate_access_token(user.id, user.role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
@@ -63,6 +67,7 @@ pub async fn register(
 )]
 pub async fn login(
     cookies: Cookies,
+    headers: HeaderMap,
     State(state): State<BasicAuthState>,
     Json(payload): Json<BasicLoginRequest>,
 ) -> Result<Json<BasicLoginResponse>, LMSError> {
@@ -70,7 +75,10 @@ pub async fn login(
 
     let user = state.basic_auth_service.login(username, password).await?;
 
-    let (refresh_token, _) = state.refresh_service.create_refresh_token(user.id).await?;
+    let (refresh_token, _) = state
+        .refresh_service
+        .create_refresh_token(user.id, device_from_headers(&headers))
+        .await?;
     let access_token = state.jwt.generate_access_token(user.id, user.role)?;
 
     add_cookie(&cookies, ("refresh_token", refresh_token));
