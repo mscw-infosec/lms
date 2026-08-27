@@ -11,7 +11,6 @@ RUN \
     else echo "Lockfile not found." && exit 1; \
     fi
 
-
 FROM node:20-alpine AS builder
 ARG DATABASE_URL
 ARG NEXT_PUBLIC_CLIENTVAR

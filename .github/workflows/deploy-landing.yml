@@ -34,6 +34,8 @@ jobs:
         with:
           context: landing
           push: true
+          provenance: false
+          sbom: false
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
             ${{ env.IMAGE_NAME }}:latest
