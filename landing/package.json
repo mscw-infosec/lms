@@ -2,6 +2,13 @@
 	"name": "infosec.moscow",
 	"version": "0.1.0",
 	"private": true,
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"@biomejs/biome",
+			"@tailwindcss/oxide",
+			"sharp"
+		]
+	},
 	"scripts": {
 		"build": "next build",
 		"dev": "next dev",
