@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +8,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useState, useEffect } from "react";
 import {
 	Award,
 	BookOpen,
@@ -21,34 +20,34 @@ import {
 	Shield,
 	Target,
 	Users,
-	X
+	X,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function InfoSecAnnualProgram() {
+	const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+	// Handle escape key to close modal
+	useEffect(() => {
+		const handleEscape = (e: KeyboardEvent) => {
+			if (e.key === "Escape" && isLoginModalOpen) {
+				setIsLoginModalOpen(false);
+			}
+		};
 
-    // Handle escape key to close modal
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isLoginModalOpen) {
-                setIsLoginModalOpen(false)
-            }
-        }
+		if (isLoginModalOpen) {
+			document.addEventListener("keydown", handleEscape);
+			document.body.style.overflow = "hidden";
+		}
 
-        if (isLoginModalOpen) {
-            document.addEventListener('keydown', handleEscape)
-            document.body.style.overflow = 'hidden'
-        }
+		return () => {
+			document.removeEventListener("keydown", handleEscape);
+			document.body.style.overflow = "unset";
+		};
+	}, [isLoginModalOpen]);
 
-        return () => {
-            document.removeEventListener('keydown', handleEscape)
-            document.body.style.overflow = 'unset'
-        }
-    }, [isLoginModalOpen])
-
-    const heroDescription = (
+	const heroDescription = (
 		<p className="mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
 			Обучение навыкам в области информационной безопасности для школьников на
 			протяжении всего учебного года, занятия с преподавателями онлайн и
@@ -94,16 +93,16 @@ export default function InfoSecAnnualProgram() {
 						</a>
 					</nav>
 
-					<div className="ml-auto flex items-center gap-1.5 md:gap-2">
-						<Button
-							size="sm"
-							className="whitespace-nowrap bg-red-600 hover:bg-red-700"
-							asChild
-							onClick={() => setIsLoginModalOpen(true)}
-						>
-							<Link href="#">Вход</Link>
-						</Button>
-					</div>
+					{/*<div className="ml-auto flex items-center gap-1.5 md:gap-2">*/}
+					{/*	<Button*/}
+					{/*		size="sm"*/}
+					{/*		className="whitespace-nowrap bg-red-600 hover:bg-red-700"*/}
+					{/*		asChild*/}
+					{/*		onClick={() => setIsLoginModalOpen(true)}*/}
+					{/*	>*/}
+					{/*		<Link href="#">Вход</Link>*/}
+					{/*	</Button>*/}
+					{/*</div>*/}
 				</div>
 			</header>
 
@@ -111,30 +110,45 @@ export default function InfoSecAnnualProgram() {
 			{isLoginModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center">
 					{/* Backdrop */}
-					<div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsLoginModalOpen(false)} />
+					<div
+						className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+						onClick={() => setIsLoginModalOpen(false)}
+					/>
 
 					{/* Modal */}
-					<div className="relative bg-white rounded-lg shadow-xl p-6 mx-4 max-w-md w-full">
-						<div className="flex items-center justify-between mb-4">
-							<h2 className="text-lg font-semibold text-gray-900">Вход в систему</h2>
+					<div className="relative mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+						<div className="mb-4 flex items-center justify-between">
+							<h2 className="font-semibold text-gray-900 text-lg">
+								Вход в систему
+							</h2>
 							<button
 								onClick={() => setIsLoginModalOpen(false)}
-								className="text-gray-400 hover:text-gray-600 transition-colors"
+								className="text-gray-400 transition-colors hover:text-gray-600"
 							>
 								<X className="h-5 w-5" />
 							</button>
 						</div>
 
-						<div className="text-center py-8">
-							<Shield className="h-12 w-12 text-red-600 mx-auto mb-4" />
-							<p className="text-gray-600 mb-2">Для перехода в LMS нажмите на кнопку ниже</p>
+						<div className="py-8 text-center">
+							<Shield className="mx-auto mb-4 h-12 w-12 text-red-600" />
+							<p className="mb-2 text-gray-600">
+								Для перехода в LMS нажмите на кнопку ниже
+							</p>
 						</div>
 
 						<div className="flex gap-3">
-							<Button variant="outline" className="flex-1 bg-transparent" onClick={() => setIsLoginModalOpen(false)}>
+							<Button
+								variant="outline"
+								className="flex-1 bg-transparent"
+								onClick={() => setIsLoginModalOpen(false)}
+							>
 								Закрыть
 							</Button>
-							<Button className="flex-1 bg-red-600 hover:bg-red-700" asChild onClick={() => setIsLoginModalOpen(false)}>
+							<Button
+								className="flex-1 bg-red-600 hover:bg-red-700"
+								asChild
+								onClick={() => setIsLoginModalOpen(false)}
+							>
 								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
 							</Button>
 						</div>
@@ -147,9 +161,6 @@ export default function InfoSecAnnualProgram() {
 				<section className="w-full bg-gradient-to-br from-gray-50 to-gray-100 py-14 md:py-24 lg:py-28">
 					<div className="mx-auto max-w-6xl px-4 md:px-6">
 						<div className="flex flex-col items-center text-center">
-							<span className="mb-4 inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-medium text-red-700 text-xs">
-								Занятия в ЦПМ • Москва
-							</span>
 							<h1 className="max-w-3xl font-bold text-3xl tracking-tight sm:text-5xl">
 								Сборная Москвы на ВсОШ по Информационной Безопасности
 							</h1>
@@ -166,10 +177,6 @@ export default function InfoSecAnnualProgram() {
 									<a href="#timeline">Даты и сроки</a>
 								</Button>
 							</div>
-							<p className="mt-3 text-gray-500 text-xs">
-								Для поступления нужно сдать внутренний экзамен • Обучение
-								онлайн/оффлайн
-							</p>
 						</div>
 					</div>
 				</section>
@@ -186,7 +193,7 @@ export default function InfoSecAnnualProgram() {
 											Продолжительность программы
 										</CardTitle>
 									</div>
-									<CardDescription>8 месяцев • 3 дня в неделю</CardDescription>
+									<CardDescription>8 месяцев - 3 дня в неделю</CardDescription>
 								</CardHeader>
 							</Card>
 							<Card>
@@ -196,7 +203,7 @@ export default function InfoSecAnnualProgram() {
 										<CardTitle className="text-base">Формат</CardTitle>
 									</div>
 									<CardDescription>
-										Гибридный • Москва + онлайн-занятия
+										Гибридный: Москва + занятия онлайн
 									</CardDescription>
 								</CardHeader>
 							</Card>
@@ -267,7 +274,7 @@ export default function InfoSecAnnualProgram() {
 								<CardHeader>
 									<div className="flex items-center gap-2">
 										<FileWarning className="h-6 w-6 text-red-600" />
-										<CardTitle>Работа с инцидентами & расследования</CardTitle>
+										<CardTitle>Работа с инцидентами ИБ</CardTitle>
 									</div>
 								</CardHeader>
 								<CardContent className="text-gray-600 text-sm">
@@ -294,14 +301,13 @@ export default function InfoSecAnnualProgram() {
 				{/* Cohort timeline (mobile-optimized) */}
 				<section id="timeline" className="w-full py-12 md:py-20">
 					<div className="mx-auto max-w-6xl px-4 md:px-6">
+						{/*<div className="mb-6 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">*/}
+						{/*<p className="text-gray-800 text-sm font-medium">*/}
+						{/*	Сентябрьский отбор 2025 года завершён. Даты следующих отборов будут анонсированы позже.*/}
+						{/*</p>*/}
+						{/*</div>*/}
 
-					<div className="mb-6 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">
-					<p className="text-gray-800 text-sm font-medium">
-						Сентябрьский отбор 2025 года завершён. Даты следующих отборов будут анонсированы позже.
-					</p>
-					</div>
-
-						<h3 className="font-bold text-xl">Таймлайн набора сентября 2025</h3>
+						<h3 className="font-bold text-xl">Таймлайн набора сентября 2026</h3>
 
 						{/* Mobile: two rows (3 + 2) to avoid overflow */}
 						<div
@@ -324,7 +330,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Сбор заявок
 											</div>
-											<div className="text-[10px] text-gray-600">1–12 Сен</div>
+											<div className="text-[10px] text-gray-600">1–13 Сен</div>
 										</div>
 									</li>
 									{/* 2 */}
@@ -339,7 +345,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Отборочный тест
 											</div>
-											<div className="text-[10px] text-gray-600">14 Сен</div>
+											<div className="text-[10px] text-gray-600">13 Сен</div>
 										</div>
 									</li>
 									{/* 3 */}
@@ -352,9 +358,9 @@ export default function InfoSecAnnualProgram() {
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
 										<div className="mt-2 w-full min-w-0 max-w-[6.5rem] text-center">
 											<div className="font-semibold text-[11px] text-gray-900">
-												Проверка теста
+												Результаты теста
 											</div>
-											<div className="text-[10px] text-gray-600">15–20 Сен</div>
+											<div className="text-[10px] text-gray-600">15-17 Сен</div>
 										</div>
 									</li>
 								</ul>
@@ -374,9 +380,9 @@ export default function InfoSecAnnualProgram() {
 										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
 										<div className="mt-2 w-full min-w-0 max-w-[7rem] text-center">
 											<div className="font-semibold text-[11px] text-gray-900">
-												Результаты теста
+												Входной тест
 											</div>
-											<div className="text-[10px] text-gray-600">до 21 Сен</div>
+											<div className="text-[10px] text-gray-600">19 Сен</div>
 										</div>
 									</li>
 									{/* 5 */}
@@ -391,7 +397,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Начало занятий
 											</div>
-											<div className="text-[10px] text-gray-600">22 Сен</div>
+											<div className="text-[10px] text-gray-600">1 Окт</div>
 										</div>
 									</li>
 								</ul>
@@ -406,11 +412,11 @@ export default function InfoSecAnnualProgram() {
 							<div className="absolute top-8 right-4 left-4 h-1 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
 							<ul className="relative grid grid-cols-5 place-items-center gap-4 px-2">
 								{[
-									{ title: "Сбор заявок", date: "1–12 Сен" },
-									{ title: "Отборочный тест", date: "14 Сен" },
-									{ title: "Проверка теста", date: "15–20 Сен" },
-									{ title: "Результаты теста", date: "до 21 Сен" },
-									{ title: "Начало занятий", date: "22 Сен" },
+									{ title: "Сбор заявок", date: "1–13 Сен" },
+									{ title: "Отборочный тест", date: "13 Сен" },
+									{ title: "Результаты теста", date: "15–17 Сен" },
+									{ title: "Входной тест", date: "19 Сен" },
+									{ title: "Начало занятий", date: "1 Окт" },
 								].map((m) => (
 									<li
 										key={m.title}
@@ -437,6 +443,58 @@ export default function InfoSecAnnualProgram() {
 							Таймлайн: сбор заявок, отборочный тест, проверка теста,
 							результаты, начало занятий.
 						</p>
+
+						<div className="mt-10 rounded-lg border border-red-100 bg-red-50 p-5 md:p-6">
+							<div className="flex items-start gap-3">
+								<FileWarning className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+								<div>
+									<h4 className="font-semibold text-base text-gray-900">
+										О тестированиях
+									</h4>
+									<p className="mt-2 text-gray-700 text-sm leading-relaxed">
+										В 2026/2027 учебном году отбор в сборную состоит из двух
+										этапов: отборочного и входного тестов. Первый нужен для
+										того, чтобы понять, кто из участников готов к обучению в
+										сборной, а второй - для того, чтобы понять уровень знаний
+										участников, распределить их по группам и составить
+										индивидуальный учебный план для каждого из них. Во втором
+										тесте смогут принять участие ученики, успешно прошедшие
+										первый тест.
+									</p>
+									<p className="mt-3 text-gray-700 text-sm leading-relaxed">
+										<strong>
+											Для участия в отборочном тесте необходимо заранее
+											заполнить форму с данными об ученике
+										</strong>{" "}
+										- информацию о том, как это сделать, можно найти на{" "}
+										<a
+											href="https://цпм.рф/%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B/%D0%BD%D0%B0%D0%B1%D0%BE%D1%80-%D0%BA%D0%B0%D0%BD%D0%B4%D0%B8%D0%B4%D0%B0%D1%82%D0%BE%D0%B2-%D0%B2-%D1%81%D0%B1%D0%BE%D1%80%D0%BD%D1%83%D1%8E-%D0%BC%D0%BE%D1%81%D0%BA%D0%B2%D1%8B/"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="font-medium text-red-600 hover:underline"
+										>
+											сайте ЦПМ
+										</a>
+										. Без заполненной формы мы не сможем пригласить вас в
+										сборную по результатам тестирования.
+									</p>
+									<p className="mt-3 text-gray-700 text-sm leading-relaxed">
+										Отборочный тест не является обязательным для учеников,
+										являющихся участниками, призёрами или победителями
+										заключительного этапа ВсОШ по ИБ в 2025/2026 учебном году.
+										Входной тест обязателен к прохождению для всех. Подробнее
+										про подготовку к тестированиям рассказываем в разделе{" "}
+										<a
+											href="#faq"
+											className="font-medium text-red-600 hover:underline"
+										>
+											FAQ
+										</a>
+										.
+									</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</section>
 
@@ -494,8 +552,8 @@ export default function InfoSecAnnualProgram() {
 										</span>
 									</div>
 									<p className="px-4 pb-4 text-gray-600 text-sm">
-										Преподаватели готовы рекомендовать талантливых выпускников в
-										ведущие IT‑компании
+										Преподаватели готовы рекомендовать талантливых выпускников
+										на стажировки в ведущие IT‑компании
 									</p>
 								</div>
 							</div>
@@ -511,8 +569,8 @@ export default function InfoSecAnnualProgram() {
 								Поступление
 							</h2>
 							<p className="mx-auto mt-3 max-w-2xl text-gray-600">
-								Поступление проходит несколько раз в год - в начале учебного
-								года и после каждого из отборочных этапов ВсОШ.
+								Отборы проходят несколько раз в год - в начале учебного года и
+								после каждого из отборочных этапов ВсОШ.
 							</p>
 						</div>
 						<div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -563,7 +621,12 @@ export default function InfoSecAnnualProgram() {
 							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
 								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
 							</Button>
-							<Button variant="outline" size="lg" asChild onClick={() => setIsLoginModalOpen(true)}>
+							<Button
+								variant="outline"
+								size="lg"
+								asChild
+								onClick={() => setIsLoginModalOpen(true)}
+							>
 								<Link href="#">Уже подали? Входите!</Link>
 							</Button>
 						</div>
@@ -593,7 +656,8 @@ export default function InfoSecAnnualProgram() {
 									Есть ли у вас занятия для школьников 7-8 классов?
 								</summary>
 								<p className="mt-2 text-gray-600 text-sm">
-									Да, мы проводим отдельные занятия (и вступительный экзамен) и для школьников 7-8 классов.
+									Да, мы проводим отдельные занятия для школьников 7-8 классов.
+									Вступительные испытания одинаковы для 7-8 и 9-11 классов.
 								</p>
 							</details>
 							<details className="group rounded-lg border p-4">
@@ -610,32 +674,47 @@ export default function InfoSecAnnualProgram() {
 							</details>
 							<details className="group rounded-lg border p-4">
 								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Что это за внутренний экзамен?
+									Как подготовиться к тестированиям?
 								</summary>
 								<p className="mt-2 text-gray-600 text-sm">
-									Экзамен - внутренний входной тест, который определяет, готовы
-									ли вы начать заниматься в сборной, а также позволяет понять
-									ваш уровень знаний. Экзамен займёт до трёх часов, а после
-									старта таймер на экзамен нельзя будет остановить.
+									Для успешного прохождения отборочного теста участникам
+									необходимо обладать базовыми знаниями о работе компьютеров,
+									программировании и алгоритмах. Плюсом будут знания о
+									криптографии.
+									<br />
+									<br />
+									Входной тест состоит из задач разной сложности и включает в
+									себя вопросы по различным темам, включая архитектуру
+									компьютера и операционных систем, программирование, алгоритмы,
+									безопасность веб-приложений, цифровую криминалистику
+									(форензику), reverse engineering бинарных программ.
+									<br />
+									<br />
+									Полезные материалы, которые помогут подготовиться к отбору:
+									<br />
+									1.{" "}
+									<a
+										className={"text-red-600"}
+										href={"https://course.ugractf.ru"}
+										target={"_blank"}
+										rel="noreferrer"
+									>
+										Курс от команды [team Team]
+									</a>
+									.
+									<br />
+									2.{" "}
+									<a
+										className={"text-red-600"}
+										href={"https://vsosh.miem.hse.ru/prepare"}
+										target={"_blank"}
+										rel="noreferrer"
+									>
+										Архив задач ВсОШ прошлых лет
+									</a>
+									.
 								</p>
 							</details>
-                            <details className="group rounded-lg border p-4">
-                                <summary className="cursor-pointer list-none font-medium text-gray-900">
-                                    Как подготовиться к экзамену?
-                                </summary>
-                                <p className="mt-2 text-gray-600 text-sm">
-                                    Краткий ответ - учиться решать задачи в формате CTF.
-                                    <br/>
-                                    Полный ответ - учиться решать задачи на уязвимости в web-приложениях,
-                                    изучать основы криптографии (и математики в целом) и программирования на любом языке.
-                                    <br/>
-                                    <br/>
-                                    Полезные материалы, которые помогут подготовиться к отбору:
-                                    <br/>
-                                    1. <a className={"text-red-600"} href={"https://course.ugractf.ru"} target={"_blank"}>Курс от команды [team Team]</a>.
-                                    Мы считаем, что этот курс позволяет полностью подготовиться к практической части отбора.
-                                </p>
-                            </details>
 							<details className="group rounded-lg border p-4">
 								<summary className="cursor-pointer list-none font-medium text-gray-900">
 									Как будут проводиться занятия?
