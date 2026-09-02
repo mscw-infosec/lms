@@ -101,6 +101,13 @@ export default function HomePage() {
 								>
 									{t("login")}
 								</Button>
+								<Button
+									size="sm"
+									onClick={() => setAuthModal("register")}
+									className="bg-red-600 px-3 text-white hover:bg-red-700 sm:px-4"
+								>
+									{t("create_account_action")}
+								</Button>
 							</div>
 						</div>
 					</div>

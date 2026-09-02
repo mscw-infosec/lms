@@ -4,14 +4,24 @@ use validator::Validate;
 
 #[derive(Serialize, Deserialize, Validate, ToSchema)]
 pub struct BasicRegisterRequest {
-    #[schema(example = "John Doe")]
-    pub username: String,
+    #[validate(length(min = 1, max = 100, message = "Last name is required"))]
+    #[schema(example = "Ivanov")]
+    pub last_name: String,
+
+    #[validate(length(min = 1, max = 100, message = "First name is required"))]
+    #[schema(example = "Ivan")]
+    pub first_name: String,
+
+    #[validate(length(max = 100))]
+    #[schema(example = "Ivanovich")]
+    pub patronymic: Option<String>,
 
     #[validate(email)]
-    #[schema(example = "john@example.com")]
+    #[schema(example = "ivan@example.com")]
     pub email: String,
 
-    #[schema(example = "Password123")]
+    #[validate(length(min = 12, message = "Password must be at least 12 characters"))]
+    #[schema(example = "Password12345")]
     pub password: String,
 }
 
@@ -27,8 +37,13 @@ pub struct BasicLoginResponse {
 
 #[derive(Serialize, Deserialize, ToSchema)]
 pub struct BasicLoginRequest {
-    #[schema(example = "John Doe")]
-    pub username: String,
-    #[schema(example = "Password123")]
+    #[schema(example = "ivan@example.com")]
+    pub email: String,
+    #[schema(example = "Password12345")]
     pub password: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct VerifyEmailRequest {
+    pub token: String,
 }

@@ -12,6 +12,10 @@ pub struct AccessTokenClaim {
     pub iss: String,
     pub sub: Uuid,
     pub role: UserRole,
+    #[serde(default)]
+    pub email_verified: bool,
+    #[serde(default)]
+    pub profile_complete: bool,
     pub iat: i64,
     pub exp: i64,
 }
@@ -95,7 +99,13 @@ impl JWT {
         Ok(claim.claims)
     }
 
-    pub fn generate_access_token(&self, sub: Uuid, role: UserRole) -> Result<String> {
+    pub fn generate_access_token(
+        &self,
+        sub: Uuid,
+        role: UserRole,
+        email_verified: bool,
+        profile_complete: bool,
+    ) -> Result<String> {
         let iat = Utc::now();
         let exp = iat + Duration::minutes(15);
 
@@ -103,6 +113,8 @@ impl JWT {
             iss: String::from("LMS Passport"),
             sub,
             role,
+            email_verified,
+            profile_complete,
             iat: iat.timestamp(),
             exp: exp.timestamp(),
         };

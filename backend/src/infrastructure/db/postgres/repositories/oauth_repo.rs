@@ -37,8 +37,8 @@ impl OAuthRepository for RepositoryPostgres {
 
         sqlx::query!(
             r#"
-                INSERT INTO users(id, username, email, role)
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO users(id, username, email, role, email_verified)
+                VALUES ($1, $2, $3, $4, TRUE)
             "#,
             user.id,
             user.username,

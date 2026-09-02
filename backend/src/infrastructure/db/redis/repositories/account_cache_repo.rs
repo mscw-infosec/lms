@@ -7,7 +7,7 @@ use crate::{
     infrastructure::db::redis::RepositoryRedis,
 };
 use async_trait::async_trait;
-use redis::JsonAsyncCommands;
+use redis::{AsyncTypedCommands, JsonAsyncCommands};
 use uuid::Uuid;
 
 #[async_trait]
@@ -45,6 +45,15 @@ impl AccountCacheRepository for RepositoryRedis {
         let _ = conn
             .json_set::<_, _, _, ()>(&key, "$.attributes", &attributes)
             .await;
+
+        Ok(())
+    }
+
+    async fn invalidate_user(&self, id: Uuid) -> Result<()> {
+        let mut conn = self.conn();
+        let key = Self::user_key(id);
+
+        conn.del(&key).await?;
 
         Ok(())
     }

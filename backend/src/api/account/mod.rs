@@ -40,6 +40,8 @@ pub fn configure(
             delete_user_attribute
         ))
         .routes(routes!(get_user))
+        .routes(routes!(update_profile))
+        .routes(routes!(resend_verification))
         .routes(routes!(update_user_role))
         .routes(routes!(upload_avatar))
         .routes(routes!(check_ctfd))

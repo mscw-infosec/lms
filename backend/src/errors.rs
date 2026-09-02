@@ -46,6 +46,16 @@ pub enum LMSError {
     #[error("{0}")]
     Forbidden(String),
 
+    /// The user is authenticated but has not verified their email yet.
+    /// Carries a stable machine-readable code the frontend can branch on.
+    #[error("email_not_verified")]
+    EmailNotVerified,
+
+    /// The user is authenticated but has not completed their required profile
+    /// (first + last name). Common for OAuth users on first login.
+    #[error("profile_incomplete")]
+    ProfileIncomplete,
+
     /// Unauthorized Error
     #[error("{0}")]
     Unauthorized(String),
@@ -101,7 +111,10 @@ impl IntoResponse for LMSError {
             | Self::S3Error(_)
             | Self::ServerError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Self::Unimplemented => StatusCode::NOT_IMPLEMENTED,
-            Self::Forbidden(_) | Self::InvalidToken(_) => StatusCode::FORBIDDEN,
+            Self::Forbidden(_)
+            | Self::InvalidToken(_)
+            | Self::EmailNotVerified
+            | Self::ProfileIncomplete => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError | Self::NotInTime(_) => {
                 StatusCode::CONFLICT
             }

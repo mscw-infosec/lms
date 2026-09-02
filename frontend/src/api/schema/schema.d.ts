@@ -75,6 +75,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update the current user's names (profile edit / OAuth detail completion) */
+        patch: operations["update_profile"];
+        trace?: never;
+    };
+    "/account/resend-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resend the email-verification link to the current user */
+        post: operations["resend_verification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/{user_email}/ctfd-data": {
         parameters: {
             query?: never;
@@ -238,8 +272,30 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Register a new user using email, username and password */
+        /**
+         * Register a new user with their name, email and password.
+         * @description The account is created immediately (and the user is logged in), but their
+         *     email starts out unverified, so feature routes stay gated until they open
+         *     the verification link sent to their inbox.
+         */
         post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/basic/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify an email address from the token embedded in the verification link. */
+        post: operations["verify_email"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1301,21 +1357,25 @@ export interface components {
             url: string;
         };
         BasicLoginRequest: {
-            /** @example Password123 */
+            /** @example ivan@example.com */
+            email: string;
+            /** @example Password12345 */
             password: string;
-            /** @example John Doe */
-            username: string;
         };
         BasicLoginResponse: {
             access_token: string;
         };
         BasicRegisterRequest: {
-            /** @example john@example.com */
+            /** @example ivan@example.com */
             email: string;
-            /** @example Password123 */
+            /** @example Ivan */
+            first_name: string;
+            /** @example Ivanov */
+            last_name: string;
+            /** @example Password12345 */
             password: string;
-            /** @example John Doe */
-            username: string;
+            /** @example Ivanovich */
+            patronymic?: string | null;
         };
         BasicRegisterResponse: {
             access_token: string;
@@ -1504,8 +1564,14 @@ export interface components {
         ExamType: "Instant" | "Delayed";
         GetUserResponseDTO: {
             email: string;
+            email_verified: boolean;
+            first_name?: string | null;
             /** Format: uuid */
             id: string;
+            last_name?: string | null;
+            patronymic?: string | null;
+            /** @description Derived: `first_name` and `last_name` are both present. */
+            profile_complete: boolean;
             role: components["schemas"]["UserRole"];
             username: string;
         };
@@ -1676,8 +1742,12 @@ export interface components {
         PublicAccountDTO: {
             attributes: components["schemas"]["HashMap"];
             email: string;
+            email_verified: boolean;
+            first_name?: string | null;
             /** Format: uuid */
             id: string;
+            last_name?: string | null;
+            patronymic?: string | null;
             role: components["schemas"]["UserRole"];
             username: string;
         };
@@ -1945,6 +2015,12 @@ export interface components {
             order_index: number;
             title: string;
         };
+        /** @description Update the current user's names (profile edit / OAuth detail completion). */
+        UpdateProfileRequest: {
+            first_name: string;
+            last_name: string;
+            patronymic?: string | null;
+        };
         UpdateUserRoleDTO: {
             role: components["schemas"]["UserRole"];
         };
@@ -2051,6 +2127,9 @@ export interface components {
         };
         /** @enum {string} */
         UserRole: "Student" | "Teacher" | "Admin";
+        VerifyEmailRequest: {
+            token: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -2150,6 +2229,69 @@ export interface operations {
             };
             /** @description Only admins can list accounts */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated user profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetUserResponseDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resend_verification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Verification email sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Email is already verified */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2509,8 +2651,37 @@ export interface operations {
                     "application/json": components["schemas"]["BasicRegisterResponse"];
                 };
             };
-            /** @description User with the same email or name already exists */
-            401: {
+            /** @description User with the same email already exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verify_email: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Email verified successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired verification link */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

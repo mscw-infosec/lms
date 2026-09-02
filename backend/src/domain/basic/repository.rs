@@ -8,5 +8,5 @@ use impl_unimplemented::impl_unimplemented;
 pub trait BasicAuthRepository {
     async fn create(&self, user: &BasicUser) -> Result<()>;
     async fn is_exists(&self, username: &str, email: &str) -> Result<bool>;
-    async fn get_by_username(&self, username: &str) -> Result<Option<BasicUser>>;
+    async fn get_by_email(&self, email: &str) -> Result<Option<BasicUser>>;
 }

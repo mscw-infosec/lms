@@ -10,17 +10,23 @@ use crate::utils::send_and_parse;
 use crate::{
     domain::account::{
         model::{UserModel, UserRole},
-        repository::{AccountCacheRepository, AccountRepository},
+        repository::{AccountCacheRepository, AccountRepository, EmailVerificationCacheRepository},
     },
     errors::{LMSError, Result},
-    infrastructure::s3::S3,
+    infrastructure::{email::EmailService, s3::S3},
     repo,
+    utils::generate_random_string,
 };
+
+/// Lifetime of an email-verification link.
+const VERIFICATION_TTL_SECS: u64 = 24 * 60 * 60;
 
 #[derive(Clone)]
 pub struct AccountService {
     db_repo: repo!(AccountRepository),
     cache_repo: repo!(AccountCacheRepository),
+    verification_repo: repo!(EmailVerificationCacheRepository),
+    email: EmailService,
     s3: repo!(S3),
     pub redirect_url: String,
     http_client: reqwest::Client,
@@ -28,9 +34,12 @@ pub struct AccountService {
 }
 
 impl AccountService {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         db_repo: repo!(AccountRepository),
         cache_repo: repo!(AccountCacheRepository),
+        verification_repo: repo!(EmailVerificationCacheRepository),
+        email: EmailService,
         s3: repo!(S3),
         redirect_url: &str,
         http_client: reqwest::Client,
@@ -39,11 +48,67 @@ impl AccountService {
         Self {
             db_repo,
             cache_repo,
+            verification_repo,
+            email,
             s3,
             redirect_url: redirect_url.to_string(),
             http_client,
             ctfd_token,
         }
+    }
+
+    /// Generate a fresh email-verification token, persist it, and email the
+    /// verification link to the user.
+    pub async fn send_verification_email(&self, user_id: Uuid, email: &str) -> Result<()> {
+        let token = generate_random_string(48);
+        self.verification_repo
+            .store_verification(&token, user_id, VERIFICATION_TTL_SECS)
+            .await?;
+        self.email.send_verification(email, &token).await?;
+        Ok(())
+    }
+
+    /// Re-send a verification email to the given user, unless already verified.
+    pub async fn resend_verification(&self, user_id: Uuid) -> Result<()> {
+        let user = self.get_user(user_id).await?;
+        if user.email_verified {
+            return Err(LMSError::Conflict("Email is already verified.".to_string()));
+        }
+        self.send_verification_email(user_id, &user.email).await
+    }
+
+    /// Consume a verification token and mark the associated user's email as
+    /// verified. Returns the verified user id.
+    pub async fn verify_email(&self, token: &str) -> Result<Uuid> {
+        let user_id = self
+            .verification_repo
+            .take_verification(token)
+            .await?
+            .ok_or_else(|| {
+                LMSError::NotFound("Invalid or expired verification link.".to_string())
+            })?;
+
+        self.db_repo.set_email_verified(user_id).await?;
+        self.cache_repo.invalidate_user(user_id).await?;
+
+        Ok(user_id)
+    }
+
+    /// Update the user's names (used both for profile edits and for OAuth users
+    /// completing their required details). Recomposes the display `username`.
+    pub async fn update_profile(
+        &self,
+        user_id: Uuid,
+        first_name: &str,
+        last_name: &str,
+        patronymic: Option<&str>,
+    ) -> Result<UserModel> {
+        let username = UserModel::compose_username(last_name, first_name, patronymic);
+        self.db_repo
+            .update_profile(user_id, first_name, last_name, patronymic, &username)
+            .await?;
+        self.cache_repo.invalidate_user(user_id).await?;
+        self.get_user(user_id).await
     }
 
     pub async fn assign_predefined_attributes(&self, id: Uuid, email: String) -> Result<()> {

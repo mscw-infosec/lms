@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       ac.password_hash as password, u.role as \"role: UserRole\"\n                FROM users u\n                LEFT JOIN auth_credentials ac ON u.id = ac.user_id\n                WHERE u.username = $1 AND ac.provider = 'basic'\n            ",
+  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       u.first_name, u.last_name, u.patronymic, u.email_verified,\n                       ac.password_hash as password, u.role as \"role: UserRole\"\n                FROM users u\n                LEFT JOIN auth_credentials ac ON u.id = ac.user_id\n                WHERE u.email = $1 AND ac.provider = 'basic'\n            ",
   "describe": {
     "columns": [
       {
@@ -25,11 +25,31 @@
       },
       {
         "ordinal": 4,
-        "name": "password",
+        "name": "first_name",
         "type_info": "Text"
       },
       {
         "ordinal": 5,
+        "name": "last_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "patronymic",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "email_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "password",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
         "name": "role: UserRole",
         "type_info": {
           "Custom": {
@@ -56,8 +76,12 @@
       false,
       false,
       true,
+      true,
+      true,
+      false,
+      true,
       false
     ]
   },
-  "hash": "b9d74ec60c0874eab44c5abb823536d6164cc48110af4120fa7ebec083e84f78"
+  "hash": "8293f19fa881455972b59c5316423481ba0213bf023051c1177dea955022b294"
 }

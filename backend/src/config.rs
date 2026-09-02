@@ -29,6 +29,15 @@ pub struct Config {
     #[validate(url)]
     pub frontend_redirect_url: String,
 
+    #[validate(url)]
+    pub frontend_base_url: String,
+
+    pub smtp_host: String,
+    pub smtp_port: u16,
+    pub smtp_username: String,
+    pub smtp_password: String,
+    pub smtp_from: String,
+
     // used for auth in LMS -> CTFd
     pub ctfd_token: String,
     // used for auth in CTFd -> LMS
@@ -65,6 +74,14 @@ impl Config {
             s3_bucket_name: env("S3_BUCKET_NAME"),
 
             frontend_redirect_url: env("FRONTEND_REDIRECT_URL"),
+            frontend_base_url: env("FRONTEND_BASE_URL"),
+
+            smtp_host: env("SMTP_HOST"),
+            smtp_port: env("SMTP_PORT").parse()?,
+            smtp_username: env("SMTP_USERNAME"),
+            smtp_password: env("SMTP_PASSWORD"),
+            smtp_from: env("SMTP_FROM"),
+
             ctfd_token: env("CTFD_TOKEN"),
             ctfd_auth_token: env("CTFD_AUTH_TOKEN"),
         };

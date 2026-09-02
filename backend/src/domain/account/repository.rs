@@ -22,6 +22,15 @@ pub trait AccountRepository {
     ) -> Result<Vec<UserModel>>;
     async fn count_users(&self, search: Option<String>) -> Result<i64>;
     async fn update_user_role(&self, id: Uuid, role: UserRole) -> Result<()>;
+    async fn update_profile(
+        &self,
+        id: Uuid,
+        first_name: &str,
+        last_name: &str,
+        patronymic: Option<&str>,
+        username: &str,
+    ) -> Result<()>;
+    async fn set_email_verified(&self, id: Uuid) -> Result<()>;
     async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes>;
     async fn delete_user_predefined_attribute(&self, email: String) -> Result<()>;
 }
@@ -35,4 +44,12 @@ pub trait AccountCacheRepository {
     async fn get_user_by_id(&self, id: Uuid) -> Result<Option<UserModel>>;
     async fn store_user(&self, user: &UserModel) -> Result<()>;
     async fn update_attributes(&self, id: Uuid, attributes: Attributes) -> Result<()>;
+    async fn invalidate_user(&self, id: Uuid) -> Result<()>;
+}
+
+#[impl_unimplemented(DummyRepository)]
+#[async_trait]
+pub trait EmailVerificationCacheRepository {
+    async fn store_verification(&self, token: &str, user_id: Uuid, ttl_secs: u64) -> Result<()>;
+    async fn take_verification(&self, token: &str) -> Result<Option<Uuid>>;
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       u.role as \"role: UserRole\",\n                       (SELECT ac.password_hash\n                        FROM auth_credentials ac\n                        WHERE ac.user_id = u.id AND ac.provider = 'basic'\n                        LIMIT 1) as password\n                FROM users u\n                WHERE $3::text IS NULL\n                   OR u.username ILIKE '%' || $3 || '%'\n                   OR u.email ILIKE '%' || $3 || '%'\n                ORDER BY u.created_at DESC\n                LIMIT $1 OFFSET $2\n            ",
+  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       u.first_name, u.last_name, u.patronymic, u.email_verified,\n                       u.role as \"role: UserRole\", ac.password_hash as password\n                FROM users u\n                LEFT JOIN auth_credentials ac ON ac.user_id = u.id\n                WHERE u.id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -25,6 +25,26 @@
       },
       {
         "ordinal": 4,
+        "name": "first_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "last_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "patronymic",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "email_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
         "name": "role: UserRole",
         "type_info": {
           "Custom": {
@@ -40,16 +60,14 @@
         }
       },
       {
-        "ordinal": 5,
+        "ordinal": 9,
         "name": "password",
         "type_info": "Text"
       }
     ],
     "parameters": {
       "Left": [
-        "Int8",
-        "Int8",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -57,9 +75,13 @@
       false,
       false,
       false,
+      true,
+      true,
+      true,
       false,
-      null
+      false,
+      true
     ]
   },
-  "hash": "73deeb43edc2c272b140b37f85f0fe83a4998c41d55cdd7cf29376df770e1ace"
+  "hash": "d2b48036a204231f9e2324d29ac03d967b5cb56b11e78d2c81f841dca47a6df9"
 }

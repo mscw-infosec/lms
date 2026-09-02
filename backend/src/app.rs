@@ -35,12 +35,12 @@ pub struct Services {
 }
 
 pub fn generate_router(
-    jwt: Arc<JWT>,
+    jwt: &Arc<JWT>,
     client: Client,
     config: Config,
     svcs: Services,
 ) -> Result<OpenApiRouter> {
-    let router = OpenApiRouter::new()
+    let public = OpenApiRouter::new()
         .route("/health", get(|| async { StatusCode::OK }))
         .nest(
             "/account",
@@ -60,15 +60,11 @@ pub fn generate_router(
         )
         .nest(
             "/basic",
-            api::basic::configure(svcs.basic_auth, svcs.refresh_token.clone(), jwt.clone()),
-        )
-        .nest(
-            "/courses",
-            api::course::configure(
-                jwt.clone(),
-                svcs.topic.clone(),
-                svcs.course,
+            api::basic::configure(
+                svcs.basic_auth,
                 svcs.account.clone(),
+                svcs.refresh_token.clone(),
+                jwt.clone(),
             ),
         )
         .nest(
@@ -80,6 +76,17 @@ pub fn generate_router(
                 svcs.oauth,
                 svcs.refresh_token,
                 config,
+            ),
+        );
+
+    let gated = OpenApiRouter::new()
+        .nest(
+            "/courses",
+            api::course::configure(
+                jwt.clone(),
+                svcs.topic.clone(),
+                svcs.course,
+                svcs.account.clone(),
             ),
         )
         .nest(
@@ -106,8 +113,12 @@ pub fn generate_router(
         .nest("/report", api::report::configure(svcs.report, jwt.clone()))
         .nest(
             "/topics",
-            api::topics::configure(svcs.topic, svcs.account, jwt),
-        );
+            api::topics::configure(svcs.topic, svcs.account, jwt.clone()),
+        )
+        .layer(axum::middleware::from_fn_with_state(
+            jwt.clone(),
+            api::middlewares::email_gate,
+        ));
 
-    Ok(router)
+    Ok(public.merge(gated))
 }

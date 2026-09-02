@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "@/styles/globals.css";
 import "katex/dist/katex.min.css";
+import { AccountGate } from "@/components/account-gate";
 import AuthRerenderBoundary from "@/components/auth-rerender-boundary";
 import { I18nProvider } from "@/components/i18n-provider";
 import { QueryProvider } from "@/components/query-provider";
@@ -48,7 +49,9 @@ html {
 				<I18nProvider>
 					<QueryProvider>
 						<UserProvider>
-							<AuthRerenderBoundary>{children}</AuthRerenderBoundary>
+							<AccountGate>
+								<AuthRerenderBoundary>{children}</AuthRerenderBoundary>
+							</AccountGate>
 							<Toaster />
 						</UserProvider>
 					</QueryProvider>

@@ -154,6 +154,70 @@
         ]
       }
     },
+    "/account/profile": {
+      "patch": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Update the current user's names (profile edit / OAuth detail completion)",
+        "operationId": "update_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Updated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUserResponseDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/account/resend-verification": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Resend the email-verification link to the current user",
+        "operationId": "resend_verification",
+        "responses": {
+          "200": {
+            "description": "Verification email sent"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "409": {
+            "description": "Email is already verified"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/account/{user_email}/ctfd-data": {
       "get": {
         "tags": [
@@ -556,7 +620,8 @@
         "tags": [
           "Basic"
         ],
-        "summary": "Register a new user using email, username and password",
+        "summary": "Register a new user with their name, email and password.",
+        "description": "The account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
         "operationId": "register",
         "requestBody": {
           "content": {
@@ -587,8 +652,35 @@
               }
             }
           },
-          "401": {
-            "description": "User with the same email or name already exists"
+          "409": {
+            "description": "User with the same email already exists"
+          }
+        }
+      }
+    },
+    "/basic/verify-email": {
+      "post": {
+        "tags": [
+          "Basic"
+        ],
+        "summary": "Verify an email address from the token embedded in the verification link.",
+        "operationId": "verify_email",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          },
+          "404": {
+            "description": "Invalid or expired verification link"
           }
         }
       }
@@ -4092,17 +4184,17 @@
       "BasicLoginRequest": {
         "type": "object",
         "required": [
-          "username",
+          "email",
           "password"
         ],
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "ivan@example.com"
+          },
           "password": {
             "type": "string",
-            "example": "Password123"
-          },
-          "username": {
-            "type": "string",
-            "example": "John Doe"
+            "example": "Password12345"
           }
         }
       },
@@ -4120,22 +4212,34 @@
       "BasicRegisterRequest": {
         "type": "object",
         "required": [
-          "username",
+          "last_name",
+          "first_name",
           "email",
           "password"
         ],
         "properties": {
           "email": {
             "type": "string",
-            "example": "john@example.com"
+            "example": "ivan@example.com"
+          },
+          "first_name": {
+            "type": "string",
+            "example": "Ivan"
+          },
+          "last_name": {
+            "type": "string",
+            "example": "Ivanov"
           },
           "password": {
             "type": "string",
-            "example": "Password123"
+            "example": "Password12345"
           },
-          "username": {
-            "type": "string",
-            "example": "John Doe"
+          "patronymic": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "Ivanovich"
           }
         }
       },
@@ -4735,15 +4839,41 @@
           "id",
           "username",
           "email",
-          "role"
+          "role",
+          "email_verified",
+          "profile_complete"
         ],
         "properties": {
           "email": {
             "type": "string"
           },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "first_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid"
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "patronymic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profile_complete": {
+            "type": "boolean"
           },
           "role": {
             "$ref": "#/components/schemas/UserRole"
@@ -5302,6 +5432,7 @@
           "username",
           "email",
           "role",
+          "email_verified",
           "attributes"
         ],
         "properties": {
@@ -5311,9 +5442,30 @@
           "email": {
             "type": "string"
           },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "first_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid"
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "patronymic": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "role": {
             "$ref": "#/components/schemas/UserRole"
@@ -6389,6 +6541,27 @@
           }
         }
       },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "required": [
+          "last_name",
+          "first_name"
+        ],
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "patronymic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "UpdateUserRoleDTO": {
         "type": "object",
         "required": [
@@ -6671,6 +6844,17 @@
           "Teacher",
           "Admin"
         ]
+      },
+      "VerifyEmailRequest": {
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
       }
     }
   }

@@ -523,6 +523,7 @@ impl ExamRepository for RepositoryPostgres {
         let user = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
+                       u.first_name, u.last_name, u.patronymic, u.email_verified,
                        u.role as "role: UserRole", ac.password_hash as password
                 FROM users u
                 LEFT JOIN auth_credentials ac ON ac.user_id = u.id
@@ -537,6 +538,10 @@ impl ExamRepository for RepositoryPostgres {
             username: x.username,
             email: x.email,
             role: x.role,
+            first_name: x.first_name,
+            last_name: x.last_name,
+            patronymic: x.patronymic,
+            email_verified: x.email_verified,
             password: x.password,
             attributes,
             created_at: x.created_at,

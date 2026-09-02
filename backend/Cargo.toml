@@ -24,6 +24,7 @@ impl_unimplemented = "0.1.0"
 dotenvy = "0.15.7"
 futures = "0.3.31"
 jsonwebtoken = "9.3.1"
+lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "smtp-transport", "builder", "pool"] }
 prost = "0.11"
 prost-types = "0.11"
 rand = "0.9.1"

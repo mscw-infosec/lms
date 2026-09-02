@@ -23,6 +23,7 @@ use crate::{
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
+        email::EmailService,
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
@@ -85,10 +86,13 @@ async fn main() -> anyhow::Result<()> {
     let jwt = Arc::new(JWT::new(&config.jwt_secret));
     let iam = Arc::new(IAMTokenManager::new(&config.iam_key_file)?);
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
+    let email = EmailService::new(&config)?;
 
     let account = AccountService::new(
         db_repo.clone(),
         rdb_repo.clone(),
+        rdb_repo.clone(),
+        email,
         s3.clone(),
         &config.frontend_redirect_url,
         client.clone(),
@@ -128,7 +132,7 @@ async fn main() -> anyhow::Result<()> {
         video,
     };
 
-    let app_router = generate_router(jwt, client, config, services)?;
+    let app_router = generate_router(&jwt, client, config, services)?;
 
     #[allow(unused_variables)]
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())

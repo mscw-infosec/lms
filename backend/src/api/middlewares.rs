@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{FromRef, FromRequestParts},
+    extract::{FromRef, FromRequestParts, State},
     http::request::Parts,
+    middleware::Next,
+    response::Response,
 };
+use axum::extract::Request;
 use tower_cookies::Cookies;
 
 use crate::dto::account::CtfdToken;
@@ -103,4 +106,21 @@ where
 
 pub trait HasCtfdAuthData {
     fn get_ctfd_auth_token(&self) -> String;
+}
+
+pub async fn email_gate(
+    State(jwt): State<Arc<JWT>>,
+    request: Request,
+    next: Next,
+) -> Result<Response, LMSError> {
+    if let Ok(claim) = jwt.access_from_header(request.headers()) {
+        if !claim.email_verified {
+            return Err(LMSError::EmailNotVerified);
+        }
+        if !claim.profile_complete {
+            return Err(LMSError::ProfileIncomplete);
+        }
+    }
+
+    Ok(next.run(request).await)
 }

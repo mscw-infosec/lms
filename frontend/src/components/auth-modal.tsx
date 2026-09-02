@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, CheckCircle2, Key } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,27 +27,21 @@ interface AuthModalProps {
 
 // Zod validation schemas
 const loginSchema = z.object({
-	username: z
-		.string()
-		.min(2, "Username must be at least 2 characters")
-		.max(20, "Username must be less than 20 characters")
-		.regex(
-			/^[a-zA-Z0-9_-]+$/,
-			"Username can only contain letters, numbers, hyphens, and underscores",
-		),
+	email: z.string().email("Please enter a valid email address"),
 	password: z.string().min(1, "Password is required"),
 });
 
 const registerSchema = z
 	.object({
-		name: z
+		lastName: z
 			.string()
-			.min(2, "Username must be at least 2 characters")
-			.max(20, "Username must be less than 20 characters")
-			.regex(
-				/^[a-zA-Z0-9_-]+$/,
-				"Username can only contain letters, numbers, hyphens, and underscores",
-			),
+			.min(1, "Last name is required")
+			.max(100, "Last name is too long"),
+		firstName: z
+			.string()
+			.min(1, "First name is required")
+			.max(100, "First name is too long"),
+		patronymic: z.string().max(100, "Patronymic is too long").optional(),
 		email: z.string().email("Please enter a valid email address"),
 		password: z
 			.string()
@@ -62,63 +56,41 @@ const registerSchema = z
 		path: ["confirmPassword"],
 	});
 
-type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
-
-// Mock function to simulate checking email availability
-const checkEmailAvailability = async (email: string): Promise<boolean> => {
-	// Simulate API delay
-	await new Promise((resolve) => setTimeout(resolve, 500));
-
-	// Mock logic: these emails are "taken"
-	const takenEmails = [
-		"admin@infosec.moscow",
-		"test@example.com",
-		"user@gmail.com",
-		"john@infosec.moscow",
-	];
-
-	return !takenEmails.includes(email.toLowerCase());
-};
-
-// Mock function to simulate checking username availability
-const checkUsernameAvailability = async (
-	username: string,
-): Promise<boolean> => {
-	// Simulate API delay
-	await new Promise((resolve) => setTimeout(resolve, 500));
-
-	// Mock logic: these usernames are "taken"
-	const takenUsernames = ["admin", "test", "user", "john", "infosec"];
-
-	return !takenUsernames.includes(username.toLowerCase());
-};
-
 export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	const router = useRouter();
 	const { t } = useTranslation("common");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const [name, setName] = useState("");
-	const [username, setUsername] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [lastName, setLastName] = useState("");
+	const [patronymic, setPatronymic] = useState("");
+	const [submitting, setSubmitting] = useState(false);
+
+	// The modal opens in the mode requested by the parent (`type`), but the user
+	// can toggle between login and register from within the dialog.
+	const [mode, setMode] = useState<"login" | "register">(type ?? "login");
+	useEffect(() => {
+		if (type) setMode(type);
+	}, [type]);
 
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	// Availability checking states
-	const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
-	const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
-	const [emailChecking, setEmailChecking] = useState(false);
-	const [nameChecking, setNameChecking] = useState(false);
-
 	// Validate form data in real-time
 	useEffect(() => {
 		const formData =
-			type === "login"
-				? { username, password }
-				: { email, password, confirmPassword, name };
-		const schema = type === "login" ? loginSchema : registerSchema;
+			mode === "login"
+				? { email, password }
+				: {
+						lastName,
+						firstName,
+						patronymic: patronymic || undefined,
+						email,
+						password,
+						confirmPassword,
+					};
+		const schema = mode === "login" ? loginSchema : registerSchema;
 
 		try {
 			schema.parse(formData as unknown as Record<string, unknown>);
@@ -134,60 +106,23 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 				setErrors(newErrors);
 			}
 		}
-	}, [email, password, confirmPassword, name, username, type]);
-
-	// Debounced availability checking for email
-	useEffect(() => {
-		if (type !== "register" || !email || email.length < 3 || errors.email) {
-			setEmailAvailable(null);
-			return;
-		}
-
-		const timeoutId = setTimeout(async () => {
-			setEmailChecking(true);
-			try {
-				const available = await checkEmailAvailability(email);
-				setEmailAvailable(available);
-			} catch (error) {
-				setEmailAvailable(null);
-			} finally {
-				setEmailChecking(false);
-			}
-		}, 800);
-
-		return () => clearTimeout(timeoutId);
-	}, [email, type, errors.email]);
-
-	// Debounced availability checking for username (register only)
-	useEffect(() => {
-		if (type !== "register" || !name || name.length < 2 || errors.name) {
-			setNameAvailable(null);
-			return;
-		}
-
-		const timeoutId = setTimeout(async () => {
-			setNameChecking(true);
-			try {
-				const available = await checkUsernameAvailability(name);
-				setNameAvailable(available);
-			} catch (error) {
-				setNameAvailable(null);
-			} finally {
-				setNameChecking(false);
-			}
-		}, 800);
-
-		return () => clearTimeout(timeoutId);
-	}, [name, type, errors.name]);
+	}, [email, password, confirmPassword, firstName, lastName, patronymic, mode]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
 		const formData =
-			type === "login"
-				? { username, password }
-				: { email, password, confirmPassword, name };
-		const schema = type === "login" ? loginSchema : registerSchema;
+			mode === "login"
+				? { email, password }
+				: {
+						lastName,
+						firstName,
+						patronymic: patronymic || undefined,
+						email,
+						password,
+						confirmPassword,
+					};
+		const schema = mode === "login" ? loginSchema : registerSchema;
 
 		try {
 			schema.parse(formData as unknown as Record<string, unknown>);
@@ -204,30 +139,36 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 			}
 		}
 
-		// Check availability before submitting
-		if (type === "register") {
-			if (emailAvailable === false || nameAvailable === false) {
-				return;
-			}
-		}
-
+		setSubmitting(true);
 		try {
-			if (type === "login") {
-				await login({ username, password });
+			if (mode === "login") {
+				await login({ email, password });
 				if (onLoginSuccess) {
 					onLoginSuccess();
 				} else {
 					router.push("/");
 				}
 			} else {
-				await register({ username: name, email, password });
+				await register({
+					last_name: lastName.trim(),
+					first_name: firstName.trim(),
+					patronymic: patronymic.trim() ? patronymic.trim() : null,
+					email: email.trim(),
+					password,
+				});
 			}
 			onClose();
 		} catch (err) {
+			const message = String((err as Error)?.message ?? "");
 			setErrors((prev) => ({
 				...prev,
-				root: t("auth_failed"),
+				root:
+					mode === "register" && message.includes("409")
+						? t("email_taken")
+						: t("auth_failed"),
 			}));
+		} finally {
+			setSubmitting(false);
 		}
 	};
 
@@ -236,64 +177,8 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 		window.location.href = providerPath;
 	};
 
-	const handlePasskey = () => {
-		console.log("Passkey login");
-		onClose();
-	};
-
-	const getEmailValidationIcon = () => {
-		if (emailChecking) {
-			return (
-				<div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-			);
-		}
-		if (emailAvailable === true) {
-			return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-		}
-		if (emailAvailable === false) {
-			return <AlertCircle className="h-4 w-4 text-red-500" />;
-		}
-		return null;
-	};
-
-	const getNameValidationIcon = () => {
-		if (nameChecking) {
-			return (
-				<div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-			);
-		}
-		if (nameAvailable === true) {
-			return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-		}
-		if (nameAvailable === false) {
-			return <AlertCircle className="h-4 w-4 text-red-500" />;
-		}
-		return null;
-	};
-
-	const getInputBorderClass = (
-		fieldName: string,
-		available?: boolean | null,
-	) => {
-		// Only show red if there's an actual error AND the field has been interacted with
-		if (
-			errors[fieldName] &&
-			(fieldName === "email"
-				? email
-				: fieldName === "name"
-					? name
-					: fieldName === "password"
-						? password
-						: fieldName === "confirmPassword"
-							? confirmPassword
-							: username)
-		) {
-			return "border-red-500";
-		}
-		if (type === "register" && available === true) {
-			return "border-green-500";
-		}
-		if (type === "register" && available === false) {
+	const getInputBorderClass = (fieldName: string, value: string) => {
+		if (errors[fieldName] && value) {
 			return "border-red-500";
 		}
 		return "border-slate-700";
@@ -302,127 +187,97 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	const isFormValid = () => {
 		const hasErrors = Object.keys(errors).length > 0;
 		const hasRequiredFields =
-			type === "login"
-				? username && password
-				: email && password && confirmPassword && name;
-
-		if (type === "register") {
-			return (
-				hasRequiredFields &&
-				!hasErrors &&
-				emailAvailable !== false &&
-				nameAvailable !== false &&
-				!emailChecking &&
-				!nameChecking
-			);
-		}
-
+			mode === "login"
+				? email && password
+				: lastName && firstName && email && password && confirmPassword;
 		return hasRequiredFields && !hasErrors;
 	};
 
 	if (!type) return null;
+
+	const fieldError = (name: string, value: string) =>
+		errors[name] && value ? (
+			<p className="flex items-center text-red-400 text-sm">
+				<AlertCircle className="mr-1 h-3 w-3" />
+				{errors[name]}
+			</p>
+		) : null;
 
 	return (
 		<Dialog open={!!type} onOpenChange={() => onClose()}>
 			<DialogContent className="max-w-md border-slate-800 bg-slate-900">
 				<DialogHeader>
 					<DialogTitle className="text-center text-white">
-						{type === "login" ? t("welcome_back") : t("create_account_title")}
+						{mode === "login" ? t("welcome_back") : t("create_account_title")}
 					</DialogTitle>
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className="space-y-4">
-					{type === "register" && (
-						<div className="space-y-2">
-							<Label htmlFor="name" className="text-slate-300">
-								{t("username")}
-							</Label>
-							<div className="relative">
+					{mode === "register" && (
+						<>
+							<div className="space-y-2">
+								<Label htmlFor="lastName" className="text-slate-300">
+									{t("last_name")}
+								</Label>
 								<Input
-									id="name"
+									id="lastName"
 									type="text"
-									value={name}
-									onChange={(e) => setName(e.target.value)}
-									className={`bg-slate-800 pr-10 text-white ${getInputBorderClass("name", nameAvailable)}`}
+									value={lastName}
+									onChange={(e) => setLastName(e.target.value)}
+									className={`bg-slate-800 text-white ${getInputBorderClass("lastName", lastName)}`}
 									required
 								/>
-								<div className="-translate-y-1/2 absolute top-1/2 right-3">
-									{getNameValidationIcon()}
-								</div>
+								{fieldError("lastName", lastName)}
 							</div>
-							{errors.name && name && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{errors.name}
-								</p>
-							)}
-							{nameAvailable === false && !errors.name && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{t("username_taken")}
-								</p>
-							)}
-						</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="firstName" className="text-slate-300">
+									{t("first_name")}
+								</Label>
+								<Input
+									id="firstName"
+									type="text"
+									value={firstName}
+									onChange={(e) => setFirstName(e.target.value)}
+									className={`bg-slate-800 text-white ${getInputBorderClass("firstName", firstName)}`}
+									required
+								/>
+								{fieldError("firstName", firstName)}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="patronymic" className="text-slate-300">
+									{t("patronymic")}{" "}
+									<span className="text-slate-500 text-xs">
+										({t("optional_hint")})
+									</span>
+								</Label>
+								<Input
+									id="patronymic"
+									type="text"
+									value={patronymic}
+									onChange={(e) => setPatronymic(e.target.value)}
+									className={`bg-slate-800 text-white ${getInputBorderClass("patronymic", patronymic)}`}
+								/>
+								{fieldError("patronymic", patronymic)}
+							</div>
+						</>
 					)}
 
-					{/* Username for login */}
-					{type === "login" && (
-						<div className="space-y-2">
-							<Label htmlFor="username" className="text-slate-300">
-								{t("username")}
-							</Label>
-							<div className="relative">
-								<Input
-									id="username"
-									type="text"
-									value={username}
-									onChange={(e) => setUsername(e.target.value)}
-									className={`bg-slate-800 text-white ${getInputBorderClass("username")}`}
-									required
-								/>
-							</div>
-							{errors.username && username && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{errors.username}
-								</p>
-							)}
-						</div>
-					)}
-
-					{/* Email input (register only) */}
-					{type === "register" && (
-						<div className="space-y-2">
-							<Label htmlFor="email" className="text-slate-300">
-								{t("email")}
-							</Label>
-							<div className="relative">
-								<Input
-									id="email"
-									type="email"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									className={`bg-slate-800 pr-10 text-white ${getInputBorderClass("email", emailAvailable)}`}
-									required
-								/>
-								<div className="-translate-y-1/2 absolute top-1/2 right-3">
-									{getEmailValidationIcon()}
-								</div>
-							</div>
-							{errors.email && email && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{errors.email}
-								</p>
-							)}
-							{emailAvailable === false && !errors.email && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{t("email_taken")}
-								</p>
-							)}
-						</div>
-					)}
+					<div className="space-y-2">
+						<Label htmlFor="email" className="text-slate-300">
+							{t("email")}
+						</Label>
+						<Input
+							id="email"
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							className={`bg-slate-800 text-white ${getInputBorderClass("email", email)}`}
+							required
+						/>
+						{fieldError("email", email)}
+					</div>
 
 					<div className="space-y-2">
 						<Label htmlFor="password" className="text-slate-300">
@@ -433,18 +288,13 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 							type="password"
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							className={`bg-slate-800 text-white ${getInputBorderClass("password")}`}
+							className={`bg-slate-800 text-white ${getInputBorderClass("password", password)}`}
 							required
 						/>
-						{errors.password && password && (
-							<p className="flex items-center text-red-400 text-sm">
-								<AlertCircle className="mr-1 h-3 w-3" />
-								{errors.password}
-							</p>
-						)}
+						{fieldError("password", password)}
 					</div>
 
-					{type === "register" && (
+					{mode === "register" && (
 						<div className="space-y-2">
 							<Label htmlFor="confirmPassword" className="text-slate-300">
 								{t("confirm_password")}
@@ -454,24 +304,19 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 								type="password"
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
-								className={`bg-slate-800 text-white ${getInputBorderClass("confirmPassword")}`}
+								className={`bg-slate-800 text-white ${getInputBorderClass("confirmPassword", confirmPassword)}`}
 								required
 							/>
-							{errors.confirmPassword && confirmPassword && (
-								<p className="flex items-center text-red-400 text-sm">
-									<AlertCircle className="mr-1 h-3 w-3" />
-									{errors.confirmPassword}
-								</p>
-							)}
+							{fieldError("confirmPassword", confirmPassword)}
 						</div>
 					)}
 
 					<Button
 						type="submit"
 						className="w-full bg-red-600 text-white hover:bg-red-700"
-						disabled={!isFormValid()}
+						disabled={!isFormValid() || submitting}
 					>
-						{type === "login" ? t("sign_in") : t("create_account_action")}
+						{mode === "login" ? t("sign_in") : t("create_account_action")}
 					</Button>
 					{errors.root && (
 						<p className="mt-2 flex items-center text-red-400 text-sm">
@@ -490,20 +335,6 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 					</div>
 
 					<div className="grid grid-cols-1 gap-2 sm:grid-cols-1">
-						{/*
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
-							onClick={handlePasskey}
-							title={t("passkey")}
-						>
-							<Key className="h-4 w-4 sm:mr-1" />
-							<span className="hidden text-xs sm:inline">{t("passkey")}</span>
-						</Button>
-						*/}
-
 						<Button
 							type="button"
 							variant="outline"
@@ -531,27 +362,23 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 								/>
 							</svg>
 						</Button>
-
-						{/* <Button
-							type="button"
-							variant="outline"
-							size="sm"
-							className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-3"
-							onClick={() => handleOAuth("github")}
-							title={t("sign_in_with_github")}
-						>
-							<svg
-								className="h-4 w-4"
-								viewBox="0 0 24 24"
-								fill="#ffffff"
-								role="img"
-								aria-labelledby="github-title"
-							>
-								<title id="github-title">{t("sign_in_with_github")}</title>
-								<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-							</svg>
-						</Button> */}
 					</div>
+
+					<p className="text-center text-slate-400 text-sm">
+						{mode === "login"
+							? t("no_account_prompt")
+							: t("have_account_prompt")}{" "}
+						<button
+							type="button"
+							className="font-medium text-red-400 hover:text-red-300"
+							onClick={() => {
+								setErrors({});
+								setMode(mode === "login" ? "register" : "login");
+							}}
+						>
+							{mode === "login" ? t("create_account_action") : t("sign_in")}
+						</button>
+					</p>
 				</div>
 			</DialogContent>
 		</Dialog>

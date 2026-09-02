@@ -13,6 +13,13 @@ pub struct BasicUser {
     pub email: String,
     pub role: UserRole,
 
+    pub first_name: String,
+    pub last_name: String,
+    pub patronymic: Option<String>,
+
+    #[serde(skip)]
+    pub email_verified: bool,
+
     #[serde(skip)]
     pub password: String,
 

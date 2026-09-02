@@ -36,6 +36,7 @@ impl AccountRepository for RepositoryPostgres {
         let user = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
+                       u.first_name, u.last_name, u.patronymic, u.email_verified,
                        u.role as "role: UserRole", ac.password_hash as password
                 FROM users u
                 LEFT JOIN auth_credentials ac ON ac.user_id = u.id
@@ -50,6 +51,10 @@ impl AccountRepository for RepositoryPostgres {
             username: x.username,
             email: x.email,
             role: x.role,
+            first_name: x.first_name,
+            last_name: x.last_name,
+            patronymic: x.patronymic,
+            email_verified: x.email_verified,
             password: x.password,
             attributes,
             created_at: x.created_at,
@@ -64,6 +69,7 @@ impl AccountRepository for RepositoryPostgres {
         let user = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
+                       u.first_name, u.last_name, u.patronymic, u.email_verified,
                        u.role as "role: UserRole", ac.password_hash as password
                 FROM users u
                 LEFT JOIN auth_credentials ac ON ac.user_id = u.id
@@ -78,6 +84,10 @@ impl AccountRepository for RepositoryPostgres {
             username: x.username,
             email: x.email,
             role: x.role,
+            first_name: x.first_name,
+            last_name: x.last_name,
+            patronymic: x.patronymic,
+            email_verified: x.email_verified,
             password: x.password,
             attributes: Attributes::default(),
             created_at: x.created_at,
@@ -183,6 +193,7 @@ impl AccountRepository for RepositoryPostgres {
         let mut users = sqlx::query!(
             r#"
                 SELECT u.id, u.username, u.email, u.created_at,
+                       u.first_name, u.last_name, u.patronymic, u.email_verified,
                        u.role as "role: UserRole",
                        (SELECT ac.password_hash
                         FROM auth_credentials ac
@@ -207,6 +218,10 @@ impl AccountRepository for RepositoryPostgres {
             username: x.username,
             email: x.email,
             role: x.role,
+            first_name: x.first_name,
+            last_name: x.last_name,
+            patronymic: x.patronymic,
+            email_verified: x.email_verified,
             password: x.password,
             attributes: Attributes::default(),
             created_at: x.created_at,
@@ -270,6 +285,62 @@ impl AccountRepository for RepositoryPostgres {
             "#,
             role as UserRole,
             id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(LMSError::NotFound(
+                "No user was found with that id.".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    async fn update_profile(
+        &self,
+        id: Uuid,
+        first_name: &str,
+        last_name: &str,
+        patronymic: Option<&str>,
+        username: &str,
+    ) -> Result<()> {
+        let result = sqlx::query!(
+            r#"
+                UPDATE users
+                SET first_name = $2,
+                    last_name  = $3,
+                    patronymic = $4,
+                    username   = $5
+                WHERE id = $1
+            "#,
+            id,
+            first_name,
+            last_name,
+            patronymic,
+            username,
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(LMSError::NotFound(
+                "No user was found with that id.".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    async fn set_email_verified(&self, id: Uuid) -> Result<()> {
+        let result = sqlx::query!(
+            r#"
+                UPDATE users
+                SET email_verified = TRUE
+                WHERE id = $1
+            "#,
+            id,
         )
         .execute(&self.pool)
         .await?;

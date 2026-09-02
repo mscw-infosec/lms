@@ -1,4 +1,4 @@
-use crate::dto::account::{CtfdAccountData, CtfdToken};
+use crate::dto::account::{CtfdAccountData, CtfdToken, UpdateProfileRequest};
 use crate::{
     api::account::AccountState,
     domain::account::model::{Attributes, UserModel, UserRole},
@@ -8,7 +8,7 @@ use crate::{
     },
     errors::LMSError,
     infrastructure::jwt::AccessTokenClaim,
-    utils::ValidatedQuery,
+    utils::{ValidatedJson, ValidatedQuery},
 };
 use axum::{
     Json,
@@ -37,6 +37,63 @@ pub async fn get_user(
         .assign_predefined_attributes(user.id, user.email.to_lowercase().clone())
         .await?;
     Ok(Json(user.into()))
+}
+
+/// Update the current user's names (profile edit / OAuth detail completion)
+#[utoipa::path(
+    patch,
+    path = "/profile",
+    tag = "Account",
+    request_body = UpdateProfileRequest,
+    responses(
+        (status = 200, body = GetUserResponseDTO, description = "Updated user profile"),
+        (status = 401, description = "No auth data found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn update_profile(
+    AccessTokenClaim { sub, .. }: AccessTokenClaim,
+    State(state): State<AccountState>,
+    ValidatedJson(payload): ValidatedJson<UpdateProfileRequest>,
+) -> Result<Json<GetUserResponseDTO>, LMSError> {
+    let user = state
+        .account_service
+        .update_profile(
+            sub,
+            payload.first_name.trim(),
+            payload.last_name.trim(),
+            payload
+                .patronymic
+                .as_deref()
+                .map(str::trim)
+                .filter(|s| !s.is_empty()),
+        )
+        .await?;
+
+    Ok(Json(user.into()))
+}
+
+/// Resend the email-verification link to the current user
+#[utoipa::path(
+    post,
+    path = "/resend-verification",
+    tag = "Account",
+    responses(
+        (status = 200, description = "Verification email sent"),
+        (status = 401, description = "No auth data found"),
+        (status = 409, description = "Email is already verified")
+    ),
+    security(
+        ("BearerAuth" = [])
+    ),
+)]
+pub async fn resend_verification(
+    AccessTokenClaim { sub, .. }: AccessTokenClaim,
+    State(state): State<AccountState>,
+) -> Result<(), LMSError> {
+    state.account_service.resend_verification(sub).await
 }
 
 /// Return user attributes (only for admins)

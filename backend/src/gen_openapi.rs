@@ -11,7 +11,7 @@ use crate::{
         refresh_token::service::RefreshTokenService, report::service::ReportService,
         task::service::TaskService, topics::service::TopicService, video::service::VideoService,
     },
-    infrastructure::jwt::JWT,
+    infrastructure::{email::EmailService, jwt::JWT},
 };
 
 #[allow(dead_code)]
@@ -20,15 +20,18 @@ pub struct DummyRepository;
 #[allow(dead_code)]
 pub fn save_openapi() {
     let client = reqwest::Client::new();
-    let config = Config::default();
+    let config = Config { smtp_from: "noreply@example.com".to_string(), ..Default::default() };
 
     let dummy = Arc::new(DummyRepository);
 
     let jwt = Arc::new(JWT::new(&config.jwt_secret));
+    let email = EmailService::new(&config).expect("Failed to build dummy EmailService");
 
     let account = AccountService::new(
         dummy.clone(),
         dummy.clone(),
+        dummy.clone(),
+        email,
         dummy.clone(),
         &config.frontend_redirect_url,
         client.clone(),
@@ -69,7 +72,7 @@ pub fn save_openapi() {
         video,
     };
 
-    let (_, api) = generate_router(jwt, client, config, services)
+    let (_, api) = generate_router(&jwt, client, config, services)
         .expect("Failed to generate app router")
         .split_for_parts();
 

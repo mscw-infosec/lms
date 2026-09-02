@@ -8,6 +8,7 @@ import {
 	getSessions,
 	logoutAllSessions,
 	logoutSession,
+	updateProfile,
 } from "@/api/auth";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
@@ -56,11 +57,52 @@ export default function AccountPage() {
 	const user = meQuery.data ?? null;
 	const sessions = sessionsQuery.data ?? null;
 
+	const [lastName, setLastName] = useState("");
+	const [firstName, setFirstName] = useState("");
+	const [patronymic, setPatronymic] = useState("");
+
 	useEffect(() => {
 		if (user?.id) {
 			ensureAvatarChecked(user.id);
 		}
 	}, [user?.id]);
+
+	// Seed the name form from the loaded profile.
+	useEffect(() => {
+		setLastName(user?.last_name ?? "");
+		setFirstName(user?.first_name ?? "");
+		setPatronymic(user?.patronymic ?? "");
+	}, [user?.last_name, user?.first_name, user?.patronymic]);
+
+	const updateProfileMutation = useMutation<void, Error, void>({
+		mutationFn: async () => {
+			await updateProfile({
+				last_name: lastName.trim(),
+				first_name: firstName.trim(),
+				patronymic: patronymic.trim() ? patronymic.trim() : null,
+			});
+		},
+		onSuccess: async () => {
+			toast({
+				title: t("profile_updated"),
+				description: t("profile_updated_desc"),
+			});
+			await queryClient.invalidateQueries({ queryKey: ["me"] });
+		},
+		onError: (e) => {
+			toast({
+				title: t("error"),
+				description: e.message,
+				variant: "destructive",
+			});
+		},
+	});
+
+	const namesValid = lastName.trim().length > 0 && firstName.trim().length > 0;
+	const namesDirty =
+		lastName.trim() !== (user?.last_name ?? "") ||
+		firstName.trim() !== (user?.first_name ?? "") ||
+		(patronymic.trim() ? patronymic.trim() : "") !== (user?.patronymic ?? "");
 
 	const handleAvatarChange = (file: File | null) => {
 		if (!file) {
@@ -375,6 +417,83 @@ export default function AccountPage() {
 									)}
 								</div>
 							</div>
+						</CardContent>
+					</Card>
+
+					{/* Personal info card */}
+					<Card className="border-slate-800 bg-slate-900">
+						<CardHeader>
+							<CardTitle className="text-white">
+								{t("personal_info_title")}
+							</CardTitle>
+							<CardDescription className="text-slate-400">
+								{t("personal_info_subtitle")}
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<form
+								className="grid gap-4"
+								onSubmit={(e) => {
+									e.preventDefault();
+									if (namesValid && namesDirty) {
+										updateProfileMutation.mutate();
+									}
+								}}
+							>
+								<div className="grid gap-2">
+									<Label htmlFor="last_name" className="text-slate-300">
+										{t("last_name")}
+									</Label>
+									<Input
+										id="last_name"
+										value={lastName}
+										onChange={(e) => setLastName(e.target.value)}
+										className="border-slate-700 bg-slate-800 text-white"
+										required
+									/>
+								</div>
+								<div className="grid gap-2">
+									<Label htmlFor="first_name" className="text-slate-300">
+										{t("first_name")}
+									</Label>
+									<Input
+										id="first_name"
+										value={firstName}
+										onChange={(e) => setFirstName(e.target.value)}
+										className="border-slate-700 bg-slate-800 text-white"
+										required
+									/>
+								</div>
+								<div className="grid gap-2">
+									<Label htmlFor="patronymic" className="text-slate-300">
+										{t("patronymic")}{" "}
+										<span className="text-slate-500 text-xs">
+											({t("optional_hint")})
+										</span>
+									</Label>
+									<Input
+										id="patronymic"
+										value={patronymic}
+										onChange={(e) => setPatronymic(e.target.value)}
+										className="border-slate-700 bg-slate-800 text-white"
+									/>
+								</div>
+								<div>
+									<Button
+										type="submit"
+										disabled={
+											!namesValid ||
+											!namesDirty ||
+											updateProfileMutation.isPending
+										}
+										className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+									>
+										{updateProfileMutation.isPending
+											? t("saving")
+											: t("save_changes")}
+									</Button>
+								</div>
+							</form>
 						</CardContent>
 					</Card>
 

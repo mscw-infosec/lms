@@ -1,0 +1,89 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT u.id, u.username, u.email, u.created_at,\n                       u.first_name, u.last_name, u.patronymic, u.email_verified,\n                       u.role as \"role: UserRole\",\n                       (SELECT ac.password_hash\n                        FROM auth_credentials ac\n                        WHERE ac.user_id = u.id AND ac.provider = 'basic'\n                        LIMIT 1) as password\n                FROM users u\n                WHERE $3::text IS NULL\n                   OR u.username ILIKE '%' || $3 || '%'\n                   OR u.email ILIKE '%' || $3 || '%'\n                ORDER BY u.created_at DESC\n                LIMIT $1 OFFSET $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "username",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "first_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "last_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "patronymic",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "email_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "role: UserRole",
+        "type_info": {
+          "Custom": {
+            "name": "userrole",
+            "kind": {
+              "Enum": [
+                "Student",
+                "Teacher",
+                "Admin"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "password",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "cbbdf07cf735c05358c6ab09e25da35227dc5c18925a9b8bd553fdc2e6473878"
+}
