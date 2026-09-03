@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE auth_credentials\n                SET password_hash = $2\n                WHERE user_id = $1 AND provider = 'basic'\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2de9eeb91911da9655d33e539b99936491026a3e592eeaf399a0f74f1e4901dc"
+}

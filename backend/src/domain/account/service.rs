@@ -94,6 +94,12 @@ impl AccountService {
         Ok(user_id)
     }
 
+    pub async fn mark_email_verified(&self, user_id: Uuid) -> Result<()> {
+        self.db_repo.set_email_verified(user_id).await?;
+        self.cache_repo.invalidate_user(user_id).await?;
+        Ok(())
+    }
+
     /// Update the user's names (used both for profile edits and for OAuth users
     /// completing their required details). Recomposes the display `username`.
     pub async fn update_profile(

@@ -38,5 +38,7 @@ pub fn configure(
         .routes(routes!(register))
         .routes(routes!(login))
         .routes(routes!(verify_email))
+        .routes(routes!(forgot_password))
+        .routes(routes!(reset_password))
         .with_state(state)
 }

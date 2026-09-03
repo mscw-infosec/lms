@@ -1,7 +1,7 @@
 "use client";
 
 import { refreshAccessToken, verifyEmail } from "@/api/auth";
-import { getAccessToken } from "@/api/token";
+import { getAccessToken, setAccessToken } from "@/api/token";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/user";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
@@ -13,17 +13,31 @@ import { useTranslation } from "react-i18next";
 
 type Status = "verifying" | "success" | "error";
 
-const verifyRequests = new Map<string, Promise<void>>();
+const verifyRequests = new Map<string, Promise<boolean>>();
 
-function verifyTokenOnce(token: string): Promise<void> {
+function verifyTokenOnce(token: string): Promise<boolean> {
 	let request = verifyRequests.get(token);
 	if (!request) {
 		request = (async () => {
 			await verifyEmail(token);
-			if (getAccessToken()) {
-				try {
-					await refreshAccessToken();
-				} catch {}
+
+			// The verification link is often opened in a different browser or
+			// device from the one that registered. Only report "you're signed
+			// in" when we can actually refresh this browser's session into a
+			// verified access token.
+			if (!getAccessToken()) {
+				return false;
+			}
+			try {
+				await refreshAccessToken();
+				return true;
+			} catch {
+				// The stored token can't be refreshed (no/expired refresh
+				// cookie): it's stale and, worse, still carries the old
+				// unverified claim. Drop it so the user signs in cleanly rather
+				// than being stuck behind the gate with a false "logged in".
+				setAccessToken(null);
+				return false;
 			}
 		})();
 		verifyRequests.set(token, request);
@@ -37,6 +51,7 @@ export default function VerifyEmailPage() {
 	const { t, ready } = useTranslation("common");
 	const { refreshUser } = useUserStore();
 	const [status, setStatus] = useState<Status>("verifying");
+	const [authed, setAuthed] = useState(false);
 
 	const token = useMemo(() => searchParams.get("token"), [searchParams]);
 
@@ -48,9 +63,11 @@ export default function VerifyEmailPage() {
 
 		let cancelled = false;
 		verifyTokenOnce(token)
-			.then(async () => {
+			.then(async (isAuthed) => {
 				await refreshUser();
-				if (!cancelled) setStatus("success");
+				if (cancelled) return;
+				setAuthed(isAuthed);
+				setStatus("success");
 			})
 			.catch(() => {
 				if (!cancelled) setStatus("error");
@@ -88,13 +105,15 @@ export default function VerifyEmailPage() {
 							{t("verify_success_title")}
 						</h1>
 						<p className="mt-2 text-slate-400 text-sm">
-							{t("verify_success_desc")}
+							{authed
+								? t("verify_success_desc")
+								: t("verify_success_login_prompt")}
 						</p>
 						<Button
 							className="mt-6 w-full bg-red-600 text-white hover:bg-red-700"
 							onClick={() => router.replace("/")}
 						>
-							{t("verify_continue")}
+							{authed ? t("verify_continue") : t("sign_in")}
 						</Button>
 					</>
 				)}

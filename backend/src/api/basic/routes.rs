@@ -1,11 +1,11 @@
 use axum::{Json, extract::State, http::HeaderMap};
 use tower_cookies::Cookies;
-use tracing::warn;
+use tracing::{error, warn};
 
 use crate::{
     dto::basic::{
         BasicLoginRequest, BasicLoginResponse, BasicRegisterRequest, BasicRegisterResponse,
-        VerifyEmailRequest,
+        ForgotPasswordRequest, ResetPasswordRequest, VerifyEmailRequest,
     },
     errors::LMSError,
     utils::{ValidatedJson, add_cookie, device_from_headers},
@@ -58,13 +58,19 @@ pub async fn register(
         .await?;
 
     // Fire off the verification email. A failure here shouldn't block the
-    // account creation itself — the user can resend from their account page.
+    // account creation itself — the user can resend from their account page —
+    // but it must be loud in the logs (email is otherwise a silent side effect).
     if let Err(err) = state
         .account_service
         .send_verification_email(user.id, &user.email)
         .await
     {
-        warn!("Failed to send verification email to {}: {:?}", email, err);
+        error!(
+            user.id = %user.id,
+            recipient = %email,
+            error = ?err,
+            "registration succeeded but the verification email could not be sent"
+        );
     }
 
     let (refresh_token, _) = state
@@ -142,5 +148,64 @@ pub async fn verify_email(
     Json(payload): Json<VerifyEmailRequest>,
 ) -> Result<(), LMSError> {
     state.account_service.verify_email(&payload.token).await?;
+    Ok(())
+}
+
+/// Request a password-reset link.
+///
+/// Always returns 200 regardless of whether an account exists, so the endpoint
+/// can't be used to probe which emails are registered.
+#[utoipa::path(
+    post,
+    tag = "Basic",
+    path = "/forgot-password",
+    request_body = ForgotPasswordRequest,
+    responses(
+        (status = 200, description = "If an account exists, a reset link has been sent")
+    )
+)]
+pub async fn forgot_password(
+    State(state): State<BasicAuthState>,
+    ValidatedJson(payload): ValidatedJson<ForgotPasswordRequest>,
+) -> Result<(), LMSError> {
+    state
+        .basic_auth_service
+        .request_password_reset(&payload.email.to_lowercase())
+        .await?;
+    Ok(())
+}
+
+/// Reset a password using the token from the recovery link.
+///
+/// On success the user's other sessions are revoked, and — since clicking the
+/// emailed link proves ownership of the mailbox — their email is marked verified.
+#[utoipa::path(
+    post,
+    tag = "Basic",
+    path = "/reset-password",
+    request_body = ResetPasswordRequest,
+    responses(
+        (status = 200, description = "Password reset successfully"),
+        (status = 404, description = "Invalid or expired reset link")
+    )
+)]
+pub async fn reset_password(
+    State(state): State<BasicAuthState>,
+    ValidatedJson(payload): ValidatedJson<ResetPasswordRequest>,
+) -> Result<(), LMSError> {
+    let user_id = state
+        .basic_auth_service
+        .reset_password(&payload.token, &payload.new_password)
+        .await?;
+
+    if let Err(err) = state.account_service.mark_email_verified(user_id).await {
+        warn!("Failed to mark email verified after reset for {user_id}: {err:?}");
+    }
+
+    state
+        .refresh_service
+        .logout_all_sessions(user_id)
+        .await?;
+
     Ok(())
 }

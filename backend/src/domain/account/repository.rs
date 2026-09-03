@@ -53,3 +53,10 @@ pub trait EmailVerificationCacheRepository {
     async fn store_verification(&self, token: &str, user_id: Uuid, ttl_secs: u64) -> Result<()>;
     async fn take_verification(&self, token: &str) -> Result<Option<Uuid>>;
 }
+
+#[impl_unimplemented(DummyRepository)]
+#[async_trait]
+pub trait PasswordResetCacheRepository {
+    async fn store_reset(&self, token: &str, user_id: Uuid, ttl_secs: u64) -> Result<()>;
+    async fn take_reset(&self, token: &str) -> Result<Option<Uuid>>;
+}

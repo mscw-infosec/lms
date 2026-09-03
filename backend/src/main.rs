@@ -87,18 +87,19 @@ async fn main() -> anyhow::Result<()> {
     let iam = Arc::new(IAMTokenManager::new(&config.iam_key_file)?);
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
     let email = EmailService::new(&config)?;
+    email.verify_connection().await;
 
     let account = AccountService::new(
         db_repo.clone(),
         rdb_repo.clone(),
         rdb_repo.clone(),
-        email,
+        email.clone(),
         s3.clone(),
         &config.frontend_redirect_url,
         client.clone(),
         config.ctfd_token.clone(),
     );
-    let basic_auth = BasicAuthService::new(db_repo.clone());
+    let basic_auth = BasicAuthService::new(db_repo.clone(), rdb_repo.clone(), email.clone());
     let course = CourseService::new(db_repo.clone(), account.clone());
     let topic = TopicService::new(db_repo.clone(), course.clone());
     let exam = ExamService::new(

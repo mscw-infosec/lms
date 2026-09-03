@@ -31,13 +31,13 @@ pub fn save_openapi() {
         dummy.clone(),
         dummy.clone(),
         dummy.clone(),
-        email,
+        email.clone(),
         dummy.clone(),
         &config.frontend_redirect_url,
         client.clone(),
         config.ctfd_token.clone(),
     );
-    let basic_auth = BasicAuthService::new(dummy.clone());
+    let basic_auth = BasicAuthService::new(dummy.clone(), dummy.clone(), email);
     let course = CourseService::new(dummy.clone(), account.clone());
     let topic = TopicService::new(dummy.clone(), course.clone());
     let exam = ExamService::new(

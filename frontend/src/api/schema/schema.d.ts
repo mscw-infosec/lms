@@ -246,6 +246,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/basic/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request a password-reset link.
+         * @description Always returns 200 regardless of whether an account exists, so the endpoint
+         *     can't be used to probe which emails are registered.
+         */
+        post: operations["forgot_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/basic/login": {
         parameters: {
             query?: never;
@@ -279,6 +300,27 @@ export interface paths {
          *     the verification link sent to their inbox.
          */
         post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/basic/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset a password using the token from the recovery link.
+         * @description On success the user's other sessions are revoked, and — since clicking the
+         *     emailed link proves ownership of the mailbox — their email is marked verified.
+         */
+        post: operations["reset_password"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1562,6 +1604,10 @@ export interface components {
         ExamScoringPolicy: "best" | "latest" | "average";
         /** @enum {string} */
         ExamType: "Instant" | "Delayed";
+        ForgotPasswordRequest: {
+            /** @example ivan@example.com */
+            email: string;
+        };
         GetUserResponseDTO: {
             email: string;
             email_verified: boolean;
@@ -1570,7 +1616,6 @@ export interface components {
             id: string;
             last_name?: string | null;
             patronymic?: string | null;
-            /** @description Derived: `first_name` and `last_name` are both present. */
             profile_complete: boolean;
             role: components["schemas"]["UserRole"];
             username: string;
@@ -1813,6 +1858,11 @@ export interface components {
         ReorderTopicContentDTO: {
             items: components["schemas"]["ReorderItemDTO"][];
         };
+        ResetPasswordRequest: {
+            /** @example NewPassword12345 */
+            new_password: string;
+            token: string;
+        };
         ScoringData: {
             results: {
                 [key: string]: components["schemas"]["TaskVerdict"];
@@ -2015,7 +2065,6 @@ export interface components {
             order_index: number;
             title: string;
         };
-        /** @description Update the current user's names (profile edit / OAuth detail completion). */
         UpdateProfileRequest: {
             first_name: string;
             last_name: string;
@@ -2594,6 +2643,28 @@ export interface operations {
             };
         };
     };
+    forgot_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description If an account exists, a reset link has been sent */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     login: {
         parameters: {
             query?: never;
@@ -2653,6 +2724,35 @@ export interface operations {
             };
             /** @description User with the same email already exists */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    reset_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Password reset successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired reset link */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

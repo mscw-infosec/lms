@@ -47,3 +47,18 @@ pub struct BasicLoginRequest {
 pub struct VerifyEmailRequest {
     pub token: String,
 }
+
+#[derive(Serialize, Deserialize, Validate, ToSchema)]
+pub struct ForgotPasswordRequest {
+    #[validate(email)]
+    #[schema(example = "ivan@example.com")]
+    pub email: String,
+}
+
+#[derive(Serialize, Deserialize, Validate, ToSchema)]
+pub struct ResetPasswordRequest {
+    pub token: String,
+    #[validate(length(min = 12, message = "Password must be at least 12 characters"))]
+    #[schema(example = "NewPassword12345")]
+    pub new_password: String,
+}

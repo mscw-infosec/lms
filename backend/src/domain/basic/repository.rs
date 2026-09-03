@@ -2,6 +2,7 @@ use super::model::BasicUser;
 use crate::{errors::Result, gen_openapi::DummyRepository};
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
+use uuid::Uuid;
 
 #[impl_unimplemented(DummyRepository)]
 #[async_trait]
@@ -9,4 +10,6 @@ pub trait BasicAuthRepository {
     async fn create(&self, user: &BasicUser) -> Result<()>;
     async fn is_exists(&self, username: &str, email: &str) -> Result<bool>;
     async fn get_by_email(&self, email: &str) -> Result<Option<BasicUser>>;
+    async fn find_user_for_reset(&self, email: &str) -> Result<Option<(Uuid, String)>>;
+    async fn set_password(&self, user_id: Uuid, password_hash: &str) -> Result<()>;
 }

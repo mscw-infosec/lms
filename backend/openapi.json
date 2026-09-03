@@ -573,6 +573,31 @@
         ]
       }
     },
+    "/basic/forgot-password": {
+      "post": {
+        "tags": [
+          "Basic"
+        ],
+        "summary": "Request a password-reset link.",
+        "description": "Always returns 200 regardless of whether an account exists, so the endpoint\ncan't be used to probe which emails are registered.",
+        "operationId": "forgot_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "If an account exists, a reset link has been sent"
+          }
+        }
+      }
+    },
     "/basic/login": {
       "post": {
         "tags": [
@@ -654,6 +679,34 @@
           },
           "409": {
             "description": "User with the same email already exists"
+          }
+        }
+      }
+    },
+    "/basic/reset-password": {
+      "post": {
+        "tags": [
+          "Basic"
+        ],
+        "summary": "Reset a password using the token from the recovery link.",
+        "description": "On success the user's other sessions are revoked, and — since clicking the\nemailed link proves ownership of the mailbox — their email is marked verified.",
+        "operationId": "reset_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully"
+          },
+          "404": {
+            "description": "Invalid or expired reset link"
           }
         }
       }
@@ -4833,6 +4886,18 @@
           "Delayed"
         ]
       },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "ivan@example.com"
+          }
+        }
+      },
       "GetUserResponseDTO": {
         "type": "object",
         "required": [
@@ -5726,6 +5791,22 @@
             "items": {
               "$ref": "#/components/schemas/ReorderItemDTO"
             }
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "properties": {
+          "new_password": {
+            "type": "string",
+            "example": "NewPassword12345"
+          },
+          "token": {
+            "type": "string"
           }
         }
       },

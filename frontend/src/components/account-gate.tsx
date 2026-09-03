@@ -16,7 +16,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-const BYPASS_PREFIXES = ["/verify", "/oauth"];
+const BYPASS_PREFIXES = ["/verify", "/reset-password", "/oauth"];
 
 export function AccountGate({ children }: { children: ReactNode }) {
 	const { user, hasToken, loading, refreshUser } = useUserStore();

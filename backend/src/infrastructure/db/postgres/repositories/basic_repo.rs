@@ -5,6 +5,7 @@ use crate::{
     infrastructure::db::postgres::RepositoryPostgres,
 };
 use async_trait::async_trait;
+use uuid::Uuid;
 
 #[async_trait]
 impl BasicAuthRepository for RepositoryPostgres {
@@ -93,5 +94,55 @@ impl BasicAuthRepository for RepositoryPostgres {
         });
 
         Ok(user)
+    }
+
+    async fn find_user_for_reset(&self, email: &str) -> Result<Option<(Uuid, String)>> {
+        let row = sqlx::query!(
+            r#"
+                SELECT id, email
+                FROM users
+                WHERE LOWER(email) = LOWER($1)
+            "#,
+            email
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(row.map(|r| (r.id, r.email)))
+    }
+
+    async fn set_password(&self, user_id: Uuid, password_hash: &str) -> Result<()> {
+        let mut tx = self.pool.begin().await?;
+
+        // Update an existing basic credential first; if the user has none yet
+        // (e.g. an OAuth-only account), insert one so they gain a password.
+        let updated = sqlx::query!(
+            r#"
+                UPDATE auth_credentials
+                SET password_hash = $2
+                WHERE user_id = $1 AND provider = 'basic'
+            "#,
+            user_id,
+            password_hash
+        )
+        .execute(tx.as_mut())
+        .await?;
+
+        if updated.rows_affected() == 0 {
+            sqlx::query!(
+                r#"
+                    INSERT INTO auth_credentials (user_id, provider, password_hash)
+                    VALUES ($1, 'basic', $2)
+                "#,
+                user_id,
+                password_hash
+            )
+            .execute(tx.as_mut())
+            .await?;
+        }
+
+        tx.commit().await?;
+
+        Ok(())
     }
 }

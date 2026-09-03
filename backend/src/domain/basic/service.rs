@@ -1,23 +1,39 @@
 use chrono::Utc;
 use std::sync::Arc;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use super::{model::BasicUser, repository::BasicAuthRepository};
 use crate::domain::account::model::UserRole;
+use crate::domain::account::repository::PasswordResetCacheRepository;
 use crate::{
     errors::{LMSError, Result},
-    infrastructure::crypto::Argon,
+    infrastructure::{crypto::Argon, email::EmailService},
     repo,
+    utils::generate_random_string,
 };
+
+/// Lifetime of a password-reset link.
+const RESET_TTL_SECS: u64 = 60 * 60;
 
 #[derive(Clone)]
 pub struct BasicAuthService {
     repo: repo!(BasicAuthRepository),
+    reset_repo: repo!(PasswordResetCacheRepository),
+    email: EmailService,
 }
 
 impl BasicAuthService {
-    pub const fn new(repo: repo!(BasicAuthRepository)) -> Self {
-        Self { repo }
+    pub fn new(
+        repo: repo!(BasicAuthRepository),
+        reset_repo: repo!(PasswordResetCacheRepository),
+        email: EmailService,
+    ) -> Self {
+        Self {
+            repo,
+            reset_repo,
+            email,
+        }
     }
 
     pub async fn register(
@@ -69,5 +85,36 @@ impl BasicAuthService {
         }
 
         Ok(user)
+    }
+
+    pub async fn request_password_reset(&self, email: &str) -> Result<()> {
+        let Some((user_id, user_email)) = self.repo.find_user_for_reset(email).await? else {
+            info!(%email, "password reset requested for an unknown email — no email sent");
+            return Ok(());
+        };
+
+        let token = generate_random_string(48);
+        self.reset_repo
+            .store_reset(&token, user_id, RESET_TTL_SECS)
+            .await?;
+
+        if let Err(err) = self.email.send_password_reset(&user_email, &token).await {
+            error!(user.id = %user_id, %email, error = ?err, "failed to send password-reset email");
+        }
+
+        Ok(())
+    }
+
+    pub async fn reset_password(&self, token: &str, new_password: &str) -> Result<Uuid> {
+        let user_id = self
+            .reset_repo
+            .take_reset(token)
+            .await?
+            .ok_or_else(|| LMSError::NotFound("Invalid or expired reset link.".to_string()))?;
+
+        let password_hash = Argon::hash_password(new_password.as_bytes())?;
+        self.repo.set_password(user_id, &password_hash).await?;
+
+        Ok(user_id)
     }
 }

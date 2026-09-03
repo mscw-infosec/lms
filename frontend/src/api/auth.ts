@@ -58,6 +58,25 @@ export async function updateProfile(
 	});
 }
 
+/** Request a password-reset link. Resolves regardless of whether the email exists. */
+export async function forgotPassword(email: string): Promise<void> {
+	await http<void>("/api/basic/forgot-password", {
+		method: "POST",
+		body: JSON.stringify({ email }),
+	});
+}
+
+/** Set a new password using the token from the recovery link. */
+export async function resetPassword(
+	token: string,
+	newPassword: string,
+): Promise<void> {
+	await http<void>("/api/basic/reset-password", {
+		method: "POST",
+		body: JSON.stringify({ token, new_password: newPassword }),
+	});
+}
+
 /** Exchange the refresh cookie for a fresh access token (picks up updated gate flags). */
 export async function refreshAccessToken(): Promise<void> {
 	const res = await http<{ access_token: string }>("/api/auth/refresh", {
