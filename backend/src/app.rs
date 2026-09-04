@@ -12,7 +12,7 @@ use crate::{
         task::service::TaskService, topics::service::TopicService, video::service::VideoService,
     },
     errors::Result,
-    infrastructure::jwt::JWT,
+    infrastructure::{captcha::SmartCaptchaService, jwt::JWT},
 };
 use axum::{http::StatusCode, routing::get};
 use reqwest::Client;
@@ -40,6 +40,8 @@ pub fn generate_router(
     config: Config,
     svcs: Services,
 ) -> Result<OpenApiRouter> {
+    let captcha = SmartCaptchaService::new(client.clone(), &config.smartcaptcha_server_key);
+
     let public = OpenApiRouter::new()
         .route("/health", get(|| async { StatusCode::OK }))
         .nest(
@@ -64,6 +66,7 @@ pub fn generate_router(
                 svcs.basic_auth,
                 svcs.account.clone(),
                 svcs.refresh_token.clone(),
+                captcha,
                 jwt.clone(),
             ),
         )

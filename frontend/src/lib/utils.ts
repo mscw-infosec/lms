@@ -13,7 +13,7 @@ export function getCtfdDomain(): string {
  * Parses a server timestamp into epoch milliseconds, always interpreting it as
  * UTC. The backend serializes `DateTime<Utc>` with a `Z`, but `new Date()` on a
  * timezone-less string (e.g. "2026-07-19T12:00:00") silently falls back to the
- * viewer's *local* time — which would make an exam deadline off by the viewer's
+ * viewer's *local* time - which would make an exam deadline off by the viewer's
  * UTC offset (an eastern-timezone student's exam would end early). Appending a
  * `Z` when no offset is present guarantees UTC and is a no-op for the strings
  * the backend already sends. Returns `NaN` for unparseable input.

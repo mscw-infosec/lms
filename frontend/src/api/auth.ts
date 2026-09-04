@@ -15,6 +15,7 @@ export type SessionInfo = components["schemas"]["SessionInfo"];
 export type AvatarUploadResponse =
 	components["schemas"]["AvatarUploadResponse"];
 
+/** Both login and register require a single-use Yandex SmartCaptcha token. */
 export async function login(data: BasicLoginRequest): Promise<void> {
 	const res = await http<BasicLoginResponse>("/api/basic/login", {
 		method: "POST",
@@ -29,6 +30,11 @@ export async function register(data: BasicRegisterRequest): Promise<void> {
 		body: JSON.stringify(data),
 	});
 	setAccessToken(res.access_token);
+}
+
+/** `true` when the backend rejected the SmartCaptcha token on the last attempt. */
+export function isCaptchaError(error: unknown): boolean {
+	return String((error as Error)?.message ?? "").includes("captcha_failed");
 }
 
 /** Confirm an email address from the token embedded in the verification link. */

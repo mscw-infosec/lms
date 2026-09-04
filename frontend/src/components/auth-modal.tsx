@@ -2,7 +2,17 @@
 
 import type React from "react";
 
-import { forgotPassword, getOAuthLoginUrl, login, register } from "@/api/auth";
+import {
+	forgotPassword,
+	getOAuthLoginUrl,
+	isCaptchaError,
+	login,
+	register,
+} from "@/api/auth";
+import {
+	SmartCaptcha,
+	isSmartCaptchaEnabled,
+} from "@/components/smart-captcha";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -15,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
@@ -66,6 +76,13 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	const [lastName, setLastName] = useState("");
 	const [patronymic, setPatronymic] = useState("");
 	const [submitting, setSubmitting] = useState(false);
+
+	const [captchaToken, setCaptchaToken] = useState("");
+	const [captchaResetKey, setCaptchaResetKey] = useState(0);
+	const resetCaptcha = useCallback(() => {
+		setCaptchaToken("");
+		setCaptchaResetKey((key) => key + 1);
+	}, []);
 
 	// The modal opens in the mode requested by the parent (`type`), but the user
 	// can toggle between login, register and forgot-password within the dialog.
@@ -149,7 +166,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 		setSubmitting(true);
 		try {
 			if (mode === "login") {
-				await login({ email, password });
+				await login({ email, password, captcha_token: captchaToken });
 				if (onLoginSuccess) {
 					onLoginSuccess();
 				} else {
@@ -162,15 +179,18 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 					patronymic: patronymic.trim() ? patronymic.trim() : null,
 					email: email.trim(),
 					password,
+					captcha_token: captchaToken,
 				});
 			}
 			onClose();
 		} catch (err) {
 			const message = String((err as Error)?.message ?? "");
+			resetCaptcha();
 			setErrors((prev) => ({
 				...prev,
-				root:
-					mode === "register" && message.includes("409")
+				root: isCaptchaError(err)
+					? t("captcha_failed")
+					: mode === "register" && message.includes("409")
 						? t("email_taken")
 						: t("auth_failed"),
 			}));
@@ -197,7 +217,8 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 			mode === "login"
 				? email && password
 				: lastName && firstName && email && password && confirmPassword;
-		return hasRequiredFields && !hasErrors;
+		const captchaSolved = !isSmartCaptchaEnabled() || Boolean(captchaToken);
+		return hasRequiredFields && !hasErrors && captchaSolved;
 	};
 
 	if (!type) return null;
@@ -335,6 +356,17 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 								</div>
 							)}
 
+							<SmartCaptcha
+								resetKey={captchaResetKey}
+								onTokenChange={setCaptchaToken}
+								onError={() =>
+									setErrors((prev) => ({
+										...prev,
+										root: t("captcha_load_error"),
+									}))
+								}
+							/>
+
 							<Button
 								type="submit"
 								className="w-full bg-red-600 text-white hover:bg-red-700"
@@ -467,7 +499,7 @@ function ForgotPasswordView({
 				if (!valid) return;
 				setSubmitting(true);
 				try {
-					// Always report success — the endpoint never reveals whether the
+					// Always report success - the endpoint never reveals whether the
 					// email is registered.
 					await forgotPassword(email.trim().toLowerCase());
 				} catch {

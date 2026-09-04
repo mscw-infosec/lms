@@ -65,13 +65,13 @@ impl EmailService {
 
     pub async fn verify_connection(&self) {
         match self.transport.test_connection().await {
-            Ok(true) => info!("SMTP connection test succeeded — outgoing email is ready"),
+            Ok(true) => info!("SMTP connection test succeeded - outgoing email is ready"),
             Ok(false) => error!(
-                "SMTP connection test reported the server is not ready — outgoing email may not work"
+                "SMTP connection test reported the server is not ready - outgoing email may not work"
             ),
             Err(e) => error!(
                 error = ?e,
-                "SMTP connection test FAILED — outgoing email will not work until this is fixed"
+                "SMTP connection test FAILED - outgoing email will not work until this is fixed"
             ),
         }
     }
@@ -159,7 +159,7 @@ impl EmailService {
         let link = format!("{}/reset-password?token={token}", self.frontend_base_url);
 
         let text = format!(
-            "We received a request to reset your LMS password.\n\nOpen the link below to choose a new password:\n\n{link}\n\nThe link expires in 1 hour. If you did not request this, you can ignore this email — your password will stay the same."
+            "We received a request to reset your LMS password.\n\nOpen the link below to choose a new password:\n\n{link}\n\nThe link expires in 1 hour. If you did not request this, you can ignore this email - your password will stay the same."
         );
         let html = format!(
             r#"<div style="font-family:sans-serif;max-width:480px;margin:auto">

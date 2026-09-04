@@ -89,7 +89,7 @@ impl BasicAuthService {
 
     pub async fn request_password_reset(&self, email: &str) -> Result<()> {
         let Some((user_id, user_email)) = self.repo.find_user_for_reset(email).await? else {
-            info!(%email, "password reset requested for an unknown email — no email sent");
+            info!(%email, "password reset requested for an unknown email - no email sent");
             return Ok(());
         };
 

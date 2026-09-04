@@ -106,6 +106,16 @@ type TooltipPayloadItem = {
 	payload?: Record<string, unknown> & { fill?: string };
 };
 
+type RechartsTooltipProps = React.ComponentProps<
+	typeof RechartsPrimitive.Tooltip
+>;
+type LabelFormatterPayload = Parameters<
+	NonNullable<RechartsTooltipProps["labelFormatter"]>
+>[1];
+type FormatterParams = Parameters<
+	NonNullable<RechartsTooltipProps["formatter"]>
+>;
+
 const ChartTooltipContent = React.forwardRef<
 	HTMLDivElement,
 	Omit<React.ComponentProps<typeof RechartsPrimitive.Tooltip>, "content"> &
@@ -159,7 +169,7 @@ const ChartTooltipContent = React.forwardRef<
 			if (labelFormatter) {
 				return (
 					<div className={cn("font-medium", labelClassName)}>
-						{labelFormatter(value, payload)}
+						{labelFormatter(value, payload as unknown as LabelFormatterPayload)}
 					</div>
 				);
 			}
@@ -212,9 +222,9 @@ const ChartTooltipContent = React.forwardRef<
 									formatter(
 										item.value,
 										(item.name ?? "") as string,
-										item as unknown as object,
+										item as unknown as FormatterParams[2],
 										index,
-										payload as unknown as object[],
+										payload as unknown as FormatterParams[4],
 									)
 								) : (
 									<>

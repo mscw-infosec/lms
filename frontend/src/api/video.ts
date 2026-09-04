@@ -7,7 +7,7 @@ export type GetVideoUrlResponseDTO =
 export type CreateVideoResponseDTO =
 	components["schemas"]["CreateVideoResponseDTO"];
 
-// GET /video/{video_id} — resolves a video id to a playable (signed) URL.
+// GET /video/{video_id} - resolves a video id to a playable (signed) URL.
 export async function getVideoUrl(videoId: string): Promise<string> {
 	const res = await http<GetVideoUrlResponseDTO>(`/api/video/${videoId}`, {
 		withAuth: true,
@@ -15,7 +15,7 @@ export async function getVideoUrl(videoId: string): Promise<string> {
 	return res.url;
 }
 
-// POST /video/new — creates the video entity and returns its id + TUS upload URL.
+// POST /video/new - creates the video entity and returns its id + TUS upload URL.
 export async function createVideo(
 	name: string,
 	size: number,
@@ -45,7 +45,7 @@ export async function uploadVideoFile(
 	}
 	if (!id) {
 		throw new Error(
-			"Server did not return a video id. The backend may be out of date — rebuild and restart it.",
+			"Server did not return a video id. The backend may be out of date - rebuild and restart it.",
 		);
 	}
 

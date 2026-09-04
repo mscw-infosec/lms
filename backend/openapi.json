@@ -604,6 +604,7 @@
           "Basic"
         ],
         "summary": "Login user with email and password",
+        "description": "Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be\nused for credential stuffing or password brute-forcing.",
         "operationId": "login",
         "requestBody": {
           "content": {
@@ -635,7 +636,7 @@
             }
           },
           "403": {
-            "description": "Wrong email or password"
+            "description": "Wrong email or password, or `captcha_failed`"
           }
         }
       }
@@ -646,7 +647,7 @@
           "Basic"
         ],
         "summary": "Register a new user with their name, email and password.",
-        "description": "The account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
+        "description": "Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be\ndriven by a bot to mass-create accounts or spam the verification mailer.\n\nThe account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
         "operationId": "register",
         "requestBody": {
           "content": {
@@ -677,6 +678,9 @@
               }
             }
           },
+          "403": {
+            "description": "`captcha_failed` - the SmartCaptcha token is missing, expired or invalid"
+          },
           "409": {
             "description": "User with the same email already exists"
           }
@@ -689,7 +693,7 @@
           "Basic"
         ],
         "summary": "Reset a password using the token from the recovery link.",
-        "description": "On success the user's other sessions are revoked, and — since clicking the\nemailed link proves ownership of the mailbox — their email is marked verified.",
+        "description": "On success the user's other sessions are revoked, and - since clicking the\nemailed link proves ownership of the mailbox - their email is marked verified.",
         "operationId": "reset_password",
         "requestBody": {
           "content": {
@@ -4238,9 +4242,14 @@
         "type": "object",
         "required": [
           "email",
-          "password"
+          "password",
+          "captcha_token"
         ],
         "properties": {
+          "captcha_token": {
+            "type": "string",
+            "example": "dD0xNzE..."
+          },
           "email": {
             "type": "string",
             "example": "ivan@example.com"
@@ -4268,9 +4277,14 @@
           "last_name",
           "first_name",
           "email",
-          "password"
+          "password",
+          "captcha_token"
         ],
         "properties": {
+          "captcha_token": {
+            "type": "string",
+            "example": "dD0xNzE..."
+          },
           "email": {
             "type": "string",
             "example": "ivan@example.com"

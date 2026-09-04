@@ -276,7 +276,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login user with email and password */
+        /**
+         * Login user with email and password
+         * @description Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be
+         *     used for credential stuffing or password brute-forcing.
+         */
         post: operations["login"];
         delete?: never;
         options?: never;
@@ -295,7 +299,10 @@ export interface paths {
         put?: never;
         /**
          * Register a new user with their name, email and password.
-         * @description The account is created immediately (and the user is logged in), but their
+         * @description Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be
+         *     driven by a bot to mass-create accounts or spam the verification mailer.
+         *
+         *     The account is created immediately (and the user is logged in), but their
          *     email starts out unverified, so feature routes stay gated until they open
          *     the verification link sent to their inbox.
          */
@@ -317,8 +324,8 @@ export interface paths {
         put?: never;
         /**
          * Reset a password using the token from the recovery link.
-         * @description On success the user's other sessions are revoked, and — since clicking the
-         *     emailed link proves ownership of the mailbox — their email is marked verified.
+         * @description On success the user's other sessions are revoked, and - since clicking the
+         *     emailed link proves ownership of the mailbox - their email is marked verified.
          */
         post: operations["reset_password"];
         delete?: never;
@@ -1399,6 +1406,8 @@ export interface components {
             url: string;
         };
         BasicLoginRequest: {
+            /** @example dD0xNzE... */
+            captcha_token: string;
             /** @example ivan@example.com */
             email: string;
             /** @example Password12345 */
@@ -1408,6 +1417,8 @@ export interface components {
             access_token: string;
         };
         BasicRegisterRequest: {
+            /** @example dD0xNzE... */
+            captcha_token: string;
             /** @example ivan@example.com */
             email: string;
             /** @example Ivan */
@@ -2689,7 +2700,7 @@ export interface operations {
                     "application/json": components["schemas"]["BasicLoginResponse"];
                 };
             };
-            /** @description Wrong email or password */
+            /** @description Wrong email or password, or `captcha_failed` */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -2721,6 +2732,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["BasicRegisterResponse"];
                 };
+            };
+            /** @description `captcha_failed` - the SmartCaptcha token is missing, expired or invalid */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description User with the same email already exists */
             409: {

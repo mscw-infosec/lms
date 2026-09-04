@@ -1,9 +1,10 @@
 import type React from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Options } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
-import type { Pluggable, PluggableList } from "unified";
+type PluggableList = NonNullable<Options["rehypePlugins"]>;
+type Pluggable = PluggableList[number];
 let rehypeHighlight: Pluggable | null = null;
 try {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires

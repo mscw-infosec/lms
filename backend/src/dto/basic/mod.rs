@@ -23,6 +23,10 @@ pub struct BasicRegisterRequest {
     #[validate(length(min = 12, message = "Password must be at least 12 characters"))]
     #[schema(example = "Password12345")]
     pub password: String,
+
+    #[serde(default)]
+    #[schema(required = true, example = "dD0xNzE...")]
+    pub captcha_token: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -41,6 +45,9 @@ pub struct BasicLoginRequest {
     pub email: String,
     #[schema(example = "Password12345")]
     pub password: String,
+    #[serde(default)]
+    #[schema(required = true, example = "dD0xNzE...")]
+    pub captcha_token: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]

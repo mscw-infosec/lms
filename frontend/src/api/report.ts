@@ -26,7 +26,7 @@ function parseFilename(disposition: string | undefined, fallback: string) {
 	return match?.[1] ?? fallback;
 }
 
-// GET /report/exam/{exam_id}/export?format=... — downloads a file in the browser.
+// GET /report/exam/{exam_id}/export?format=... - downloads a file in the browser.
 export async function downloadExamExport(
 	examId: string,
 	format: ExportFormat,

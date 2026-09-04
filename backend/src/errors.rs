@@ -56,6 +56,11 @@ pub enum LMSError {
     #[error("profile_incomplete")]
     ProfileIncomplete,
 
+    /// The Yandex `SmartCaptcha` challenge was missing, expired, already spent
+    /// or judged to be a robot.
+    #[error("captcha_failed")]
+    CaptchaFailed,
+
     /// Unauthorized Error
     #[error("{0}")]
     Unauthorized(String),
@@ -114,7 +119,8 @@ impl IntoResponse for LMSError {
             Self::Forbidden(_)
             | Self::InvalidToken(_)
             | Self::EmailNotVerified
-            | Self::ProfileIncomplete => StatusCode::FORBIDDEN,
+            | Self::ProfileIncomplete
+            | Self::CaptchaFailed => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError | Self::NotInTime(_) => {
                 StatusCode::CONFLICT
             }

@@ -8,7 +8,7 @@ use crate::{
         account::service::AccountService, basic::service::BasicAuthService,
         refresh_token::service::RefreshTokenService,
     },
-    infrastructure::jwt::JWT,
+    infrastructure::{captcha::SmartCaptchaService, jwt::JWT},
 };
 
 pub mod routes;
@@ -18,6 +18,7 @@ pub struct BasicAuthState {
     pub basic_auth_service: BasicAuthService,
     pub account_service: AccountService,
     pub refresh_service: RefreshTokenService,
+    pub captcha_service: SmartCaptchaService,
     pub jwt: Arc<JWT>,
 }
 
@@ -25,12 +26,14 @@ pub fn configure(
     basic_auth_service: BasicAuthService,
     account_service: AccountService,
     refresh_service: RefreshTokenService,
+    captcha_service: SmartCaptchaService,
     jwt: Arc<JWT>,
 ) -> OpenApiRouter {
     let state = BasicAuthState {
         basic_auth_service,
         account_service,
         refresh_service,
+        captcha_service,
         jwt,
     };
 

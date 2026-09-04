@@ -27,6 +27,7 @@ use super::BasicAuthState;
         (status = 200, body = BasicRegisterResponse, description = "Create new user", headers(
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
+        (status = 403, description = "`captcha_failed` - the SmartCaptcha token is missing, expired or invalid"),
         (status = 409, description = "User with the same email already exists")
     )
 )]
@@ -42,7 +43,14 @@ pub async fn register(
         patronymic,
         email,
         password,
+        captcha_token,
     } = payload;
+
+    let device = device_from_headers(&headers);
+    state
+        .captcha_service
+        .verify(&captcha_token, device.ip.as_deref())
+        .await?;
 
     let email = email.to_lowercase();
 
@@ -58,7 +66,7 @@ pub async fn register(
         .await?;
 
     // Fire off the verification email. A failure here shouldn't block the
-    // account creation itself — the user can resend from their account page —
+    // account creation itself - the user can resend from their account page -
     // but it must be loud in the logs (email is otherwise a silent side effect).
     if let Err(err) = state
         .account_service
@@ -75,7 +83,7 @@ pub async fn register(
 
     let (refresh_token, _) = state
         .refresh_service
-        .create_refresh_token(user.id, device_from_headers(&headers))
+        .create_refresh_token(user.id, device)
         .await?;
     // Freshly registered: email not yet verified, profile complete (names given).
     let access_token = state
@@ -97,7 +105,7 @@ pub async fn register(
         (status = 200, body = BasicLoginResponse, description = "Returns access and refresh tokens", headers(
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
-        (status = 403, description = "Wrong email or password")
+        (status = 403, description = "Wrong email or password, or `captcha_failed`")
     )
 )]
 pub async fn login(
@@ -106,7 +114,17 @@ pub async fn login(
     State(state): State<BasicAuthState>,
     Json(payload): Json<BasicLoginRequest>,
 ) -> Result<Json<BasicLoginResponse>, LMSError> {
-    let BasicLoginRequest { email, password } = payload;
+    let BasicLoginRequest {
+        email,
+        password,
+        captcha_token,
+    } = payload;
+
+    let device = device_from_headers(&headers);
+    state
+        .captcha_service
+        .verify(&captcha_token, device.ip.as_deref())
+        .await?;
 
     let user = state
         .basic_auth_service
@@ -115,7 +133,7 @@ pub async fn login(
 
     let (refresh_token, _) = state
         .refresh_service
-        .create_refresh_token(user.id, device_from_headers(&headers))
+        .create_refresh_token(user.id, device)
         .await?;
 
     let profile_complete =
@@ -177,8 +195,8 @@ pub async fn forgot_password(
 
 /// Reset a password using the token from the recovery link.
 ///
-/// On success the user's other sessions are revoked, and — since clicking the
-/// emailed link proves ownership of the mailbox — their email is marked verified.
+/// On success the user's other sessions are revoked, and - since clicking the
+/// emailed link proves ownership of the mailbox - their email is marked verified.
 #[utoipa::path(
     post,
     tag = "Basic",

@@ -17,6 +17,8 @@ pub struct Config {
     pub yandex_client_id: String,
     pub yandex_client_secret: String,
 
+    pub smartcaptcha_server_key: String,
+
     pub channel_id: String,
     pub iam_key_file: String,
 
@@ -63,6 +65,8 @@ impl Config {
             yandex_client_id: env("YANDEX_CLIENT_ID"),
             yandex_client_secret: env("YANDEX_CLIENT_SECRET"),
             yandex_callback_url: env("YANDEX_CALLBACK_URL"),
+
+            smartcaptcha_server_key: env("SMARTCAPTCHA_SERVER_KEY"),
 
             channel_id: env("CHANNEL_ID"),
             iam_key_file: env("IAM_KEY_FILE"),
