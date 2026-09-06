@@ -72,7 +72,7 @@ const registerSchema = (t: TFunction) =>
 			confirmPassword: z.string().min(1, t("confirm_password")),
 		})
 		.refine((data) => data.password === data.confirmPassword, {
-			message: "Passwords don't match",
+			message: t("passwords_dont_match"),
 			path: ["confirmPassword"],
 		});
 
@@ -172,10 +172,6 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						password,
 						confirmPassword,
 					};
-		const schema = useMemo(
-			() => (mode === "login" ? loginSchema(t) : registerSchema(t)),
-			[],
-		);
 
 		try {
 			schema.parse(formData as unknown as Record<string, unknown>);
@@ -244,7 +240,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	};
 
 	const isFormValid = () => {
-		const hasErrors = Object.keys(errors).length > 0;
+		const hasErrors = Object.keys(errors).some((field) => field !== "root");
 		const hasRequiredFields =
 			mode === "login"
 				? email && password
