@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    EXISTS(SELECT 1 FROM users WHERE LOWER(username) = LOWER($1)) AS \"username!\",\n                    EXISTS(SELECT 1 FROM users WHERE email = $2) AS \"email!\"\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "username!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 1,
+        "name": "email!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "dc8ed296328adaf904f51b452365ae11a480d50b2737155bcab00f6155dbf226"
+}

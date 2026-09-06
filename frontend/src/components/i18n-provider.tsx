@@ -2,6 +2,7 @@
 
 import i18n from "@/lib/i18n";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 
 function I18nGate({
@@ -11,9 +12,14 @@ function I18nGate({
 	children: React.ReactNode;
 	fallback?: React.ReactNode;
 }) {
-	const { ready } = useTranslation("common");
+	const { ready, i18n: instance } = useTranslation("common");
 	const isBrowser = typeof window !== "undefined";
 	const canRender = isBrowser && ready && i18n.isInitialized;
+
+	useEffect(() => {
+		const lng = instance.resolvedLanguage;
+		if (lng) document.documentElement.lang = lng;
+	}, [instance.resolvedLanguage]);
 
 	if (!canRender) {
 		return (

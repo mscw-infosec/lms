@@ -129,7 +129,9 @@ impl EmailService {
                     error = ?e,
                     "failed to send email via SMTP"
                 );
-                Err(LMSError::ServerError(format!("Failed to send email: {e:?}")))
+                Err(LMSError::ServerError(format!(
+                    "Failed to send email: {e:?}"
+                )))
             }
         }
     }
@@ -171,6 +173,7 @@ impl EmailService {
 </div>"#
         );
 
-        self.deliver(to, "Reset your LMS password", text, html).await
+        self.deliver(to, "Reset your LMS password", text, html)
+            .await
     }
 }

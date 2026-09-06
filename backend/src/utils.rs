@@ -92,9 +92,7 @@ pub fn device_from_headers(headers: &HeaderMap) -> DeviceInfo {
 
     let user_agent = header_str("user-agent");
     let ip = header_str("x-forwarded-for")
-        .map(|xff| {
-            xff.split(',').next().unwrap_or(&xff).trim().to_string()
-        })
+        .map(|xff| xff.split(',').next().unwrap_or(&xff).trim().to_string())
         .or_else(|| header_str("x-real-ip"));
 
     DeviceInfo::new(user_agent, ip)

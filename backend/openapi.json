@@ -646,7 +646,7 @@
         "tags": [
           "Basic"
         ],
-        "summary": "Register a new user with their name, email and password.",
+        "summary": "Register a new user with their username, name, email and password.",
         "description": "The account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
         "operationId": "register",
         "requestBody": {
@@ -682,7 +682,7 @@
             "description": "`captcha_failed` - the SmartCaptcha token is missing, expired or invalid"
           },
           "409": {
-            "description": "User with the same email already exists"
+            "description": "`email_taken` or `username_taken` - the email or username is already in use"
           }
         }
       }
@@ -4953,6 +4953,7 @@
       "BasicRegisterRequest": {
         "type": "object",
         "required": [
+          "username",
           "last_name",
           "first_name",
           "email",
@@ -4986,6 +4987,10 @@
               "null"
             ],
             "example": "Ivanovich"
+          },
+          "username": {
+            "type": "string",
+            "example": "Ivan 2077"
           }
         }
       },

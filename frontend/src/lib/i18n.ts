@@ -12,11 +12,15 @@ if (isBrowser) {
 
 i18n.use(initReactI18next).init({
 	fallbackLng: "ru",
-	debug: true,
+	debug: false,
 	ns: ["common"],
 	defaultNS: "common",
 	supportedLngs: ["en", "ru"],
-	nonExplicitSupportedLngs: true,
+	detection: {
+		order: ["localStorage"],
+		lookupLocalStorage: "lang",
+		caches: ["localStorage"],
+	},
 	react: {
 		useSuspense: false,
 	},
@@ -26,7 +30,7 @@ i18n.use(initReactI18next).init({
 	backend: {
 		loadPath: "/locales/{{lng}}/{{ns}}.json",
 	},
-	load: "currentOnly",
+	load: "languageOnly",
 });
 
 export default i18n;

@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { useMemo } from "react";
 
 import {
 	forgotPassword,
@@ -23,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import type { TFunction } from "i18next";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -41,30 +43,37 @@ const loginSchema = z.object({
 	password: z.string().min(1, "Password is required"),
 });
 
-const registerSchema = z
-	.object({
-		lastName: z
-			.string()
-			.min(1, "Last name is required")
-			.max(100, "Last name is too long"),
-		firstName: z
-			.string()
-			.min(1, "First name is required")
-			.max(100, "First name is too long"),
-		patronymic: z.string().max(100, "Patronymic is too long").optional(),
-		email: z.string().email("Please enter a valid email address"),
-		password: z
-			.string()
-			.min(12, "Password must be at least 12 characters")
-			.regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-			.regex(/[a-z]/, "Password must contain at least one lowercase letter")
-			.regex(/[0-9]/, "Password must contain at least one number"),
-		confirmPassword: z.string().min(1, "Please confirm your password"),
-	})
-	.refine((data) => data.password === data.confirmPassword, {
-		message: "Passwords don't match",
-		path: ["confirmPassword"],
-	});
+const registerSchema = (t: TFunction) =>
+	z
+		.object({
+			username: z
+				.string()
+				.trim()
+				.min(5, "Username must be at least 5 characters")
+				.max(32, "Username must be at most 32 characters")
+				.regex(/^[A-Za-z0-9 _]+$/, t("username_constraint")),
+			lastName: z
+				.string()
+				.min(1, "Last name is required")
+				.max(100, "Last name is too long"),
+			firstName: z
+				.string()
+				.min(1, "First name is required")
+				.max(100, "First name is too long"),
+			patronymic: z.string().max(100, "Patronymic is too long").optional(),
+			email: z.string().email("Please enter a valid email address"),
+			password: z
+				.string()
+				.min(12, "Password must be at least 12 characters")
+				.regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+				.regex(/[a-z]/, "Password must contain at least one lowercase letter")
+				.regex(/[0-9]/, "Password must contain at least one number"),
+			confirmPassword: z.string().min(1, "Please confirm your password"),
+		})
+		.refine((data) => data.password === data.confirmPassword, {
+			message: "Passwords don't match",
+			path: ["confirmPassword"],
+		});
 
 export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	const router = useRouter();
@@ -73,6 +82,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [firstName, setFirstName] = useState("");
+	const [username, setUsername] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [patronymic, setPatronymic] = useState("");
 	const [submitting, setSubmitting] = useState(false);
@@ -95,6 +105,10 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const schema = useMemo(
+		() => (mode === "login" ? loginSchema : registerSchema(t)),
+		[mode, t],
+	);
 
 	// Validate form data in real-time
 	useEffect(() => {
@@ -107,6 +121,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 			mode === "login"
 				? { email, password }
 				: {
+						username,
 						lastName,
 						firstName,
 						patronymic: patronymic || undefined,
@@ -114,7 +129,6 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						password,
 						confirmPassword,
 					};
-		const schema = mode === "login" ? loginSchema : registerSchema;
 
 		try {
 			schema.parse(formData as unknown as Record<string, unknown>);
@@ -130,7 +144,17 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 				setErrors(newErrors);
 			}
 		}
-	}, [email, password, confirmPassword, firstName, lastName, patronymic, mode]);
+	}, [
+		email,
+		password,
+		confirmPassword,
+		firstName,
+		lastName,
+		patronymic,
+		username,
+		mode,
+		schema,
+	]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -139,6 +163,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 			mode === "login"
 				? { email, password }
 				: {
+						username,
 						lastName,
 						firstName,
 						patronymic: patronymic || undefined,
@@ -146,7 +171,10 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						password,
 						confirmPassword,
 					};
-		const schema = mode === "login" ? loginSchema : registerSchema;
+		const schema = useMemo(
+			() => (mode === "login" ? loginSchema : registerSchema(t)),
+			[],
+		);
 
 		try {
 			schema.parse(formData as unknown as Record<string, unknown>);
@@ -174,6 +202,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 				}
 			} else {
 				await register({
+					username: username.trim(),
 					last_name: lastName.trim(),
 					first_name: firstName.trim(),
 					patronymic: patronymic.trim() ? patronymic.trim() : null,
@@ -190,9 +219,11 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 				...prev,
 				root: isCaptchaError(err)
 					? t("captcha_failed")
-					: mode === "register" && message.includes("409")
-						? t("email_taken")
-						: t("auth_failed"),
+					: message.includes("username_taken")
+						? t("username_taken")
+						: message.includes("email_taken")
+							? t("email_taken")
+							: t("auth_failed"),
 			}));
 		} finally {
 			setSubmitting(false);
@@ -216,7 +247,12 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 		const hasRequiredFields =
 			mode === "login"
 				? email && password
-				: lastName && firstName && email && password && confirmPassword;
+				: username &&
+					lastName &&
+					firstName &&
+					email &&
+					password &&
+					confirmPassword;
 		const captchaSolved = !isSmartCaptchaEnabled() || Boolean(captchaToken);
 		return hasRequiredFields && !hasErrors && captchaSolved;
 	};
@@ -260,6 +296,25 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						<form onSubmit={handleSubmit} className="space-y-4">
 							{mode === "register" && (
 								<>
+									<div className="space-y-2">
+										<Label htmlFor="username" className="text-slate-300">
+											{t("username")}{" "}
+											<span className="text-slate-500 text-xs">
+												({t("username_hint")})
+											</span>
+										</Label>
+										<Input
+											id="username"
+											type="text"
+											autoComplete="username"
+											value={username}
+											onChange={(e) => setUsername(e.target.value)}
+											className={`bg-slate-800 text-white ${getInputBorderClass("username", username)}`}
+											required
+										/>
+										{fieldError("username", username)}
+									</div>
+
 									<div className="space-y-2">
 										<Label htmlFor="lastName" className="text-slate-300">
 											{t("last_name")}

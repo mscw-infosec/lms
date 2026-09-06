@@ -38,3 +38,9 @@ impl BasicUser {
         }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct TakenFields {
+    pub username: bool,
+    pub email: bool,
+}

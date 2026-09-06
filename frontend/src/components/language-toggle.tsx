@@ -17,10 +17,10 @@ export function LanguageToggle() {
 	const { i18n } = useTranslation();
 
 	const currentLang = useMemo(() => {
-		const lng = i18n.language || "en";
+		const lng = i18n.resolvedLanguage || i18n.language || "ru";
 		// Normalize e.g. en-US -> en
 		return lng.split("-")[0];
-	}, [i18n.language]);
+	}, [i18n.resolvedLanguage, i18n.language]);
 
 	const Flag = currentLang === "ru" ? RuFlag : GbFlag;
 

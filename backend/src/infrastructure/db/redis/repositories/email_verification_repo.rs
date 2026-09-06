@@ -3,8 +3,7 @@ use redis::{AsyncTypedCommands, SetExpiry, SetOptions};
 use uuid::Uuid;
 
 use crate::{
-    domain::account::repository::EmailVerificationCacheRepository,
-    errors::Result,
+    domain::account::repository::EmailVerificationCacheRepository, errors::Result,
     infrastructure::db::redis::RepositoryRedis,
 };
 

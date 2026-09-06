@@ -107,9 +107,10 @@ impl IntoResponse for LMSError {
     fn into_response(self) -> axum::response::Response {
         let status = match &self {
             Self::Redirect(redirect) => return Redirect::temporary(redirect).into_response(),
-            Self::AlreadyExists(_) | Self::InvalidRequest(_) | Self::ShitHappened(_) | Self::EmailParseError(_) => {
-                StatusCode::BAD_REQUEST
-            }
+            Self::AlreadyExists(_)
+            | Self::InvalidRequest(_)
+            | Self::ShitHappened(_)
+            | Self::EmailParseError(_) => StatusCode::BAD_REQUEST,
             Self::DatabaseError(_)
             | Self::Unknown(_)
             | Self::HashingError(_)

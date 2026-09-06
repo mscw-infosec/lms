@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
+use axum::extract::Request;
 use axum::{
     extract::{FromRef, FromRequestParts, State},
     http::request::Parts,
     middleware::Next,
     response::Response,
 };
-use axum::extract::Request;
 use tower_cookies::Cookies;
 
 use crate::dto::account::CtfdToken;

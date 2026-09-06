@@ -1,8 +1,8 @@
 use chrono::Utc;
 use std::sync::Arc;
+use structured_email_address::EmailAddress;
 use tracing::{error, info};
 use uuid::Uuid;
-use structured_email_address::EmailAddress;
 
 use super::{model::BasicUser, repository::BasicAuthRepository};
 use crate::domain::account::model::UserRole;
@@ -39,6 +39,7 @@ impl BasicAuthService {
 
     pub async fn register(
         &self,
+        username: String,
         first_name: String,
         last_name: String,
         patronymic: Option<String>,
@@ -47,12 +48,14 @@ impl BasicAuthService {
     ) -> Result<BasicUser> {
         let password_hash = Argon::hash_password(password.as_bytes())?;
 
-        let username = email.canonical().to_string();
+        let username = username.trim().to_string();
 
-        if self.repo.is_exists(&username, &email.canonical()).await? {
-            return Err(LMSError::Conflict(
-                "User with that email already exists.".to_string(),
-            ));
+        let taken = self.repo.find_taken(&username, &email.canonical()).await?;
+        if taken.email {
+            return Err(LMSError::Conflict("email_taken".to_string()));
+        }
+        if taken.username {
+            return Err(LMSError::Conflict("username_taken".to_string()));
         }
 
         let user = BasicUser {

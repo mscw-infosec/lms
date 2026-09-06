@@ -57,11 +57,7 @@ impl UserModel {
     }
 
     #[must_use]
-    pub fn compose_username(
-        last_name: &str,
-        first_name: &str,
-        patronymic: Option<&str>,
-    ) -> String {
+    pub fn compose_username(last_name: &str, first_name: &str, patronymic: Option<&str>) -> String {
         let mut parts = vec![last_name.trim(), first_name.trim()];
         if let Some(p) = patronymic.map(str::trim).filter(|s| !s.is_empty()) {
             parts.push(p);

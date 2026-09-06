@@ -14,7 +14,7 @@ use crate::{
 
 use super::BasicAuthState;
 
-/// Register a new user with their name, email and password.
+/// Register a new user with their username, name, email and password.
 ///
 /// The account is created immediately (and the user is logged in), but their
 /// email starts out unverified, so feature routes stay gated until they open
@@ -29,7 +29,7 @@ use super::BasicAuthState;
             ("Set-Cookie" = String, description = "Contains the `refresh_token`")
         )),
         (status = 403, description = "`captcha_failed` - the SmartCaptcha token is missing, expired or invalid"),
-        (status = 409, description = "User with the same email already exists")
+        (status = 409, description = "`email_taken` or `username_taken` - the email or username is already in use")
     )
 )]
 pub async fn register(
@@ -39,6 +39,7 @@ pub async fn register(
     ValidatedJson(payload): ValidatedJson<BasicRegisterRequest>,
 ) -> Result<Json<BasicRegisterResponse>, LMSError> {
     let BasicRegisterRequest {
+        username,
         last_name,
         first_name,
         patronymic,
@@ -59,7 +60,14 @@ pub async fn register(
 
     let user = state
         .basic_auth_service
-        .register(first_name, last_name, patronymic, parsed_email.clone(), password)
+        .register(
+            username,
+            first_name,
+            last_name,
+            patronymic,
+            parsed_email.clone(),
+            password,
+        )
         .await?;
 
     if let Err(err) = state

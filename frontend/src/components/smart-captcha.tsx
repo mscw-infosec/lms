@@ -118,7 +118,7 @@ export function SmartCaptcha({
 		if (!isSmartCaptchaEnabled()) {
 			console.warn(
 				"[SmartCaptcha] NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY was not set when this " +
-				"bundle was built, no challenge is shown.",
+					"bundle was built, no challenge is shown.",
 			);
 			return;
 		}

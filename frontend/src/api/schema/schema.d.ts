@@ -298,7 +298,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Register a new user with their name, email and password.
+         * Register a new user with their username, name, email and password.
          * @description The account is created immediately (and the user is logged in), but their
          *     email starts out unverified, so feature routes stay gated until they open
          *     the verification link sent to their inbox.
@@ -1652,6 +1652,8 @@ export interface components {
             password: string;
             /** @example Ivanovich */
             patronymic?: string | null;
+            /** @example Ivan 2077 */
+            username: string;
         };
         BasicRegisterResponse: {
             access_token: string;
@@ -3066,7 +3068,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description User with the same email already exists */
+            /** @description `email_taken` or `username_taken` - the email or username is already in use */
             409: {
                 headers: {
                     [name: string]: unknown;

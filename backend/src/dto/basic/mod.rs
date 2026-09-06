@@ -1,9 +1,43 @@
+use std::borrow::Cow;
+
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use validator::Validate;
+use validator::{Validate, ValidationError};
+
+const USERNAME_MIN_LEN: usize = 5;
+const USERNAME_MAX_LEN: usize = 32;
+
+fn validate_username(username: &str) -> Result<(), ValidationError> {
+    let username = username.trim();
+
+    if !(USERNAME_MIN_LEN..=USERNAME_MAX_LEN).contains(&username.chars().count()) {
+        return Err(
+            ValidationError::new("username_length").with_message(Cow::Borrowed(
+                "Username must be between 5 and 32 characters",
+            )),
+        );
+    }
+
+    if !username
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == ' ' || c == '_')
+    {
+        return Err(
+            ValidationError::new("username_charset").with_message(Cow::Borrowed(
+                "Username may only contain latin letters, digits, spaces and underscores",
+            )),
+        );
+    }
+
+    Ok(())
+}
 
 #[derive(Serialize, Deserialize, Validate, ToSchema)]
 pub struct BasicRegisterRequest {
+    #[validate(custom(function = "validate_username"))]
+    #[schema(example = "Ivan 2077")]
+    pub username: String,
+
     #[validate(length(min = 1, max = 100, message = "Last name is required"))]
     #[schema(example = "Ivanov")]
     pub last_name: String,

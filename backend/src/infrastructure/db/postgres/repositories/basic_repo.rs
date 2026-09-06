@@ -1,6 +1,9 @@
 use crate::{
     domain::account::model::UserRole,
-    domain::basic::{model::BasicUser, repository::BasicAuthRepository},
+    domain::basic::{
+        model::{BasicUser, TakenFields},
+        repository::BasicAuthRepository,
+    },
     errors::{LMSError, Result},
     infrastructure::db::postgres::RepositoryPostgres,
 };
@@ -29,7 +32,7 @@ impl BasicAuthRepository for RepositoryPostgres {
         .await
         .map_err(|err| match err {
             sqlx::Error::Database(e) if e.is_unique_violation() => {
-                LMSError::Conflict("User with that email or username already exists.".to_string())
+                LMSError::Conflict("email_taken".to_string())
             }
             _ => LMSError::DatabaseError(err),
         })?;
@@ -51,19 +54,25 @@ impl BasicAuthRepository for RepositoryPostgres {
         Ok(())
     }
 
-    async fn is_exists(&self, username: &str, email: &str) -> Result<bool> {
-        let id = sqlx::query!(
+    async fn find_taken(&self, username: &str, email: &str) -> Result<TakenFields> {
+        // Usernames are compared case-insensitively so "Ivan 2077" and
+        // "ivan 2077" can't both be claimed.
+        let row = sqlx::query!(
             r#"
-                SELECT id FROM users
-                WHERE username = $1 OR email = $2
+                SELECT
+                    EXISTS(SELECT 1 FROM users WHERE LOWER(username) = LOWER($1)) AS "username!",
+                    EXISTS(SELECT 1 FROM users WHERE email = $2) AS "email!"
             "#,
             username,
             email
         )
-        .fetch_optional(&self.pool)
+        .fetch_one(&self.pool)
         .await?;
 
-        Ok(id.is_some())
+        Ok(TakenFields {
+            username: row.username,
+            email: row.email,
+        })
     }
 
     async fn get_by_email(&self, email: &str) -> Result<Option<BasicUser>> {
