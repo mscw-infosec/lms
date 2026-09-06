@@ -19,7 +19,8 @@ use crate::{
         lectures::service::LectureService, oauth::service::OAuthService,
         practice::service::PracticeService, rating::service::RatingService,
         refresh_token::service::RefreshTokenService, report::service::ReportService,
-        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
+        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
     infrastructure::{
         db::postgres::{RepositoryPostgres, run_migrations},
@@ -27,6 +28,7 @@ use crate::{
         iam::IAMTokenManager,
         logging::init_tracing,
         s3::S3Manager,
+        sso_keys::SsoKeys,
     },
 };
 
@@ -41,7 +43,7 @@ use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{
     compression::CompressionLayer,
-    cors::CorsLayer,
+    cors::{AllowCredentials, AllowOrigin, CorsLayer},
     trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
 };
 use tracing::info;
@@ -63,6 +65,31 @@ pub mod infrastructure;
 pub mod macros;
 pub mod openapi;
 pub mod utils;
+
+const fn is_lms_frontend_origin(origin: &[u8]) -> bool {
+    matches!(origin, b"http://localhost:3000" | b"http://127.0.0.1:3000")
+}
+
+fn cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(AllowOrigin::predicate(|origin, parts| {
+            api::sso::is_cross_origin_path(parts.uri.path())
+                || is_lms_frontend_origin(origin.as_bytes())
+        }))
+        .allow_credentials(AllowCredentials::predicate(|origin, parts| {
+            !api::sso::is_cross_origin_path(parts.uri.path())
+                && is_lms_frontend_origin(origin.as_bytes())
+        }))
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+            Method::OPTIONS,
+        ])
+        .allow_headers([ACCEPT, AUTHORIZATION, CONTENT_TYPE])
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -117,6 +144,22 @@ async fn main() -> anyhow::Result<()> {
     let rating = RatingService::new(course.clone(), db_repo.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
 
+    let sso_keys = Arc::new(if config.sso_private_key.is_empty() {
+        SsoKeys::generate_ephemeral()?
+    } else {
+        SsoKeys::from_pem(&config.sso_private_key)?
+    });
+
+    let sso = SsoService::new(
+        db_repo.clone(),
+        rdb_repo.clone(),
+        account.clone(),
+        sso_keys,
+        &config.sso_issuer,
+        &config.frontend_base_url,
+        &format!("{}/{}", config.s3_endpoint, config.s3_bucket_name),
+    );
+
     let services = Services {
         account,
         basic_auth,
@@ -128,6 +171,7 @@ async fn main() -> anyhow::Result<()> {
         rating,
         report,
         refresh_token,
+        sso,
         task,
         topic,
         video,
@@ -145,27 +189,7 @@ async fn main() -> anyhow::Result<()> {
                 .on_response(DefaultOnResponse::new().include_headers(true)),
         )
         .layer(CompressionLayer::new())
-        .layer(
-            CorsLayer::new()
-                .allow_origin([
-                    "http://localhost:3000"
-                        .parse()
-                        .expect("valid CORS origin URL"),
-                    "http://127.0.0.1:3000"
-                        .parse()
-                        .expect("valid CORS origin URL"),
-                ])
-                .allow_methods([
-                    Method::GET,
-                    Method::POST,
-                    Method::PUT,
-                    Method::PATCH,
-                    Method::DELETE,
-                    Method::OPTIONS,
-                ])
-                .allow_headers([ACCEPT, AUTHORIZATION, CONTENT_TYPE])
-                .allow_credentials(true),
-        )
+        .layer(cors_layer())
         .split_for_parts();
 
     #[cfg(feature = "swagger")]

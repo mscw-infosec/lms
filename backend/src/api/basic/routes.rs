@@ -56,13 +56,7 @@ pub async fn register(
 
     let user = state
         .basic_auth_service
-        .register(
-            first_name,
-            last_name,
-            patronymic,
-            email.clone(),
-            password,
-        )
+        .register(first_name, last_name, patronymic, email.clone(), password)
         .await?;
 
     // Fire off the verification email. A failure here shouldn't block the
@@ -96,6 +90,9 @@ pub async fn register(
 }
 
 /// Login user with email and password
+///
+/// Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be
+/// used for credential stuffing or password brute-forcing.
 #[utoipa::path(
     post,
     tag = "Basic",
@@ -136,8 +133,7 @@ pub async fn login(
         .create_refresh_token(user.id, device)
         .await?;
 
-    let profile_complete =
-        !user.first_name.trim().is_empty() && !user.last_name.trim().is_empty();
+    let profile_complete = !user.first_name.trim().is_empty() && !user.last_name.trim().is_empty();
     let access_token = state.jwt.generate_access_token(
         user.id,
         user.role,
@@ -220,10 +216,7 @@ pub async fn reset_password(
         warn!("Failed to mark email verified after reset for {user_id}: {err:?}");
     }
 
-    state
-        .refresh_service
-        .logout_all_sessions(user_id)
-        .await?;
+    state.refresh_service.logout_all_sessions(user_id).await?;
 
     Ok(())
 }

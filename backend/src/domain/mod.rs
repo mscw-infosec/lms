@@ -8,6 +8,7 @@ pub mod practice;
 pub mod rating;
 pub mod refresh_token;
 pub mod report;
+pub mod sso;
 pub mod task;
 pub mod topics;
 pub mod video;

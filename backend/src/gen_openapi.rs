@@ -9,9 +9,10 @@ use crate::{
         lectures::service::LectureService, oauth::service::OAuthService,
         practice::service::PracticeService, rating::service::RatingService,
         refresh_token::service::RefreshTokenService, report::service::ReportService,
-        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
+        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
-    infrastructure::{email::EmailService, jwt::JWT},
+    infrastructure::{email::EmailService, jwt::JWT, sso_keys::SsoKeys},
 };
 
 #[allow(dead_code)]
@@ -20,7 +21,10 @@ pub struct DummyRepository;
 #[allow(dead_code)]
 pub fn save_openapi() {
     let client = reqwest::Client::new();
-    let config = Config { smtp_from: "noreply@example.com".to_string(), ..Default::default() };
+    let config = Config {
+        smtp_from: "noreply@example.com".to_string(),
+        ..Default::default()
+    };
 
     let dummy = Arc::new(DummyRepository);
 
@@ -53,8 +57,17 @@ pub fn save_openapi() {
     let practice = PracticeService::new(dummy.clone(), task.clone(), topic.clone());
     let report = ReportService::new(exam.clone(), dummy.clone());
     let rating = RatingService::new(course.clone(), dummy.clone());
-    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy)
+    let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy.clone())
         .expect("Failed to create VideoService");
+    let sso = SsoService::new(
+        dummy.clone(),
+        dummy,
+        account.clone(),
+        Arc::new(SsoKeys::generate_ephemeral().expect("Failed to generate dummy SSO key")),
+        &config.sso_issuer,
+        &config.frontend_base_url,
+        &format!("{}/{}", config.s3_endpoint, config.s3_bucket_name),
+    );
 
     let services = Services {
         account,
@@ -67,6 +80,7 @@ pub fn save_openapi() {
         rating,
         report,
         refresh_token,
+        sso,
         task,
         topic,
         video,

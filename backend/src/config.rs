@@ -44,10 +44,40 @@ pub struct Config {
     pub ctfd_token: String,
     // used for auth in CTFd -> LMS
     pub ctfd_auth_token: String,
+
+    #[validate(url)]
+    pub sso_issuer: String,
+
+    pub sso_private_key: String,
 }
 
 pub fn env(key: &str) -> String {
     dotenvy::var(key).unwrap_or_else(|_| panic!("`{key}` environment variable not found"))
+}
+
+pub fn env_opt(key: &str) -> Option<String> {
+    dotenvy::var(key)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+}
+
+fn sso_private_key() -> anyhow::Result<String> {
+    if let Some(path) = env_opt("SSO_PRIVATE_KEY_FILE") {
+        return std::fs::read_to_string(&path)
+            .map_err(|e| anyhow::anyhow!("Failed to read SSO_PRIVATE_KEY_FILE at `{path}`: {e}"));
+    }
+
+    Ok(env_opt("SSO_PRIVATE_KEY")
+        .map(|key| key.replace("\\n", "\n"))
+        .unwrap_or_default())
+}
+
+fn default_issuer(callback_url: &str) -> String {
+    url::Url::parse(callback_url).map_or_else(
+        |_| "http://localhost:8000/api/sso".to_string(),
+        |url| format!("{}/api/sso", url.origin().ascii_serialization()),
+    )
 }
 
 impl Config {
@@ -88,6 +118,10 @@ impl Config {
 
             ctfd_token: env("CTFD_TOKEN"),
             ctfd_auth_token: env("CTFD_AUTH_TOKEN"),
+
+            sso_issuer: env_opt("SSO_ISSUER")
+                .unwrap_or_else(|| default_issuer(&env("YANDEX_CALLBACK_URL"))),
+            sso_private_key: sso_private_key()?,
         };
 
         if let Err(validation_errors) = config.validate() {

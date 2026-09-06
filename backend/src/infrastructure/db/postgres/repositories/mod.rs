@@ -7,6 +7,7 @@ pub mod oauth_repo;
 pub mod practice_repo;
 pub mod rating_repo;
 pub mod report_repo;
+pub mod sso_repo;
 pub mod task_repo;
 pub mod topic_repo;
 pub mod video_repo;

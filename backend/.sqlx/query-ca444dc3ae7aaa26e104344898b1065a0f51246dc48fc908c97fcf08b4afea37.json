@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO sso_consents (user_id, client_id, scopes)\n                VALUES ($1, $2, $3)\n                ON CONFLICT (user_id, client_id) DO UPDATE\n                SET scopes     = ARRAY(\n                        SELECT DISTINCT unnest(sso_consents.scopes || EXCLUDED.scopes)\n                    ),\n                    granted_at = now()\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ca444dc3ae7aaa26e104344898b1065a0f51246dc48fc908c97fcf08b4afea37"
+}

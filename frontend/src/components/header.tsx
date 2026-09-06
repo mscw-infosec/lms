@@ -48,17 +48,34 @@ export function Header({ onLogin, onRegister: _onRegister }: HeaderProps) {
 
 				<div className="flex items-center space-x-3">
 					{user && user.role === "Admin" ? (
-						<Link href="/admin/users">
-							<Button
-								variant="outline"
-								size="sm"
-								className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
-								title={t("user_management") ?? "User management"}
-							>
-								<Users className="h-4 w-4 sm:mr-2" />
-								<span className="hidden sm:inline">{t("user_management")}</span>
-							</Button>
-						</Link>
+						<>
+							<Link href="/admin/users">
+								<Button
+									variant="outline"
+									size="sm"
+									className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
+									title={t("user_management") ?? "User management"}
+								>
+									<Users className="h-4 w-4 sm:mr-2" />
+									<span className="hidden sm:inline">
+										{t("user_management")}
+									</span>
+								</Button>
+							</Link>
+							<Link href="/admin/sso">
+								<Button
+									variant="outline"
+									size="sm"
+									className="border-slate-700 bg-transparent px-2 text-slate-300 hover:bg-slate-800 sm:px-4"
+									title={t("sso_admin_title") ?? "Single sign-on"}
+								>
+									<KeyRound className="h-4 w-4 sm:mr-2" />
+									<span className="hidden sm:inline">
+										{t("sso_admin_title") ?? "Single sign-on"}
+									</span>
+								</Button>
+							</Link>
+						</>
 					) : null}
 					<LanguageToggle />
 					{user ? (

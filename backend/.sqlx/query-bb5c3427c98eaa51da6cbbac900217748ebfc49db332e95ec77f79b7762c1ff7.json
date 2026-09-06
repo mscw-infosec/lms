@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT\n                    c.client_id                 AS \"client_id!\",\n                    cl.name                     AS \"client_name!\",\n                    cl.logo_url                 AS \"client_logo_url\",\n                    c.scopes                    AS \"scopes!\",\n                    c.granted_at                AS \"granted_at!\"\n                FROM sso_consents c\n                JOIN sso_clients cl ON cl.client_id = c.client_id\n                WHERE c.user_id = $1\n                ORDER BY c.granted_at DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "client_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "client_name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "client_logo_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "scopes!",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 4,
+        "name": "granted_at!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "bb5c3427c98eaa51da6cbbac900217748ebfc49db332e95ec77f79b7762c1ff7"
+}

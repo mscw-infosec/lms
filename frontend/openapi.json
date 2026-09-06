@@ -611,7 +611,7 @@
 			"post": {
 				"tags": ["Basic"],
 				"summary": "Register a new user with their name, email and password.",
-				"description": "Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be\ndriven by a bot to mass-create accounts or spam the verification mailer.\n\nThe account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
+				"description": "The account is created immediately (and the user is logged in), but their\nemail starts out unverified, so feature routes stay gated until they open\nthe verification link sent to their inbox.",
 				"operationId": "register",
 				"requestBody": {
 					"content": {
@@ -3162,6 +3162,622 @@
 				]
 			}
 		},
+		"/sso/.well-known/openid-configuration": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "`OpenID` Connect discovery document",
+				"operationId": "discovery",
+				"responses": {
+					"200": {
+						"description": "OpenID Provider metadata"
+					}
+				}
+			}
+		},
+		"/sso/authorize": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Start an authorization code flow",
+				"operationId": "authorize",
+				"parameters": [
+					{
+						"name": "response_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "client_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "redirect_uri",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "scope",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "state",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "nonce",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "code_challenge",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "code_challenge_method",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					},
+					{
+						"name": "prompt",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": ["string", "null"]
+						}
+					}
+				],
+				"responses": {
+					"302": {
+						"description": "Redirect back to the client, or to the consent screen"
+					},
+					"400": {
+						"description": "The request could not be attributed to a registered client"
+					}
+				}
+			}
+		},
+		"/sso/clients": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "List registered relying parties",
+				"operationId": "list_clients",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/SsoClientDTO"
+									}
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Register an application that may authenticate users with their LMS account",
+				"operationId": "create_client",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateClientRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Includes the one-time client secret",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CreatedClientDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid redirect URI or scope"
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/clients/{client_id}": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Return a single relying party",
+				"operationId": "get_client",
+				"parameters": [
+					{
+						"name": "client_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SsoClientDTO"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					},
+					"404": {
+						"description": "No client with that client_id"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"delete": {
+				"tags": ["SSO"],
+				"summary": "Delete a relying party, dropping every consent and token issued to it",
+				"operationId": "delete_client",
+				"parameters": [
+					{
+						"name": "client_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Client removed"
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					},
+					"404": {
+						"description": "No client with that client_id"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"patch": {
+				"tags": ["SSO"],
+				"summary": "Update a relying party",
+				"operationId": "update_client",
+				"parameters": [
+					{
+						"name": "client_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateClientRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SsoClientDTO"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid redirect URI or scope"
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					},
+					"404": {
+						"description": "No client with that client_id"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/clients/{client_id}/secret": {
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Issue a new client secret, invalidating the current one",
+				"operationId": "rotate_secret",
+				"parameters": [
+					{
+						"name": "client_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The new secret, shown once",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ClientSecretDTO"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					},
+					"404": {
+						"description": "No client with that client_id"
+					},
+					"409": {
+						"description": "Public clients have no secret"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/connections": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Applications the current user has connected to their LMS account",
+				"operationId": "list_connections",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/ConnectedAppDTO"
+									}
+								}
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/connections/{client_id}": {
+			"delete": {
+				"tags": ["SSO"],
+				"summary": "Disconnect an application, revoking its access immediately",
+				"operationId": "revoke_connection",
+				"parameters": [
+					{
+						"name": "client_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The application can no longer act for this user"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/jwks.json": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Public keys used to sign ID tokens and access tokens",
+				"operationId": "jwks",
+				"responses": {
+					"200": {
+						"description": "JSON Web Key Set"
+					}
+				}
+			}
+		},
+		"/sso/metadata": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Endpoint URLs to hand to a relying party",
+				"operationId": "metadata",
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SsoMetadataDTO"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Only admins can manage SSO clients"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/requests/{request_id}": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Describe a pending authorization request for the consent screen",
+				"operationId": "get_consent_request",
+				"parameters": [
+					{
+						"name": "request_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConsentRequestDTO"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "The user is not signed in to the LMS"
+					},
+					"404": {
+						"description": "The request expired or was already answered"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Approve or decline a pending authorization request",
+				"operationId": "decide_consent",
+				"parameters": [
+					{
+						"name": "request_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ConsentDecisionRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ConsentDecisionResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "The user is not signed in to the LMS"
+					},
+					"403": {
+						"description": "The account is not ready to be shared"
+					},
+					"404": {
+						"description": "The request expired or was already answered"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/sso/revoke": {
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Revoke an access or refresh token (RFC 7009)",
+				"operationId": "revoke",
+				"requestBody": {
+					"content": {
+						"application/x-www-form-urlencoded": {
+							"schema": {
+								"$ref": "#/components/schemas/RevokeRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "The token is no longer valid (also when it never was)"
+					},
+					"401": {
+						"description": "`invalid_client`"
+					}
+				}
+			}
+		},
+		"/sso/token": {
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Exchange an authorization code or refresh token for tokens",
+				"operationId": "token",
+				"requestBody": {
+					"content": {
+						"application/x-www-form-urlencoded": {
+							"schema": {
+								"$ref": "#/components/schemas/TokenRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TokenResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "`invalid_grant` / `invalid_request` / `invalid_scope`"
+					},
+					"401": {
+						"description": "`invalid_client`"
+					}
+				}
+			}
+		},
+		"/sso/userinfo": {
+			"get": {
+				"tags": ["SSO"],
+				"summary": "Claims about the user behind an SSO access token",
+				"operationId": "userinfo",
+				"responses": {
+					"200": {
+						"description": "Claims allowed by the token's scopes"
+					},
+					"401": {
+						"description": "`invalid_token`"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"post": {
+				"tags": ["SSO"],
+				"summary": "Claims about the user behind an SSO access token (POST form of `/userinfo`)",
+				"operationId": "userinfo_post",
+				"responses": {
+					"200": {
+						"description": "Claims allowed by the token's scopes"
+					},
+					"401": {
+						"description": "`invalid_token`"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
 		"/task/list": {
 			"get": {
 				"tags": ["Task"],
@@ -4092,9 +4708,112 @@
 					}
 				}
 			},
+			"ClientSecretDTO": {
+				"type": "object",
+				"required": ["client_secret"],
+				"properties": {
+					"client_secret": {
+						"type": "string"
+					}
+				}
+			},
 			"ConditionOp": {
 				"type": "string",
 				"enum": ["eq", "neq", "gt", "gte", "lt", "lte", "in", "nin"]
+			},
+			"ConnectedAppDTO": {
+				"type": "object",
+				"required": ["client_id", "name", "scopes", "granted_at"],
+				"properties": {
+					"client_id": {
+						"type": "string"
+					},
+					"granted_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"logo_url": {
+						"type": ["string", "null"]
+					},
+					"name": {
+						"type": "string"
+					},
+					"scopes": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					}
+				}
+			},
+			"ConsentDecisionRequest": {
+				"type": "object",
+				"required": ["approve"],
+				"properties": {
+					"approve": {
+						"type": "boolean"
+					}
+				}
+			},
+			"ConsentDecisionResponse": {
+				"type": "object",
+				"required": ["redirect_to"],
+				"properties": {
+					"redirect_to": {
+						"type": "string"
+					}
+				}
+			},
+			"ConsentRequestDTO": {
+				"type": "object",
+				"required": [
+					"request_id",
+					"client_name",
+					"redirect_host",
+					"scopes",
+					"new_scopes",
+					"user_email",
+					"user_name",
+					"already_granted"
+				],
+				"properties": {
+					"already_granted": {
+						"type": "boolean"
+					},
+					"client_description": {
+						"type": ["string", "null"]
+					},
+					"client_logo_url": {
+						"type": ["string", "null"]
+					},
+					"client_name": {
+						"type": "string"
+					},
+					"new_scopes": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"redirect_host": {
+						"type": "string"
+					},
+					"request_id": {
+						"type": "string"
+					},
+					"scopes": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"user_email": {
+						"type": "string"
+					},
+					"user_name": {
+						"type": "string"
+					}
+				}
 			},
 			"CourseLeaderboardDTO": {
 				"type": "object",
@@ -4199,6 +4918,45 @@
 					},
 					"username": {
 						"type": "string"
+					}
+				}
+			},
+			"CreateClientRequest": {
+				"type": "object",
+				"required": ["name", "redirect_uris", "allowed_scopes"],
+				"properties": {
+					"allowed_scopes": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"is_public": {
+						"type": "boolean"
+					},
+					"logo_url": {
+						"type": ["string", "null"]
+					},
+					"name": {
+						"type": "string"
+					},
+					"post_logout_redirect_uris": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"redirect_uris": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"skip_consent": {
+						"type": "boolean"
 					}
 				}
 			},
@@ -4324,6 +5082,21 @@
 						"description": "TUS (resumable) upload URL the client should upload the file bytes to."
 					}
 				}
+			},
+			"CreatedClientDTO": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/SsoClientDTO"
+					},
+					{
+						"type": "object",
+						"properties": {
+							"client_secret": {
+								"type": ["string", "null"]
+							}
+						}
+					}
+				]
 			},
 			"CtfdAccountData": {
 				"type": "object",
@@ -5346,6 +6119,24 @@
 					}
 				}
 			},
+			"RevokeRequest": {
+				"type": "object",
+				"required": ["token"],
+				"properties": {
+					"client_id": {
+						"type": ["string", "null"]
+					},
+					"client_secret": {
+						"type": ["string", "null"]
+					},
+					"token": {
+						"type": "string"
+					},
+					"token_type_hint": {
+						"type": ["string", "null"]
+					}
+				}
+			},
 			"ScoringData": {
 				"type": "object",
 				"required": ["show_results", "results"],
@@ -5403,6 +6194,112 @@
 					},
 					"user_agent": {
 						"type": ["string", "null"]
+					}
+				}
+			},
+			"SsoClientDTO": {
+				"type": "object",
+				"required": [
+					"client_id",
+					"name",
+					"redirect_uris",
+					"post_logout_redirect_uris",
+					"allowed_scopes",
+					"is_public",
+					"skip_consent",
+					"enabled",
+					"created_at",
+					"updated_at"
+				],
+				"properties": {
+					"allowed_scopes": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"client_id": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"enabled": {
+						"type": "boolean"
+					},
+					"is_public": {
+						"type": "boolean"
+					},
+					"logo_url": {
+						"type": ["string", "null"]
+					},
+					"name": {
+						"type": "string"
+					},
+					"post_logout_redirect_uris": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"redirect_uris": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"skip_consent": {
+						"type": "boolean"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					}
+				}
+			},
+			"SsoMetadataDTO": {
+				"type": "object",
+				"required": [
+					"issuer",
+					"discovery_url",
+					"authorization_endpoint",
+					"token_endpoint",
+					"userinfo_endpoint",
+					"jwks_uri",
+					"revocation_endpoint",
+					"scopes_supported"
+				],
+				"properties": {
+					"authorization_endpoint": {
+						"type": "string"
+					},
+					"discovery_url": {
+						"type": "string"
+					},
+					"issuer": {
+						"type": "string"
+					},
+					"jwks_uri": {
+						"type": "string"
+					},
+					"revocation_endpoint": {
+						"type": "string"
+					},
+					"scopes_supported": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"token_endpoint": {
+						"type": "string"
+					},
+					"userinfo_endpoint": {
+						"type": "string"
 					}
 				}
 			},
@@ -5896,6 +6793,61 @@
 					}
 				}
 			},
+			"TokenRequest": {
+				"type": "object",
+				"required": ["grant_type"],
+				"properties": {
+					"client_id": {
+						"type": ["string", "null"]
+					},
+					"client_secret": {
+						"type": ["string", "null"]
+					},
+					"code": {
+						"type": ["string", "null"]
+					},
+					"code_verifier": {
+						"type": ["string", "null"]
+					},
+					"grant_type": {
+						"type": "string"
+					},
+					"redirect_uri": {
+						"type": ["string", "null"]
+					},
+					"refresh_token": {
+						"type": ["string", "null"]
+					},
+					"scope": {
+						"type": ["string", "null"]
+					}
+				}
+			},
+			"TokenResponse": {
+				"type": "object",
+				"required": ["access_token", "token_type", "expires_in", "scope"],
+				"properties": {
+					"access_token": {
+						"type": "string"
+					},
+					"expires_in": {
+						"type": "integer",
+						"format": "int64"
+					},
+					"id_token": {
+						"type": ["string", "null"]
+					},
+					"refresh_token": {
+						"type": ["string", "null"]
+					},
+					"scope": {
+						"type": "string"
+					},
+					"token_type": {
+						"type": "string"
+					}
+				}
+			},
 			"TopicContentItemDTO": {
 				"type": "object",
 				"description": "One item in a topic's unified content list.",
@@ -5940,6 +6892,44 @@
 					},
 					"title": {
 						"type": "string"
+					}
+				}
+			},
+			"UpdateClientRequest": {
+				"type": "object",
+				"properties": {
+					"allowed_scopes": {
+						"type": ["array", "null"],
+						"items": {
+							"type": "string"
+						}
+					},
+					"description": {
+						"type": ["string", "null"]
+					},
+					"enabled": {
+						"type": ["boolean", "null"]
+					},
+					"logo_url": {
+						"type": ["string", "null"]
+					},
+					"name": {
+						"type": ["string", "null"]
+					},
+					"post_logout_redirect_uris": {
+						"type": ["array", "null"],
+						"items": {
+							"type": "string"
+						}
+					},
+					"redirect_uris": {
+						"type": ["array", "null"],
+						"items": {
+							"type": "string"
+						}
+					},
+					"skip_consent": {
+						"type": ["boolean", "null"]
 					}
 				}
 			},

@@ -6,3 +6,4 @@ pub mod iam;
 pub mod jwt;
 pub mod logging;
 pub mod s3;
+pub mod sso_keys;

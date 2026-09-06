@@ -10,6 +10,7 @@ import {
 	logoutSession,
 	updateProfile,
 } from "@/api/auth";
+import { type ConnectedApp, disconnectApp, listConnectedApps } from "@/api/sso";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,7 +32,14 @@ import {
 	getAvatarSrc,
 } from "@/lib/avatar-cache";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, Loader2, LogOut, Shield, Smartphone } from "lucide-react";
+import {
+	AppWindow,
+	Home,
+	Loader2,
+	LogOut,
+	Shield,
+	Smartphone,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,8 +62,15 @@ export default function AccountPage() {
 		enabled: !!meQuery.data,
 	});
 
+	const connectedAppsQuery = useQuery<ConnectedApp[], Error>({
+		queryKey: ["connected-apps"],
+		queryFn: listConnectedApps,
+		enabled: !!meQuery.data,
+	});
+
 	const user = meQuery.data ?? null;
 	const sessions = sessionsQuery.data ?? null;
+	const connectedApps = connectedAppsQuery.data ?? [];
 
 	const [lastName, setLastName] = useState("");
 	const [firstName, setFirstName] = useState("");
@@ -228,6 +243,14 @@ export default function AccountPage() {
 		mutationFn: (jti: string) => logoutSession(jti),
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: ["sessions"] });
+		},
+	});
+
+	const disconnectAppMutation = useMutation<void, Error, string>({
+		mutationFn: (clientId: string) => disconnectApp(clientId),
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: ["connected-apps"] });
+			toast({ title: t("app_disconnected") || "Application disconnected" });
 		},
 	});
 
@@ -580,6 +603,62 @@ export default function AccountPage() {
 							)}
 						</CardContent>
 					</Card>
+
+					{/* Applications signed in with this LMS account */}
+					{connectedApps.length > 0 ? (
+						<Card className="border-slate-800 bg-slate-900">
+							<CardHeader>
+								<CardTitle className="text-white">
+									{t("connected_apps") || "Connected applications"}
+								</CardTitle>
+								<CardDescription className="text-slate-400">
+									{t("connected_apps_hint") ||
+										"Applications you have allowed to use your LMS account."}
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<div className="divide-y divide-slate-800">
+									{connectedApps.map((app) => (
+										<div
+											key={app.client_id}
+											className="flex items-center justify-between py-3"
+										>
+											<div className="flex min-w-0 items-center gap-3">
+												<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-800">
+													<AppWindow className="h-4 w-4 text-slate-300" />
+												</div>
+												<div className="min-w-0">
+													<div className="truncate text-sm text-white">
+														{app.name}
+													</div>
+													<div className="truncate font-mono text-slate-500 text-xs">
+														{app.scopes.join(" ")}
+													</div>
+													<div className="text-slate-500 text-xs">
+														{t("connected_since", {
+															date: new Date(app.granted_at).toLocaleString(),
+														}) ||
+															`Connected ${new Date(app.granted_at).toLocaleString()}`}
+													</div>
+												</div>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												className="shrink-0 border-slate-700 bg-transparent text-slate-300 hover:bg-slate-800"
+												onClick={() =>
+													disconnectAppMutation.mutate(app.client_id)
+												}
+												disabled={disconnectAppMutation.isPending}
+											>
+												{t("disconnect") || "Disconnect"}
+											</Button>
+										</div>
+									))}
+								</div>
+							</CardContent>
+						</Card>
+					) : null}
 				</div>
 			</main>
 

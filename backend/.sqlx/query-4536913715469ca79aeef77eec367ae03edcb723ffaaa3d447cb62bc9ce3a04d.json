@@ -1,0 +1,114 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE sso_clients\n                SET name                      = COALESCE($2, name),\n                    -- NULL leaves the field alone; '' clears it. Without the\n                    -- second case an optional field could never be removed\n                    -- again once it had been set.\n                    description               = CASE\n                                                    WHEN $3::TEXT IS NULL THEN description\n                                                    ELSE NULLIF($3, '')\n                                                END,\n                    logo_url                  = CASE\n                                                    WHEN $4::TEXT IS NULL THEN logo_url\n                                                    ELSE NULLIF($4, '')\n                                                END,\n                    redirect_uris             = COALESCE($5, redirect_uris),\n                    post_logout_redirect_uris = COALESCE($6, post_logout_redirect_uris),\n                    allowed_scopes            = COALESCE($7, allowed_scopes),\n                    skip_consent              = COALESCE($8, skip_consent),\n                    enabled                   = COALESCE($9, enabled),\n                    updated_at                = now()\n                WHERE client_id = $1\n                RETURNING\n                    id, client_id, client_secret, name, description, logo_url,\n                    redirect_uris, post_logout_redirect_uris, allowed_scopes,\n                    is_public, skip_consent, enabled, created_by,\n                    created_at, updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "client_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "client_secret",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "logo_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "redirect_uris",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 7,
+        "name": "post_logout_redirect_uris",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 8,
+        "name": "allowed_scopes",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 9,
+        "name": "is_public",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "skip_consent",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 11,
+        "name": "enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 14,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "TextArray",
+        "TextArray",
+        "Bool",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "4536913715469ca79aeef77eec367ae03edcb723ffaaa3d447cb62bc9ce3a04d"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM sso_consents\n                WHERE user_id = $1 AND client_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0462258057bb6a2d7f4c5658c96ea03b0924337267f943abd1a44a2883e4b110"
+}

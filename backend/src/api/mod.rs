@@ -9,6 +9,7 @@ pub mod oauth;
 pub mod practice;
 pub mod rating;
 pub mod report;
+pub mod sso;
 pub mod task;
 pub mod topics;
 pub mod video;

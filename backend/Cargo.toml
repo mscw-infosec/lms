@@ -31,6 +31,7 @@ rand = "0.9.1"
 redis = { version = "0.32.4", features = ["r2d2", "tokio-rustls-comp", "ahash", "json"] }
 redis-macros = "0.5.5"
 reqwest = { version = "0.12.15", features = ["json"] }
+rsa = { version = "0.9.8", features = ["pem", "sha2"] }
 rust-argon2 = "3.0.0"
 rust-s3 = { version = "0.36.0-beta.2", features = ["tokio-rustls-tls", "with-tokio"] }
 serde = { version = "1.0.219", features = ["derive"] }

@@ -299,10 +299,7 @@ export interface paths {
         put?: never;
         /**
          * Register a new user with their name, email and password.
-         * @description Gated behind a Yandex `SmartCaptcha` challenge, so the endpoint can't be
-         *     driven by a bot to mass-create accounts or spam the verification mailer.
-         *
-         *     The account is created immediately (and the user is logged in), but their
+         * @description The account is created immediately (and the user is logged in), but their
          *     email starts out unverified, so feature routes stay gated until they open
          *     the verification link sent to their inbox.
          */
@@ -1144,6 +1141,232 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sso/.well-known/openid-configuration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** `OpenID` Connect discovery document */
+        get: operations["discovery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/authorize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Start an authorization code flow */
+        get: operations["authorize"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List registered relying parties */
+        get: operations["list_clients"];
+        put?: never;
+        /** Register an application that may authenticate users with their LMS account */
+        post: operations["create_client"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/clients/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Return a single relying party */
+        get: operations["get_client"];
+        put?: never;
+        post?: never;
+        /** Delete a relying party, dropping every consent and token issued to it */
+        delete: operations["delete_client"];
+        options?: never;
+        head?: never;
+        /** Update a relying party */
+        patch: operations["update_client"];
+        trace?: never;
+    };
+    "/sso/clients/{client_id}/secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue a new client secret, invalidating the current one */
+        post: operations["rotate_secret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Applications the current user has connected to their LMS account */
+        get: operations["list_connections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/connections/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect an application, revoking its access immediately */
+        delete: operations["revoke_connection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/jwks.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public keys used to sign ID tokens and access tokens */
+        get: operations["jwks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Endpoint URLs to hand to a relying party */
+        get: operations["metadata"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Describe a pending authorization request for the consent screen */
+        get: operations["get_consent_request"];
+        put?: never;
+        /** Approve or decline a pending authorization request */
+        post: operations["decide_consent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an access or refresh token (RFC 7009) */
+        post: operations["revoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange an authorization code or refresh token for tokens */
+        post: operations["token"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sso/userinfo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Claims about the user behind an SSO access token */
+        get: operations["userinfo"];
+        put?: never;
+        /** Claims about the user behind an SSO access token (POST form of `/userinfo`) */
+        post: operations["userinfo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task/list": {
         parameters: {
             query?: never;
@@ -1433,8 +1656,37 @@ export interface components {
         BasicRegisterResponse: {
             access_token: string;
         };
+        ClientSecretDTO: {
+            client_secret: string;
+        };
         /** @enum {string} */
         ConditionOp: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "in" | "nin";
+        ConnectedAppDTO: {
+            client_id: string;
+            /** Format: date-time */
+            granted_at: string;
+            logo_url?: string | null;
+            name: string;
+            scopes: string[];
+        };
+        ConsentDecisionRequest: {
+            approve: boolean;
+        };
+        ConsentDecisionResponse: {
+            redirect_to: string;
+        };
+        ConsentRequestDTO: {
+            already_granted: boolean;
+            client_description?: string | null;
+            client_logo_url?: string | null;
+            client_name: string;
+            new_scopes: string[];
+            redirect_host: string;
+            request_id: string;
+            scopes: string[];
+            user_email: string;
+            user_name: string;
+        };
         /** @description A page of a course leaderboard: participants ranked by earned score.
          *     `total` is the number of participants matching the search (for pagination),
          *     while `entries` holds only the requested page. */
@@ -1476,6 +1728,16 @@ export interface components {
             /** Format: uuid */
             user_id: string;
             username: string;
+        };
+        CreateClientRequest: {
+            allowed_scopes: string[];
+            description?: string | null;
+            is_public?: boolean;
+            logo_url?: string | null;
+            name: string;
+            post_logout_redirect_uris?: string[];
+            redirect_uris: string[];
+            skip_consent?: boolean;
         };
         CreateExamResponseDTO: {
             /** Format: uuid */
@@ -1527,6 +1789,9 @@ export interface components {
             id: string;
             /** @description TUS (resumable) upload URL the client should upload the file bytes to. */
             url: string;
+        };
+        CreatedClientDTO: components["schemas"]["SsoClientDTO"] & {
+            client_secret?: string | null;
         };
         CtfdAccountData: {
             active_attempt_task_ids: number[];
@@ -1874,6 +2139,12 @@ export interface components {
             new_password: string;
             token: string;
         };
+        RevokeRequest: {
+            client_id?: string | null;
+            client_secret?: string | null;
+            token: string;
+            token_type_hint?: string | null;
+        };
         ScoringData: {
             results: {
                 [key: string]: components["schemas"]["TaskVerdict"];
@@ -1893,6 +2164,32 @@ export interface components {
             /** Format: date-time */
             last_used: string;
             user_agent?: string | null;
+        };
+        SsoClientDTO: {
+            allowed_scopes: string[];
+            client_id: string;
+            /** Format: date-time */
+            created_at: string;
+            description?: string | null;
+            enabled: boolean;
+            is_public: boolean;
+            logo_url?: string | null;
+            name: string;
+            post_logout_redirect_uris: string[];
+            redirect_uris: string[];
+            skip_consent: boolean;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        SsoMetadataDTO: {
+            authorization_endpoint: string;
+            discovery_url: string;
+            issuer: string;
+            jwks_uri: string;
+            revocation_endpoint: string;
+            scopes_supported: string[];
+            token_endpoint: string;
+            userinfo_endpoint: string;
         };
         Task: {
             configuration: components["schemas"]["TaskConfig"];
@@ -2041,6 +2338,25 @@ export interface components {
         TextUpsertDTO: {
             text: string;
         };
+        TokenRequest: {
+            client_id?: string | null;
+            client_secret?: string | null;
+            code?: string | null;
+            code_verifier?: string | null;
+            grant_type: string;
+            redirect_uri?: string | null;
+            refresh_token?: string | null;
+            scope?: string | null;
+        };
+        TokenResponse: {
+            access_token: string;
+            /** Format: int64 */
+            expires_in: number;
+            id_token?: string | null;
+            refresh_token?: string | null;
+            scope: string;
+            token_type: string;
+        };
         /** @description One item in a topic's unified content list. */
         TopicContentItemDTO: {
             /** @description Full text body, only present for `text` items. */
@@ -2061,6 +2377,16 @@ export interface components {
             /** Format: int32 */
             order_index: number;
             title: string;
+        };
+        UpdateClientRequest: {
+            allowed_scopes?: string[] | null;
+            description?: string | null;
+            enabled?: boolean | null;
+            logo_url?: string | null;
+            name?: string | null;
+            post_logout_redirect_uris?: string[] | null;
+            redirect_uris?: string[] | null;
+            skip_consent?: boolean | null;
         };
         UpdateLectureRequestDTO: {
             content?: string | null;
@@ -5202,6 +5528,561 @@ export interface operations {
             };
             /** @description Exam not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    discovery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OpenID Provider metadata */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    authorize: {
+        parameters: {
+            query?: {
+                response_type?: string | null;
+                client_id?: string | null;
+                redirect_uri?: string | null;
+                scope?: string | null;
+                state?: string | null;
+                nonce?: string | null;
+                code_challenge?: string | null;
+                code_challenge_method?: string | null;
+                prompt?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect back to the client, or to the consent screen */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request could not be attributed to a registered client */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_clients: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoClientDTO"][];
+                };
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_client: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Includes the one-time client secret */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedClientDTO"];
+                };
+            };
+            /** @description Invalid redirect URI or scope */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_client: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoClientDTO"];
+                };
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No client with that client_id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_client: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Client removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No client with that client_id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_client: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateClientRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoClientDTO"];
+                };
+            };
+            /** @description Invalid redirect URI or scope */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No client with that client_id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    rotate_secret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new secret, shown once */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientSecretDTO"];
+                };
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No client with that client_id */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Public clients have no secret */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_connections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectedAppDTO"][];
+                };
+            };
+        };
+    };
+    revoke_connection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The application can no longer act for this user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    jwks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description JSON Web Key Set */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoMetadataDTO"];
+                };
+            };
+            /** @description Only admins can manage SSO clients */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_consent_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentRequestDTO"];
+                };
+            };
+            /** @description The user is not signed in to the LMS */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request expired or was already answered */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    decide_consent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentDecisionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentDecisionResponse"];
+                };
+            };
+            /** @description The user is not signed in to the LMS */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The account is not ready to be shared */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The request expired or was already answered */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["RevokeRequest"];
+            };
+        };
+        responses: {
+            /** @description The token is no longer valid (also when it never was) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `invalid_client` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    token: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["TokenRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenResponse"];
+                };
+            };
+            /** @description `invalid_grant` / `invalid_request` / `invalid_scope` */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `invalid_client` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    userinfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claims allowed by the token's scopes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `invalid_token` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    userinfo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Claims allowed by the token's scopes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `invalid_token` */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

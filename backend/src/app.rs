@@ -9,7 +9,8 @@ use crate::{
         lectures::service::LectureService, oauth::service::OAuthService,
         practice::service::PracticeService, rating::service::RatingService,
         refresh_token::service::RefreshTokenService, report::service::ReportService,
-        task::service::TaskService, topics::service::TopicService, video::service::VideoService,
+        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
+        video::service::VideoService,
     },
     errors::Result,
     infrastructure::{captcha::SmartCaptchaService, jwt::JWT},
@@ -29,6 +30,7 @@ pub struct Services {
     pub rating: RatingService,
     pub report: ReportService,
     pub refresh_token: RefreshTokenService,
+    pub sso: SsoService,
     pub task: TaskService,
     pub topic: TopicService,
     pub video: VideoService,
@@ -77,9 +79,13 @@ pub fn generate_router(
                 svcs.account.clone(),
                 client,
                 svcs.oauth,
-                svcs.refresh_token,
+                svcs.refresh_token.clone(),
                 config,
             ),
+        )
+        .nest(
+            "/sso",
+            api::sso::configure(svcs.sso, svcs.refresh_token, jwt.clone()),
         );
 
     let gated = OpenApiRouter::new()
