@@ -79,9 +79,6 @@ pub fn remove_cookie(cookies: &Cookies, name: &'static str) {
 }
 
 /// Builds a fresh [`DeviceInfo`] fingerprint from request headers.
-///
-/// Uses the `User-Agent` plus the client IP (`X-Forwarded-For` first hop,
-/// falling back to `X-Real-IP`). Used at login/OAuth to identify the session.
 #[must_use]
 pub fn device_from_headers(headers: &HeaderMap) -> DeviceInfo {
     let header_str = |name: &str| {
@@ -96,7 +93,6 @@ pub fn device_from_headers(headers: &HeaderMap) -> DeviceInfo {
     let user_agent = header_str("user-agent");
     let ip = header_str("x-forwarded-for")
         .map(|xff| {
-            // X-Forwarded-For may be a comma-separated list; the client is first.
             xff.split(',').next().unwrap_or(&xff).trim().to_string()
         })
         .or_else(|| header_str("x-real-ip"));

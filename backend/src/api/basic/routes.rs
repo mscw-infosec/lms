@@ -1,4 +1,5 @@
 use axum::{Json, extract::State, http::HeaderMap};
+use structured_email_address::EmailAddress;
 use tower_cookies::Cookies;
 use tracing::{error, warn};
 
@@ -54,17 +55,16 @@ pub async fn register(
 
     let email = email.to_lowercase();
 
+    let parsed_email = EmailAddress::parse_with(&email, &state.email_config)?;
+
     let user = state
         .basic_auth_service
-        .register(first_name, last_name, patronymic, email.clone(), password)
+        .register(first_name, last_name, patronymic, parsed_email.clone(), password)
         .await?;
 
-    // Fire off the verification email. A failure here shouldn't block the
-    // account creation itself - the user can resend from their account page -
-    // but it must be loud in the logs (email is otherwise a silent side effect).
     if let Err(err) = state
         .account_service
-        .send_verification_email(user.id, &user.email)
+        .send_verification_email(user.id, &parsed_email.canonical())
         .await
     {
         error!(
@@ -79,7 +79,6 @@ pub async fn register(
         .refresh_service
         .create_refresh_token(user.id, device)
         .await?;
-    // Freshly registered: email not yet verified, profile complete (names given).
     let access_token = state
         .jwt
         .generate_access_token(user.id, user.role, false, true)?;
@@ -182,9 +181,10 @@ pub async fn forgot_password(
     State(state): State<BasicAuthState>,
     ValidatedJson(payload): ValidatedJson<ForgotPasswordRequest>,
 ) -> Result<(), LMSError> {
+    let parsed_email = EmailAddress::parse_with(&payload.email, &state.email_config)?;
     state
         .basic_auth_service
-        .request_password_reset(&payload.email.to_lowercase())
+        .request_password_reset(&parsed_email.canonical())
         .await?;
     Ok(())
 }

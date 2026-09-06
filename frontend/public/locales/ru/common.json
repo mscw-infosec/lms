@@ -255,6 +255,7 @@
 	"open_in_ctfd": "Открыть в CTFd",
 	"optional": "Необязательное краткое описание",
 	"optional_hint": "необязательно",
+	"if_exists_hint": "если есть",
 	"options": "Варианты",
 	"or": "ИЛИ",
 	"order_index": "Порядок",

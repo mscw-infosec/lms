@@ -26,6 +26,7 @@ where
 {
     type Rejection = LMSError;
 
+    #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let jwt: Arc<JWT> = Arc::from_ref(state);
         let access = jwt.access_from_header(&parts.headers)?;
@@ -40,6 +41,7 @@ where
 {
     type Rejection = LMSError;
 
+    #[allow(clippy::unused_async_trait_impl)]
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         if let Some(ctfd_token) = parts.headers.get("X-CTFd-Token")
             && let Ok(token) = ctfd_token.to_str()

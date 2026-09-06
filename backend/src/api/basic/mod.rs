@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use routes::*;
 use utoipa_axum::{router::OpenApiRouter, routes};
+use structured_email_address::Config as EmailConfig;
 
 use crate::{
     domain::{
@@ -20,6 +21,7 @@ pub struct BasicAuthState {
     pub refresh_service: RefreshTokenService,
     pub captcha_service: SmartCaptchaService,
     pub jwt: Arc<JWT>,
+    pub email_config: EmailConfig
 }
 
 pub fn configure(
@@ -35,6 +37,9 @@ pub fn configure(
         refresh_service,
         captcha_service,
         jwt,
+        email_config: EmailConfig::builder()
+            .strip_subaddress()
+            .build()
     };
 
     OpenApiRouter::new()

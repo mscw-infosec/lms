@@ -28,7 +28,6 @@ pub trait AccountRepository {
         first_name: &str,
         last_name: &str,
         patronymic: Option<&str>,
-        username: &str,
     ) -> Result<()>;
     async fn set_email_verified(&self, id: Uuid) -> Result<()>;
     async fn get_user_predefined_attributes(&self, email: String) -> Result<Attributes>;

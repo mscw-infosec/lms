@@ -294,7 +294,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 										<Label htmlFor="patronymic" className="text-slate-300">
 											{t("patronymic")}{" "}
 											<span className="text-slate-500 text-xs">
-												({t("optional_hint")})
+												({t("if_exists_hint")})
 											</span>
 										</Label>
 										<Input

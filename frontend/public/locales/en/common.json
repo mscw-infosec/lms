@@ -255,6 +255,7 @@
 	"open_in_ctfd": "Open in CTFd",
 	"optional": "Optional short description",
 	"optional_hint": "optional",
+	"if_exists_hint": "if exists",
 	"options": "Options",
 	"or": "OR",
 	"order_index": "Order",

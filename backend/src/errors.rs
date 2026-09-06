@@ -31,6 +31,10 @@ pub enum LMSError {
     #[error("{0}")]
     DatabaseError(#[from] sqlx::Error),
 
+    /// Error while parsing the email
+    #[error("{0}")]
+    EmailParseError(#[from] structured_email_address::Error),
+
     #[error("User already submit verification request")]
     VerificationError,
 
@@ -103,7 +107,7 @@ impl IntoResponse for LMSError {
     fn into_response(self) -> axum::response::Response {
         let status = match &self {
             Self::Redirect(redirect) => return Redirect::temporary(redirect).into_response(),
-            Self::AlreadyExists(_) | Self::InvalidRequest(_) | Self::ShitHappened(_) => {
+            Self::AlreadyExists(_) | Self::InvalidRequest(_) | Self::ShitHappened(_) | Self::EmailParseError(_) => {
                 StatusCode::BAD_REQUEST
             }
             Self::DatabaseError(_)

@@ -304,22 +304,19 @@ impl AccountRepository for RepositoryPostgres {
         first_name: &str,
         last_name: &str,
         patronymic: Option<&str>,
-        username: &str,
     ) -> Result<()> {
         let result = sqlx::query!(
             r#"
                 UPDATE users
                 SET first_name = $2,
                     last_name  = $3,
-                    patronymic = $4,
-                    username   = $5
+                    patronymic = $4
                 WHERE id = $1
             "#,
             id,
             first_name,
             last_name,
             patronymic,
-            username,
         )
         .execute(&self.pool)
         .await?;

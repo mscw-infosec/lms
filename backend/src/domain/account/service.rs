@@ -101,7 +101,7 @@ impl AccountService {
     }
 
     /// Update the user's names (used both for profile edits and for OAuth users
-    /// completing their required details). Recomposes the display `username`.
+    /// completing their required details).
     pub async fn update_profile(
         &self,
         user_id: Uuid,
@@ -109,9 +109,8 @@ impl AccountService {
         last_name: &str,
         patronymic: Option<&str>,
     ) -> Result<UserModel> {
-        let username = UserModel::compose_username(last_name, first_name, patronymic);
         self.db_repo
-            .update_profile(user_id, first_name, last_name, patronymic, &username)
+            .update_profile(user_id, first_name, last_name, patronymic)
             .await?;
         self.cache_repo.invalidate_user(user_id).await?;
         self.get_user(user_id).await
