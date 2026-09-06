@@ -1,4 +1,4 @@
-FROM rust:1.88.0-alpine3.20 AS base
+FROM rust:1.98.0-alpine3.21 AS base
 RUN apk add --no-cache musl-dev openssl-dev openssl-libs-static pkgconfig curl
 RUN cargo install cargo-chef
 
