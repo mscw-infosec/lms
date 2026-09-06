@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     env:
       IMAGE_NAME: cr.yandex/crpi7be6fcnum9d5jo38/lms-frontend
 

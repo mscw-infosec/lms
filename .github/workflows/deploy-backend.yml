@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
       RUST_VERSION: stable
