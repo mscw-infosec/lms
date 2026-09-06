@@ -39,8 +39,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: frontend
-          build-args:
-            - NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY=${{ vars.NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY }}
+          build-args: |
+            NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY=${{ vars.NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY }}
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
