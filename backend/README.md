@@ -85,3 +85,4 @@ cargo sqlx migrate revert
 ## OpenAPI
 
 Для генерации openapi.json, требуется запустить приложение с фичей gen-openapi - `cargo run -F gen-openapi`. Для этого не требуются переменные окружения или любые другие зависимости.
+

@@ -41,3 +41,4 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 - Auth endpoints used:
   - `POST /api/basic/login` and `POST /api/basic/register` return `{ access_token }` and set `refresh_token` cookie.
   - `GET /api/account` fetches the current user and requires the bearer token.
+
