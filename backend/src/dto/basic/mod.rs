@@ -54,7 +54,7 @@ pub struct BasicRegisterRequest {
     #[schema(example = "ivan@example.com")]
     pub email: String,
 
-    #[validate(length(min = 12, message = "Password must be at least 12 characters"))]
+    #[validate(length(min = 12, max = 32, message = "Password must be at least 12 characters"))]
     #[schema(example = "Password12345")]
     pub password: String,
 

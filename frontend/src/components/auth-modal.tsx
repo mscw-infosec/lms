@@ -37,11 +37,11 @@ interface AuthModalProps {
 	onLoginSuccess?: () => void;
 }
 
-// Zod validation schemas
-const loginSchema = z.object({
-	email: z.string().email("Please enter a valid email address"),
-	password: z.string().min(1, "Password is required"),
-});
+const loginSchema = (t: TFunction) =>
+	z.object({
+		email: z.string().email(t("enter_valid_email")),
+		password: z.string().min(1, t("password_required")),
+	});
 
 const registerSchema = (t: TFunction) =>
 	z
@@ -49,26 +49,27 @@ const registerSchema = (t: TFunction) =>
 			username: z
 				.string()
 				.trim()
-				.min(5, "Username must be at least 5 characters")
-				.max(32, "Username must be at most 32 characters")
+				.min(5, t("username_min"))
+				.max(32, t("username_max"))
 				.regex(/^[A-Za-z0-9 _]+$/, t("username_constraint")),
 			lastName: z
 				.string()
-				.min(1, "Last name is required")
-				.max(100, "Last name is too long"),
+				.min(1, t("last_name_req"))
+				.max(100, t("last_name_too_long")),
 			firstName: z
 				.string()
-				.min(1, "First name is required")
-				.max(100, "First name is too long"),
-			patronymic: z.string().max(100, "Patronymic is too long").optional(),
-			email: z.string().email("Please enter a valid email address"),
+				.min(1, t("first_name_req"))
+				.max(100, t("first_name_too_long")),
+			patronymic: z.string().max(100, t("patronymic_too_long")).optional(),
+			email: z.string().email(t("enter_valid_email")),
 			password: z
 				.string()
-				.min(12, "Password must be at least 12 characters")
-				.regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-				.regex(/[a-z]/, "Password must contain at least one lowercase letter")
-				.regex(/[0-9]/, "Password must contain at least one number"),
-			confirmPassword: z.string().min(1, "Please confirm your password"),
+				.min(12, t("password_min"))
+				.max(32, t("password_max"))
+				.regex(/[A-Z]/, t("one_uppercase"))
+				.regex(/[a-z]/, t("one_lowercase"))
+				.regex(/[0-9]/, t("one_digit")),
+			confirmPassword: z.string().min(1, t("confirm_password")),
 		})
 		.refine((data) => data.password === data.confirmPassword, {
 			message: "Passwords don't match",
@@ -106,7 +107,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 	// Validation errors
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const schema = useMemo(
-		() => (mode === "login" ? loginSchema : registerSchema(t)),
+		() => (mode === "login" ? loginSchema(t) : registerSchema(t)),
 		[mode, t],
 	);
 
@@ -172,7 +173,7 @@ export function AuthModal({ type, onClose, onLoginSuccess }: AuthModalProps) {
 						confirmPassword,
 					};
 		const schema = useMemo(
-			() => (mode === "login" ? loginSchema : registerSchema(t)),
+			() => (mode === "login" ? loginSchema(t) : registerSchema(t)),
 			[],
 		);
 
