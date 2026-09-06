@@ -19,6 +19,13 @@ jobs:
       - name: Set image version
         run: echo "IMAGE_VERSION=0.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
+      - name: Verify SmartCaptcha client key is available
+        run: |
+          if [ -z "${{ vars.NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY }}" ]; then
+            echo "::error::Repository variable NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY is not set."
+            exit 1
+          fi
+
       - name: Login to Yandex Cloud Container Registry
         id: login-cr
         uses: yc-actions/yc-cr-login@v3
@@ -32,6 +39,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: frontend
+          build-args:
+            - NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY=${{ vars.NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY }}
           push: true
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}

@@ -115,7 +115,13 @@ export function SmartCaptcha({
 	}, [onTokenChange, onError]);
 
 	useEffect(() => {
-		if (!isSmartCaptchaEnabled()) return;
+		if (!isSmartCaptchaEnabled()) {
+			console.warn(
+				"[SmartCaptcha] NEXT_PUBLIC_SMARTCAPTCHA_CLIENT_KEY was not set when this " +
+				"bundle was built, no challenge is shown.",
+			);
+			return;
+		}
 
 		let cancelled = false;
 		const unsubscribes: Array<() => void> = [];
