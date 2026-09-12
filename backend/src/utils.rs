@@ -8,7 +8,10 @@ use axum::{
 };
 use rand::{Rng, distr::Alphanumeric};
 use serde::{Serialize, de::DeserializeOwned};
-use tower_cookies::{Cookie, Cookies, cookie::SameSite};
+use tower_cookies::{
+    Cookie, Cookies,
+    cookie::{SameSite, time::Duration},
+};
 use tracing::warn;
 use validator::Validate;
 
@@ -63,11 +66,14 @@ pub fn generate_random_string(len: usize) -> String {
         .collect()
 }
 
+const COOKIE_MAX_AGE: Duration = Duration::days(30);
+
 pub fn add_cookie(cookies: &Cookies, (name, value): (&'static str, String)) {
     let cookie = Cookie::build((name, value))
         .path("/")
         .http_only(true)
         .same_site(SameSite::Lax)
+        .max_age(COOKIE_MAX_AGE)
         .build();
 
     cookies.add(cookie);

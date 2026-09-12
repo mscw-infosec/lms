@@ -1,8 +1,9 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
 
-use super::model::{RefreshTokenData, SessionInfo};
+use super::model::{RefreshTokenData, RotationClaim, SessionInfo};
 use crate::{errors::LMSError, gen_openapi::DummyRepository};
 
 #[impl_unimplemented(DummyRepository)]
@@ -18,8 +19,12 @@ pub trait RefreshTokenRepository {
 
     async fn store_token(&self, jti: Uuid, data: RefreshTokenData) -> Result<(), LMSError>;
     async fn get_token(&self, jti: Uuid) -> Result<Option<RefreshTokenData>, LMSError>;
-    async fn mark_as_rotated(&self, jti: Uuid) -> Result<(), LMSError>;
-    async fn check_if_rotated(&self, jti: Uuid) -> Result<bool, LMSError>;
+    async fn claim_rotation(
+        &self,
+        jti: Uuid,
+        new_jti: Uuid,
+        expires_at: DateTime<Utc>,
+    ) -> Result<RotationClaim, LMSError>;
     async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError>;
     async fn add_to_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;
     async fn remove_from_user_sessions(&self, user_id: Uuid, jti: Uuid) -> Result<(), LMSError>;

@@ -1,6 +1,10 @@
 import type { components } from "@/api/schema/schema";
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
-import { getAccessToken, setAccessToken } from "./token";
+import {
+	accessTokenNeedsRefresh,
+	getAccessToken,
+	setAccessToken,
+} from "./token";
 
 const DEFAULT_HEADERS: HeadersInit = {
 	"Content-Type": "application/json",
@@ -11,9 +15,34 @@ function getApiBaseUrl(): string {
 	return url.endsWith("/") ? url.slice(0, -1) : url;
 }
 
-async function tryRefreshToken(): Promise<boolean> {
+let refreshInFlight: Promise<boolean> | null = null;
+
+let sessionRejectedAt = 0;
+const SESSION_REJECTED_COOLDOWN_MS = 30_000;
+
+export function refreshAccessToken(): Promise<boolean> {
+	if (Date.now() - sessionRejectedAt < SESSION_REJECTED_COOLDOWN_MS) {
+		return Promise.resolve(false);
+	}
+
+	refreshInFlight ??= requestRefresh().finally(() => {
+		refreshInFlight = null;
+	});
+	return refreshInFlight;
+}
+
+export async function forceRefreshAccessToken(): Promise<boolean> {
+	await refreshInFlight?.catch(() => false);
+	sessionRejectedAt = 0;
+	return refreshAccessToken();
+}
+
+async function requestRefresh(): Promise<boolean> {
+	const attempted = getAccessToken();
+
+	let res: AxiosResponse<components["schemas"]["RefreshResponse"]>;
 	try {
-		const res = await axios.post<components["schemas"]["RefreshResponse"]>(
+		res = await axios.post<components["schemas"]["RefreshResponse"]>(
 			`${getApiBaseUrl()}/api/auth/refresh`,
 			undefined,
 			{
@@ -22,12 +51,27 @@ async function tryRefreshToken(): Promise<boolean> {
 				validateStatus: () => true,
 			},
 		);
-		if (res.status < 200 || res.status >= 300) return false;
-		setAccessToken(res.data.access_token);
-		return true;
 	} catch {
 		return false;
 	}
+
+	if (res.status >= 200 && res.status < 300 && res.data?.access_token) {
+		sessionRejectedAt = 0;
+		setAccessToken(res.data.access_token);
+		return true;
+	}
+
+	if (res.status === 401 || res.status === 403) {
+		sessionRejectedAt = Date.now();
+		if (getAccessToken() === attempted) setAccessToken(null);
+	}
+
+	return false;
+}
+
+export async function ensureFreshToken(): Promise<boolean> {
+	if (accessTokenNeedsRefresh()) await refreshAccessToken();
+	return !!getAccessToken();
 }
 
 export interface HttpOptions extends RequestInit {
@@ -48,6 +92,7 @@ export async function http<T>(
 	}
 
 	if (options.withAuth) {
+		await ensureFreshToken();
 		const token = getAccessToken();
 		if (token) headers.set("Authorization", `Bearer ${token}`);
 	}
@@ -69,13 +114,10 @@ export async function http<T>(
 
 	let res = await doRequest();
 	if (res.status === 401 && options.withAuth) {
-		const refreshed = await tryRefreshToken();
-		if (refreshed) {
+		if (await refreshAccessToken()) {
 			const token = getAccessToken();
 			if (token) headers.set("Authorization", `Bearer ${token}`);
 			res = await doRequest();
-		} else {
-			setAccessToken(null);
 		}
 	}
 

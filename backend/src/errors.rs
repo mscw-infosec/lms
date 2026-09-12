@@ -1,8 +1,4 @@
-use axum::{
-    Json,
-    http::StatusCode,
-    response::{IntoResponse, Redirect},
-};
+use axum::{Json, http::StatusCode, response::IntoResponse};
 use tracing::info;
 use yandex_cloud::tonic_exports;
 
@@ -92,9 +88,6 @@ pub enum LMSError {
     #[error("{0}")]
     S3Error(#[from] s3::error::S3Error),
 
-    #[error("Redirect to {0}")]
-    Redirect(&'static str),
-
     /// General server error
     #[error("{0}")]
     ServerError(String),
@@ -106,7 +99,6 @@ pub enum LMSError {
 impl IntoResponse for LMSError {
     fn into_response(self) -> axum::response::Response {
         let status = match &self {
-            Self::Redirect(redirect) => return Redirect::temporary(redirect).into_response(),
             Self::AlreadyExists(_)
             | Self::InvalidRequest(_)
             | Self::ShitHappened(_)

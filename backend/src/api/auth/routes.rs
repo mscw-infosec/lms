@@ -6,6 +6,7 @@ use tower_cookies::Cookies;
 use uuid::Uuid;
 
 use crate::{
+    api::middlewares::RefreshCookie,
     domain::refresh_token::model::SessionInfo,
     dto::auth::RefreshResponse,
     errors::LMSError,
@@ -30,7 +31,7 @@ use super::AuthState;
 )]
 pub async fn refresh(
     cookies: Cookies,
-    token: RefreshTokenClaim,
+    RefreshCookie(token): RefreshCookie,
     State(state): State<AuthState>,
 ) -> Result<Json<RefreshResponse>, LMSError> {
     let (new_refresh_token, _) = state.refresh_service.validate_and_rotate(&token).await?;

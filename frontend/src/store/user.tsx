@@ -1,7 +1,15 @@
 "use client";
 
-import { type GetUserResponseDTO, getCurrentUser } from "@/api/auth";
-import { ACCESS_TOKEN_STORAGE_KEY, getAccessToken } from "@/api/token";
+import {
+	type GetUserResponseDTO,
+	getCurrentUser,
+	restoreSession,
+} from "@/api/auth";
+import {
+	ACCESS_TOKEN_STORAGE_KEY,
+	accessTokenNeedsRefresh,
+	getAccessToken,
+} from "@/api/token";
 import {
 	bumpAvatar,
 	ensureAvatarChecked,
@@ -16,6 +24,7 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from "react";
 
@@ -36,14 +45,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 	const [hasToken, setHasToken] = useState<boolean>(false);
 	const [loading, setLoading] = useState<boolean>(true);
 
-	const refreshUser = useCallback(async () => {
-		const token = getAccessToken();
-		setHasToken(!!token);
-		if (!token) {
-			setUser(null);
-			setLoading(false);
-			return;
+	const loadUser = useCallback(async () => {
+		if (!getAccessToken() && !(await restoreSession())) {
+			if (!getAccessToken()) {
+				setHasToken(false);
+				setUser(null);
+				setLoading(false);
+				return;
+			}
 		}
+
+		setHasToken(true);
 		setLoading(true);
 		try {
 			const me = await getCurrentUser();
@@ -51,21 +63,30 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 		} catch {
 			setUser(null);
 		} finally {
+			setHasToken(!!getAccessToken());
 			setLoading(false);
 		}
 	}, []);
+
+	const loadInFlight = useRef<Promise<void> | null>(null);
+	const refreshUser = useCallback(() => {
+		loadInFlight.current ??= loadUser().finally(() => {
+			loadInFlight.current = null;
+		});
+		return loadInFlight.current;
+	}, [loadUser]);
 
 	const forceAvatarRefresh = useCallback(() => {
 		bumpAvatar(user?.id);
 	}, [user?.id]);
 
-	useEffect(() => {
-		let active = true;
+	const userIdRef = useRef<string | undefined>(undefined);
+	userIdRef.current = user?.id;
 
+	useEffect(() => {
 		const onTokenChange = () => {
-			setHasToken(!!getAccessToken());
 			refreshUser();
-			bumpAvatar(user?.id);
+			bumpAvatar(userIdRef.current);
 		};
 
 		const onStorage = (e: StorageEvent) => {
@@ -74,33 +95,37 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 			}
 		};
 
+		const onVisible = () => {
+			if (document.visibilityState !== "visible") return;
+			if (accessTokenNeedsRefresh()) refreshUser();
+		};
+
 		refreshUser();
 
-		if (typeof window !== "undefined") {
-			window.addEventListener(
+		window.addEventListener(
+			"auth:token-changed",
+			onTokenChange as EventListener,
+		);
+		window.addEventListener("storage", onStorage);
+		document.addEventListener("visibilitychange", onVisible);
+
+		return () => {
+			window.removeEventListener(
 				"auth:token-changed",
 				onTokenChange as EventListener,
 			);
-			window.addEventListener("storage", onStorage);
-		}
+			window.removeEventListener("storage", onStorage);
+			document.removeEventListener("visibilitychange", onVisible);
+		};
+	}, [refreshUser]);
 
+	useEffect(() => {
 		const unsubscribeAvatar = subscribeAvatar(() => {
 			setAvatarSrc(getAvatarSrc(user?.id));
 			setAvatarExists(getAvatarExists(user?.id));
 		});
-
-		return () => {
-			active = false;
-			if (typeof window !== "undefined") {
-				window.removeEventListener(
-					"auth:token-changed",
-					onTokenChange as EventListener,
-				);
-				window.removeEventListener("storage", onStorage);
-			}
-			unsubscribeAvatar();
-		};
-	}, [refreshUser, user?.id]);
+		return unsubscribeAvatar;
+	}, [user?.id]);
 
 	useEffect(() => {
 		if (user?.id) {

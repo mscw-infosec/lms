@@ -323,11 +323,11 @@ pub async fn revoke_connection(
 async fn session_user(state: &SsoState, cookies: &Cookies) -> Option<Uuid> {
     let claim = state.jwt.refresh_from_cookies(cookies).ok()?;
 
-    if state
+    if !state
         .refresh_service
-        .check_if_rotated(claim.jti)
+        .is_usable(claim.jti)
         .await
-        .unwrap_or(true)
+        .unwrap_or(false)
     {
         return None;
     }

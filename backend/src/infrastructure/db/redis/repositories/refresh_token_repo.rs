@@ -1,16 +1,22 @@
 use async_trait::async_trait;
-use redis::{AsyncTypedCommands, HashFieldExpirationOptions, SetExpiry};
+use chrono::{DateTime, Utc};
+use redis::{AsyncTypedCommands, FieldExistenceCheck, HashFieldExpirationOptions, SetExpiry};
 use uuid::Uuid;
 
 use crate::{
     domain::refresh_token::{
-        model::{RefreshTokenData, SessionInfo},
+        model::{RefreshTokenData, RotationClaim, SessionInfo},
         repository::RefreshTokenRepository,
     },
     errors::LMSError,
     infrastructure::db::redis::RepositoryRedis,
     utils::{from_pairs, to_pairs},
 };
+
+fn expire_at(expires_at: DateTime<Utc>) -> HashFieldExpirationOptions {
+    let secs = u64::try_from(expires_at.timestamp()).unwrap_or(0);
+    HashFieldExpirationOptions::default().set_expiration(SetExpiry::EXAT(secs))
+}
 
 #[async_trait]
 impl RefreshTokenRepository for RepositoryRedis {
@@ -26,9 +32,7 @@ impl RefreshTokenRepository for RepositoryRedis {
         let mut conn = self.conn();
         let key = Self::token_key(jti);
 
-        let set_expiry = SetExpiry::EX(30 * 24 * 60 * 60);
-        let ex = HashFieldExpirationOptions::default().set_expiration(set_expiry);
-
+        let ex = expire_at(data.expires_at);
         conn.hset_ex(key, &ex, &to_pairs(&data)).await?;
 
         Ok(())
@@ -46,25 +50,51 @@ impl RefreshTokenRepository for RepositoryRedis {
         Ok(Some(from_pairs(data_json)?))
     }
 
-    async fn mark_as_rotated(&self, jti: Uuid) -> Result<(), LMSError> {
+    async fn claim_rotation(
+        &self,
+        jti: Uuid,
+        new_jti: Uuid,
+        expires_at: DateTime<Utc>,
+    ) -> Result<RotationClaim, LMSError> {
         let mut conn = self.conn();
         let key = Self::token_key(jti);
 
-        conn.hset(&key, "rotated", "true").await?;
-        Ok(())
-    }
+        let claim = expire_at(expires_at).set_existence_check(FieldExistenceCheck::FNX);
+        let rotated_at = Utc::now();
+        let won = conn
+            .hset_ex(
+                &key,
+                &claim,
+                &[
+                    ("replaced_by", serde_json::to_string(&new_jti)?),
+                    ("rotated_at", serde_json::to_string(&rotated_at)?),
+                ],
+            )
+            .await?;
 
-    async fn check_if_rotated(&self, jti: Uuid) -> Result<bool, LMSError> {
-        let mut conn = self.conn();
-        let key = Self::token_key(jti);
-
-        if let Some(rotated) = conn.hget(&key, "rotated").await?
-            && rotated == "false"
-        {
-            return Ok(false);
+        if won {
+            conn.hset_ex(&key, &expire_at(expires_at), &[("rotated", "true")])
+                .await?;
+            return Ok(RotationClaim::Won);
         }
 
-        Ok(true)
+        let Some(successor) = conn
+            .hget(&key, "replaced_by")
+            .await?
+            .and_then(|raw| serde_json::from_str::<Uuid>(&raw).ok())
+        else {
+            return Ok(RotationClaim::Gone);
+        };
+
+        let rotated_at = conn
+            .hget(&key, "rotated_at")
+            .await?
+            .and_then(|raw| serde_json::from_str::<DateTime<Utc>>(&raw).ok());
+
+        Ok(RotationClaim::Lost {
+            successor,
+            rotated_at,
+        })
     }
 
     async fn delete_token(&self, jti: Uuid) -> Result<(), LMSError> {

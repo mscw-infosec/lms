@@ -1,6 +1,6 @@
 import type { components } from "@/api/schema/schema";
 import axios from "axios";
-import { http } from "./http";
+import { http, ensureFreshToken } from "./http";
 import { getAccessToken } from "./token";
 
 export type UserOverallRating = components["schemas"]["UserOverallRatingDTO"];
@@ -75,6 +75,7 @@ function parseFilename(disposition: string | undefined, fallback: string) {
 }
 
 async function downloadFile(path: string, fallback: string): Promise<void> {
+	await ensureFreshToken();
 	const token = getAccessToken();
 	const res = await axios.get(`${getApiBaseUrl()}${path}`, {
 		responseType: "blob",

@@ -5,13 +5,15 @@ use uuid::Uuid;
 
 use crate::{
     domain::refresh_token::{
-        model::{DeviceInfo, RefreshTokenData, SessionInfo},
+        model::{DeviceInfo, RefreshTokenData, RotationClaim, SessionInfo},
         repository::RefreshTokenRepository,
     },
     errors::{LMSError, Result},
     infrastructure::jwt::{JWT, RefreshTokenClaim},
     repo,
 };
+
+const ROTATION_GRACE: Duration = Duration::seconds(60);
 
 #[derive(Clone)]
 pub struct RefreshTokenService {
@@ -81,16 +83,23 @@ impl RefreshTokenService {
         ))
     }
 
-    /// Stores a refresh token, preserving the original `issued_at` (so the
-    /// session keeps its login time across rotations) while advancing
-    /// `last_used` to now.
     async fn store_token_with(
         &self,
         user_id: Uuid,
         device: DeviceInfo,
         issued_at: DateTime<Utc>,
     ) -> Result<(String, Uuid)> {
-        let jti = Uuid::new_v4();
+        self.store_token_as(user_id, Uuid::new_v4(), device, issued_at)
+            .await
+    }
+
+    async fn store_token_as(
+        &self,
+        user_id: Uuid,
+        jti: Uuid,
+        device: DeviceInfo,
+        issued_at: DateTime<Utc>,
+    ) -> Result<(String, Uuid)> {
         let now = Utc::now();
         let expires_at = now + Duration::days(30);
 
@@ -104,6 +113,8 @@ impl RefreshTokenService {
             last_used: now,
             expires_at,
             rotated: false,
+            replaced_by: None,
+            rotated_at: None,
         };
 
         self.repo.store_token(jti, token_data).await?;
@@ -120,14 +131,34 @@ impl RefreshTokenService {
             .await?
             .ok_or_else(|| LMSError::Unauthorized("Invalid refresh token".to_string()))?;
 
+        if token_data.expires_at < Utc::now() {
+            return Err(LMSError::Unauthorized("Token has expired".to_string()));
+        }
+
+        if let Some(successor) = token_data.replaced_by {
+            return self.reissue(token.sub, successor, token_data.rotated_at);
+        }
+
         if token_data.rotated {
             return Err(LMSError::Unauthorized(
                 "Token has already been used".to_string(),
             ));
         }
 
-        if token_data.expires_at < Utc::now() {
-            return Err(LMSError::Unauthorized("Token has expired".to_string()));
+        let new_jti = Uuid::new_v4();
+        match self
+            .repo
+            .claim_rotation(token.jti, new_jti, token_data.expires_at)
+            .await?
+        {
+            RotationClaim::Lost {
+                successor,
+                rotated_at,
+            } => return self.reissue(token.sub, successor, rotated_at),
+            RotationClaim::Gone => {
+                return Err(LMSError::Unauthorized("Invalid refresh token".to_string()));
+            }
+            RotationClaim::Won => {}
         }
 
         // Carry the device fingerprint and original login time forward so the
@@ -135,17 +166,45 @@ impl RefreshTokenService {
         let issued_at = token_data.issued_at;
         let device = DeviceInfo::from(token_data);
 
-        self.repo.mark_as_rotated(token.jti).await?;
         self.repo
             .remove_from_user_sessions(token.sub, token.jti)
             .await?;
 
-        let (new_token, new_jti) = self.store_token_with(token.sub, device, issued_at).await?;
-        Ok((new_token, new_jti))
+        self.store_token_as(token.sub, new_jti, device, issued_at)
+            .await
     }
 
-    pub async fn check_if_rotated(&self, jti: Uuid) -> Result<bool> {
-        self.repo.check_if_rotated(jti).await
+    fn reissue(
+        &self,
+        sub: Uuid,
+        successor: Uuid,
+        rotated_at: Option<DateTime<Utc>>,
+    ) -> Result<(String, Uuid)> {
+        let within_grace = rotated_at.is_none_or(|at| Utc::now() - at <= ROTATION_GRACE);
+        if !within_grace {
+            return Err(LMSError::Unauthorized(
+                "Token has already been used".to_string(),
+            ));
+        }
+
+        let token = self.jwt.generate_refresh_token(sub, successor)?;
+        Ok((token, successor))
+    }
+
+    pub async fn is_usable(&self, jti: Uuid) -> Result<bool> {
+        let Some(data) = self.repo.get_token(jti).await? else {
+            return Ok(false);
+        };
+
+        if data.expires_at < Utc::now() {
+            return Ok(false);
+        }
+
+        match (data.rotated, data.rotated_at) {
+            (false, _) => Ok(true),
+            (true, Some(at)) => Ok(Utc::now() - at <= ROTATION_GRACE),
+            (true, None) => Ok(false),
+        }
     }
 
     pub async fn get_user_sessions(

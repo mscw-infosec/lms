@@ -1,6 +1,6 @@
 import type { components } from "@/api/schema/schema";
 import axios from "axios";
-import { http } from "./http";
+import { http, ensureFreshToken } from "./http";
 import { getAccessToken } from "./token";
 
 export type Gradebook = components["schemas"]["Gradebook"];
@@ -31,6 +31,7 @@ export async function downloadExamExport(
 	examId: string,
 	format: ExportFormat,
 ): Promise<void> {
+	await ensureFreshToken();
 	const token = getAccessToken();
 	const res = await axios.get(
 		`${getApiBaseUrl()}/api/report/exam/${examId}/export?format=${format}`,

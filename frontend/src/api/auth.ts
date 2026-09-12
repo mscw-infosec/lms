@@ -1,5 +1,9 @@
 import type { components } from "@/api/schema/schema";
-import { http } from "./http";
+import {
+	http,
+	forceRefreshAccessToken,
+	refreshAccessToken as refreshSharedAccessToken,
+} from "./http";
 import { setAccessToken } from "./token";
 
 export type BasicLoginRequest = components["schemas"]["BasicLoginRequest"];
@@ -83,12 +87,12 @@ export async function resetPassword(
 	});
 }
 
-/** Exchange the refresh cookie for a fresh access token (picks up updated gate flags). */
 export async function refreshAccessToken(): Promise<void> {
-	const res = await http<{ access_token: string }>("/api/auth/refresh", {
-		method: "POST",
-	});
-	setAccessToken(res.access_token);
+	await forceRefreshAccessToken();
+}
+
+export async function restoreSession(): Promise<boolean> {
+	return refreshSharedAccessToken();
 }
 
 export async function getCurrentUser(): Promise<GetUserResponseDTO> {

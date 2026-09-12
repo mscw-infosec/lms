@@ -23,6 +23,20 @@ pub struct RefreshTokenData {
     pub last_used: DateTime<Utc>,
     pub expires_at: DateTime<Utc>,
     pub rotated: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replaced_by: Option<Uuid>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rotated_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug)]
+pub enum RotationClaim {
+    Won,
+    Lost {
+        successor: Uuid,
+        rotated_at: Option<DateTime<Utc>>,
+    },
+    Gone,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]

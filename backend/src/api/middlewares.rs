@@ -79,11 +79,34 @@ where
         let refresh = jwt.refresh_from_cookies(&cookies)?;
 
         let rt_service = RefreshTokenService::from_ref(state);
-        if rt_service.check_if_rotated(refresh.jti).await? {
-            return Err(LMSError::Redirect("/login"));
+        if !rt_service.is_usable(refresh.jti).await? {
+            return Err(LMSError::Unauthorized(
+                "Refresh token is no longer valid".to_string(),
+            ));
         }
 
         Ok(refresh)
+    }
+}
+
+pub struct RefreshCookie(pub RefreshTokenClaim);
+
+impl<S> FromRequestParts<S> for RefreshCookie
+where
+    Arc<JWT>: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = LMSError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let cookies = Cookies::from_request_parts(parts, state)
+            .await
+            .map_err(|_| {
+                LMSError::Unauthorized("Could not extract cookies from request".to_string())
+            })?;
+
+        let jwt: Arc<JWT> = Arc::from_ref(state);
+        Ok(Self(jwt.refresh_from_cookies(&cookies)?))
     }
 }
 
