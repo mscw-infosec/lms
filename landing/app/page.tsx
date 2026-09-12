@@ -161,6 +161,21 @@ export default function InfoSecAnnualProgram() {
 				<section className="w-full bg-gradient-to-br from-gray-50 to-gray-100 py-14 md:py-24 lg:py-28">
 					<div className="mx-auto max-w-6xl px-4 md:px-6">
 						<div className="flex flex-col items-center text-center">
+							<div className="mb-8 w-full max-w-3xl rounded-xl border-2 border-red-600 bg-red-600 px-5 py-4 text-white shadow-lg md:px-8 md:py-5">
+								<div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4">
+									<Clock className="h-6 w-6 shrink-0 md:h-7 md:w-7" />
+									<p className="font-semibold text-base leading-snug md:text-lg">
+										Отборочный тест проходит 13 сентября на платформе{" "}
+										<a
+											href="https://lms.infosec.moscow"
+											className="font-bold underline decoration-2 underline-offset-4 hover:no-underline"
+										>
+											lms.infosec.moscow
+										</a>{" "}
+										с 10:00 до 21:00 по московскому времени
+									</p>
+								</div>
+							</div>
 							<h1 className="max-w-3xl font-bold text-3xl tracking-tight sm:text-5xl">
 								Сборная Москвы на ВсОШ по Информационной Безопасности
 							</h1>
@@ -481,12 +496,15 @@ export default function InfoSecAnnualProgram() {
 									<p className="mt-3 text-gray-700 text-sm leading-relaxed">
 										Отборочный тест не является обязательным для учеников,
 										являющихся участниками, призёрами или победителями
-										заключительного этапа, а также призёрами или победителями регионального этапа
-                                        ВсОШ по ИБ в 2025/2026 учебном году.
-                                        Несмотря на вышеописанные преимущества, <strong>
-                                        заполнение формы с информацией о ученике обязательно даже для учеников,
-                                        использующих право не писать отборочный тест.
-                                        </strong> Входной тест обязателен к прохождению для всех. Подробнее
+										заключительного этапа, а также призёрами или победителями
+										регионального этапа ВсОШ по ИБ в 2025/2026 учебном году.
+										Несмотря на вышеописанные преимущества,{" "}
+										<strong>
+											заполнение формы с информацией о ученике обязательно даже
+											для учеников, использующих право не писать отборочный
+											тест.
+										</strong>{" "}
+										Входной тест обязателен к прохождению для всех. Подробнее
 										про подготовку к тестированиям можно узнать в разделе{" "}
 										<a
 											href="#faq"
