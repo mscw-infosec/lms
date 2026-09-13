@@ -71,6 +71,7 @@ pub struct RatingBreakdownItemDTO {
     pub title: String,
     pub earned: f64,
     pub max: f64,
+    pub pending: bool,
 }
 
 /// A single user's detailed rating within one course.

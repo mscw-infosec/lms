@@ -6055,7 +6055,7 @@
 			"RatingBreakdownItemDTO": {
 				"type": "object",
 				"description": "One line of a per-course, per-user breakdown (one exam or one practice).",
-				"required": ["kind", "id", "title", "earned", "max"],
+				"required": ["kind", "id", "title", "earned", "max", "pending"],
 				"properties": {
 					"earned": {
 						"type": "number",
@@ -6072,6 +6072,10 @@
 					"max": {
 						"type": "number",
 						"format": "double"
+					},
+					"pending": {
+						"type": "boolean",
+						"description": "`true` when the viewer has attempts on this exam whose results the\nteacher has not published yet, so `earned` does not include them."
 					},
 					"title": {
 						"type": "string"

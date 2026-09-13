@@ -2124,6 +2124,9 @@ export interface components {
             kind: string;
             /** Format: double */
             max: number;
+            /** @description `true` when the viewer has attempts on this exam whose results the
+             *     teacher has not published yet, so `earned` does not include them. */
+            pending: boolean;
             title: string;
         };
         RefreshResponse: {

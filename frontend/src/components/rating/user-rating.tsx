@@ -107,7 +107,15 @@ function CourseBreakdown({
 								: t("rating_kind_practice") || "Practice"}
 						</td>
 						<td className="px-4 py-2 text-right text-slate-200">
-							{fmtNum(item.earned)} / {fmtNum(item.max)}
+							{item.pending ? (
+								<span className="text-slate-400 italic">
+									{t("rating_results_pending") || "Results not published yet"}
+								</span>
+							) : (
+								<>
+									{fmtNum(item.earned)} / {fmtNum(item.max)}
+								</>
+							)}
 						</td>
 					</tr>
 				))}

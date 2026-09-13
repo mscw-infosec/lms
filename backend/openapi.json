@@ -6618,7 +6618,8 @@
           "id",
           "title",
           "earned",
-          "max"
+          "max",
+          "pending"
         ],
         "properties": {
           "earned": {
@@ -6636,6 +6637,10 @@
           "max": {
             "type": "number",
             "format": "double"
+          },
+          "pending": {
+            "type": "boolean",
+            "description": "`true` when the viewer has attempts on this exam whose results the\nteacher has not published yet, so `earned` does not include them."
           },
           "title": {
             "type": "string"

@@ -301,6 +301,7 @@
 	"rating_no_matches": "No matching participants.",
 	"rating_no_participants": "No participants yet.",
 	"rating_participant": "Participant",
+	"rating_results_pending": "Results not published yet",
 	"rating_score": "Score",
 	"rating_search_placeholder": "Search by username or email…",
 	"rating_showing": "Showing {{from}}–{{to}} of {{total}}",

@@ -52,6 +52,29 @@ enum Cell {
     Num(f64),
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+enum Visibility {
+    Published,
+    All,
+}
+
+impl Visibility {
+    const fn for_role(role: UserRole) -> Self {
+        if matches!(role, UserRole::Teacher | UserRole::Admin) {
+            Self::All
+        } else {
+            Self::Published
+        }
+    }
+
+    fn allows(self, attempt: &RatingAttempt) -> bool {
+        match self {
+            Self::All => true,
+            Self::Published => attempt.scoring_data.show_results,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct RatingService {
     course_service: CourseService,
@@ -157,19 +180,32 @@ impl RatingService {
     /// A user's score for one exam, collapsing their attempts by the exam's
     /// policy.
     #[allow(clippy::cast_precision_loss)]
-    fn exam_earned(agg: &CourseAggregate, exam: &ExamAgg, user: Uuid) -> f64 {
-        let scores: Vec<(chrono::DateTime<chrono::Utc>, f64)> = agg
+    fn exam_earned(
+        agg: &CourseAggregate,
+        exam: &ExamAgg,
+        user: Uuid,
+        visibility: Visibility,
+    ) -> (f64, bool) {
+        let attempts: Vec<&RatingAttempt> = agg
             .attempts
             .iter()
             .filter(|a| a.user_id == user && a.exam_id == exam.id)
+            .collect();
+
+        let withheld = matches!(visibility, Visibility::Published)
+            && attempts.iter().any(|a| !a.scoring_data.show_results);
+
+        let scores: Vec<(chrono::DateTime<chrono::Utc>, f64)> = attempts
+            .into_iter()
+            .filter(|a| visibility.allows(a))
             .map(|a| (a.started_at, Self::attempt_score(a, &exam.task_ids)))
             .collect();
 
         if scores.is_empty() {
-            return 0.0;
+            return (0.0, withheld);
         }
 
-        match exam.policy {
+        let earned = match exam.policy {
             ExamScoringPolicy::Best => scores.iter().map(|(_, s)| *s).fold(0.0, f64::max),
             ExamScoringPolicy::Latest => scores
                 .iter()
@@ -178,7 +214,8 @@ impl RatingService {
             ExamScoringPolicy::Average => {
                 scores.iter().map(|(_, s)| *s).sum::<f64>() / scores.len() as f64
             }
-        }
+        };
+        (earned, withheld)
     }
 
     /// A user's score for one practice: the points of every solved task.
@@ -193,12 +230,16 @@ impl RatingService {
     }
 
     /// A user's total earned score in a course plus a per-container breakdown.
-    fn user_breakdown(agg: &CourseAggregate, user: Uuid) -> (f64, Vec<RatingBreakdownItemDTO>) {
+    fn user_breakdown(
+        agg: &CourseAggregate,
+        user: Uuid,
+        visibility: Visibility,
+    ) -> (f64, Vec<RatingBreakdownItemDTO>) {
         let mut items = Vec::new();
         let mut total = 0.0;
 
         for exam in &agg.exams {
-            let earned = Self::exam_earned(agg, exam, user);
+            let (earned, pending) = Self::exam_earned(agg, exam, user, visibility);
             total += earned;
             items.push(RatingBreakdownItemDTO {
                 kind: "exam".to_string(),
@@ -206,6 +247,7 @@ impl RatingService {
                 title: exam.name.clone(),
                 earned,
                 max: exam.max,
+                pending,
             });
         }
         for practice in &agg.practices {
@@ -217,6 +259,7 @@ impl RatingService {
                 title: practice.name.clone(),
                 earned,
                 max: practice.max,
+                pending: false,
             });
         }
 
@@ -233,6 +276,7 @@ impl RatingService {
         role: UserRole,
     ) -> Result<UserOverallRatingDTO> {
         Self::ensure_self_or_staff(requester, role, target)?;
+        let visibility = Visibility::for_role(role);
 
         let user = self.repo.user_by_id(target).await?;
         let course_ids = self.repo.courses_with_activity(target).await?;
@@ -249,7 +293,7 @@ impl RatingService {
         let mut total_max = 0.0;
         for course_id in course_ids {
             let agg = self.build_aggregate(course_id).await?;
-            let (earned, _) = Self::user_breakdown(&agg, target);
+            let (earned, _) = Self::user_breakdown(&agg, target, visibility);
             total_earned += earned;
             total_max += agg.max;
             courses.push(CourseScoreDTO {
@@ -297,7 +341,7 @@ impl RatingService {
         let mut entries: Vec<LeaderboardEntryDTO> = participants
             .into_iter()
             .map(|u| {
-                let (earned, _) = Self::user_breakdown(&agg, u.id);
+                let (earned, _) = Self::user_breakdown(&agg, u.id, Visibility::All);
                 LeaderboardEntryDTO {
                     rank: 0,
                     user_id: u.id,
@@ -379,7 +423,7 @@ impl RatingService {
         let user = self.repo.user_by_id(target).await?;
 
         let agg = self.build_aggregate(course_id).await?;
-        let (earned, breakdown) = Self::user_breakdown(&agg, target);
+        let (earned, breakdown) = Self::user_breakdown(&agg, target, Visibility::for_role(role));
 
         Ok(CourseUserRatingDTO {
             course_id,
@@ -472,7 +516,7 @@ impl RatingService {
         format: ExportFormat,
     ) -> Result<ExportFile> {
         let rating = self.course_user(course_id, target, requester, role).await?;
-        let headers = ["Type", "Title", "Earned", "Max"];
+        let headers = ["Type", "Title", "Earned", "Max", "Status"];
         let mut rows: Vec<Vec<Cell>> = rating
             .breakdown
             .iter()
@@ -482,6 +526,11 @@ impl RatingService {
                     Cell::Text(item.title.clone()),
                     Cell::Num(item.earned),
                     Cell::Num(item.max),
+                    Cell::Text(if item.pending {
+                        "Results not published yet".to_string()
+                    } else {
+                        String::new()
+                    }),
                 ]
             })
             .collect();
@@ -490,6 +539,7 @@ impl RatingService {
             Cell::Text(String::new()),
             Cell::Num(rating.earned),
             Cell::Num(rating.max),
+            Cell::Text(String::new()),
         ]);
         Self::export_table(
             format,

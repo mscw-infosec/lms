@@ -301,6 +301,7 @@
 	"rating_no_matches": "Совпадений не найдено.",
 	"rating_no_participants": "Пока нет участников.",
 	"rating_participant": "Участник",
+	"rating_results_pending": "Результаты ещё не опубликованы",
 	"rating_score": "Баллы",
 	"rating_search_placeholder": "Поиск по имени или email…",
 	"rating_showing": "Показаны {{from}}–{{to}} из {{total}}",
