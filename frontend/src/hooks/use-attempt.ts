@@ -10,6 +10,7 @@ import {
 	stopAttempt,
 } from "@/api/exam";
 import { useToast } from "@/components/ui/use-toast";
+import { noteServerNow } from "@/lib/server-time";
 import { parseServerDateMs } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -146,6 +147,9 @@ export function useAttempt(
 			return await startAttempt(examId);
 		},
 		onSuccess: async (att) => {
+			// `started_at` is the server clock at the moment the attempt was created:
+			// use it to re-sync our idea of server time before the countdown starts.
+			noteServerNow(parseServerDateMs(att?.started_at));
 			await Promise.all([
 				qc.invalidateQueries({ queryKey: ["exam", examId, "attempts-list"] }),
 				qc.invalidateQueries({ queryKey: ["exam", examId, "entities"] }),

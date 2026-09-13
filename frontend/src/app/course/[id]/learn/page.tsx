@@ -49,6 +49,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
 import type { UiAnswerPayload } from "@/lib/answers";
 import { buildTaskAnswer } from "@/lib/answers";
+import { serverNow } from "@/lib/server-time";
 import { getCtfdDomain, getPointsPlural, parseServerDateMs } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
@@ -236,7 +237,9 @@ export default function LearnPage() {
 					? parseServerDateMs(selectedExam.ends_at)
 					: Number.POSITIVE_INFINITY;
 				const endAt = Math.min(attemptEndAt, examEndsAt);
-				const secs = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+				// serverNow(), not Date.now(): a device clock that runs ahead would
+				// otherwise report a deadline that has already passed.
+				const secs = Math.max(0, Math.ceil((endAt - serverNow()) / 1000));
 				return secs;
 			} catch {
 				return null;
@@ -281,27 +284,51 @@ export default function LearnPage() {
 		}
 	}, [selectedExam, router, courseId]);
 
+	// The countdown runs on the browser clock, so it can be wrong. Hitting zero
+	// locally only makes us poll the server more often — the attempt is over when
+	// the backend says so (it ends it on its own once `ends_at` passes), never
+	// because of the local clock alone.
+	const expiredLocally = typeof remainingSec === "number" && remainingSec <= 0;
+
+	// While the local countdown says 0 but the server still reports the attempt as
+	// active, our clock is ahead: show "--:--" rather than a frozen 00:00.
+	const displayRemaining: number =
+		remainingSec === null || (expiredLocally && attempt?.active)
+			? Number.NaN
+			: remainingSec;
+
 	useEffect(() => {
-		if (!attempt?.active) return;
-		if (
-			typeof remainingSec === "number" &&
-			remainingSec <= 0 &&
-			!finishTriggeredRef.current
-		) {
-			finishTriggeredRef.current = true;
-			(async () => {
-				try {
-					// Removed auto patching on stop: only submit button triggers PATCH
-				} finally {
-					stop();
-					setTimeout(() => {
-						refresh();
-						handleAfterFinish();
-					}, 300);
-				}
-			})();
+		if (!attempt?.active || !expiredLocally) return;
+		refresh();
+		const iv = window.setInterval(() => {
+			refresh();
+		}, 5_000);
+		return () => window.clearInterval(iv);
+	}, [attempt?.active, expiredLocally, refresh]);
+
+	// Leave the attempt only on an active -> inactive transition we actually
+	// observed, so opening the page on an already finished attempt does not
+	// bounce the user to the results screen.
+	const watchedAttemptIdRef = useRef<string | null>(null);
+	useEffect(() => {
+		const id = attempt?.id ?? null;
+		if (attempt?.active) {
+			watchedAttemptIdRef.current = id;
+			finishTriggeredRef.current = false;
+			return;
 		}
-	}, [attempt?.active, remainingSec, stop, refresh, handleAfterFinish]);
+		const watched = watchedAttemptIdRef.current;
+		if (!watched) return;
+		if (id !== watched) {
+			// Different exam selected or the list reset: stop watching, don't finish.
+			watchedAttemptIdRef.current = null;
+			return;
+		}
+		if (finishTriggeredRef.current) return;
+		finishTriggeredRef.current = true;
+		watchedAttemptIdRef.current = null;
+		handleAfterFinish();
+	}, [attempt?.id, attempt?.active, handleAfterFinish]);
 
 	const formatTime = (secs: number) => {
 		if (!Number.isFinite(secs)) return "--:--";
@@ -1498,6 +1525,8 @@ export default function LearnPage() {
 												<AlertDialogAction
 													onClick={async () => {
 														// Removed auto patching on stop: only submit button triggers PATCH
+														finishTriggeredRef.current = true;
+														watchedAttemptIdRef.current = null;
 														stop();
 														setTimeout(() => {
 															refresh();
@@ -1916,9 +1945,9 @@ export default function LearnPage() {
 							(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
 								<div
 									className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
-										remainingSec <= 30
+										displayRemaining <= 30
 											? "border-red-600 text-red-400"
-											: remainingSec <= 120
+											: displayRemaining <= 120
 												? "border-amber-600 text-amber-400"
 												: "border-slate-700 text-slate-300"
 									}`}
@@ -1928,7 +1957,7 @@ export default function LearnPage() {
 										{t("time_left") || "Time left"}:
 									</span>
 									<span className="font-mono text-base">
-										{formatTime(remainingSec)}
+										{formatTime(displayRemaining)}
 									</span>
 								</div>
 							) : (
@@ -2053,9 +2082,9 @@ export default function LearnPage() {
 						(selectedExam?.duration ?? 0) > 0 && remainingSec !== null ? (
 							<div
 								className={`mb-3 flex items-center justify-center rounded-md border px-2 py-2 text-sm ${
-									remainingSec <= 30
+									displayRemaining <= 30
 										? "border-red-600 text-red-400"
-										: remainingSec <= 120
+										: displayRemaining <= 120
 											? "border-amber-600 text-amber-400"
 											: "border-slate-700 text-slate-300"
 								}`}
@@ -2065,7 +2094,7 @@ export default function LearnPage() {
 									{t("time_left") || "Time left"}:
 								</span>
 								<span className="font-mono text-base">
-									{formatTime(remainingSec)}
+									{formatTime(displayRemaining)}
 								</span>
 							</div>
 						) : (
