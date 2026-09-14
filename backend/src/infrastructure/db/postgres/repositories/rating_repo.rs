@@ -106,7 +106,7 @@ impl RatingRepository for RepositoryPostgres {
         let users = sqlx::query_as!(
             ReportUser,
             r#"
-                SELECT u.id, u.username, u.email
+                SELECT u.id, u.username, u.email, u.first_name, u.last_name, u.patronymic
                 FROM users u
                 WHERE u.id IN (
                     SELECT a.user_id
@@ -175,7 +175,7 @@ impl RatingRepository for RepositoryPostgres {
         let user = sqlx::query_as!(
             ReportUser,
             r#"
-                SELECT id, username, email
+                SELECT id, username, email, first_name, last_name, patronymic
                 FROM users
                 WHERE id = $1
             "#,

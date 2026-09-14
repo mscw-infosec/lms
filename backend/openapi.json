@@ -5913,6 +5913,24 @@
             "type": "string",
             "format": "date-time"
           },
+          "first_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "patronymic": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "score": {
             "type": "number",
             "format": "double"
@@ -6639,8 +6657,7 @@
             "format": "double"
           },
           "pending": {
-            "type": "boolean",
-            "description": "`true` when the viewer has attempts on this exam whose results the\nteacher has not published yet, so `earned` does not include them."
+            "type": "boolean"
           },
           "title": {
             "type": "string"

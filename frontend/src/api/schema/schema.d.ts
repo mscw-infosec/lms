@@ -1919,6 +1919,9 @@ export interface components {
             email: string;
             /** Format: date-time */
             ends_at: string;
+            first_name?: string | null;
+            last_name?: string | null;
+            patronymic?: string | null;
             /** Format: double */
             score: number;
             /** Format: date-time */

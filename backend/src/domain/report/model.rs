@@ -11,6 +11,9 @@ pub struct ReportUser {
     pub id: Uuid,
     pub username: String,
     pub email: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub patronymic: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, Debug, Clone, Copy, PartialEq, Eq)]
@@ -37,6 +40,9 @@ pub struct GradebookTask {
 pub struct GradebookRow {
     pub user_id: Uuid,
     pub username: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub patronymic: Option<String>,
     pub email: String,
     pub attempt_id: Uuid,
     pub started_at: DateTime<Utc>,

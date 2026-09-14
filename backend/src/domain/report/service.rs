@@ -2,7 +2,7 @@ use crate::domain::account::model::UserRole;
 use crate::domain::exam::model::ExamExtendedEntity;
 use crate::domain::exam::service::ExamService;
 use crate::domain::report::model::{
-    AttemptStatus, ExportFile, Gradebook, GradebookRow, GradebookSummary, GradebookTask,
+    AttemptStatus, ExportFile, Gradebook, GradebookRow, GradebookSummary, GradebookTask, ReportUser,
 };
 use crate::domain::report::repository::ReportRepository;
 use crate::dto::exam::ScoringData;
@@ -17,6 +17,9 @@ use uuid::Uuid;
 
 const CSV_HEADER: &[&str] = &[
     "Username",
+    "First Name",
+    "Last Name",
+    "Patronymic",
     "Email",
     "Score",
     "Max Score",
@@ -88,19 +91,13 @@ impl ReportService {
             .into_iter()
             .collect();
         let users = self.repo.get_users_by_ids(&user_ids).await?;
-        let user_map: HashMap<Uuid, (String, String)> = users
-            .into_iter()
-            .map(|u| (u.id, (u.username, u.email)))
-            .collect();
+        let user_map: HashMap<Uuid, ReportUser> = users.into_iter().map(|u| (u.id, u)).collect();
 
         let now = Utc::now();
         let rows: Vec<GradebookRow> = attempts
             .iter()
             .map(|a| {
-                let (username, email) = user_map
-                    .get(&a.user_id)
-                    .cloned()
-                    .unwrap_or_else(|| ("<unknown>".to_string(), String::new()));
+                let user = user_map.get(&a.user_id);
                 let window_open = a.ends_at > now;
                 let task_scores = tasks
                     .iter()
@@ -117,8 +114,11 @@ impl ReportService {
                     .collect();
                 GradebookRow {
                     user_id: a.user_id,
-                    username,
-                    email,
+                    username: user.map_or_else(|| "<unknown>".to_string(), |u| u.username.clone()),
+                    first_name: user.and_then(|u| u.first_name.clone()),
+                    last_name: user.and_then(|u| u.last_name.clone()),
+                    patronymic: user.and_then(|u| u.patronymic.clone()),
+                    email: user.map(|u| u.email.clone()).unwrap_or_default(),
                     attempt_id: a.id,
                     started_at: a.started_at,
                     ends_at: a.ends_at,
@@ -236,6 +236,9 @@ impl ReportService {
         for row in &gradebook.rows {
             let mut fields = vec![
                 csv_escape(&row.username),
+                csv_escape(row.first_name.as_deref().unwrap_or_default()),
+                csv_escape(row.last_name.as_deref().unwrap_or_default()),
+                csv_escape(row.patronymic.as_deref().unwrap_or_default()),
                 csv_escape(&row.email),
                 format!("{:.2}", row.score),
                 gradebook.max_score.to_string(),
@@ -295,22 +298,31 @@ impl ReportService {
             worksheet
                 .write_string(r, 0, &row.username)
                 .map_err(xlsx_err)?;
-            worksheet.write_string(r, 1, &row.email).map_err(xlsx_err)?;
-            worksheet.write_number(r, 2, row.score).map_err(xlsx_err)?;
             worksheet
-                .write_number(r, 3, gradebook.max_score as f64)
+                .write_string(r, 1, row.first_name.as_deref().unwrap_or_default())
                 .map_err(xlsx_err)?;
             worksheet
-                .write_number(r, 4, Self::percent(row.score, gradebook.max_score))
+                .write_string(r, 2, row.last_name.as_deref().unwrap_or_default())
                 .map_err(xlsx_err)?;
             worksheet
-                .write_string(r, 5, Self::status_label(row.status))
+                .write_string(r, 3, row.patronymic.as_deref().unwrap_or_default())
+                .map_err(xlsx_err)?;
+            worksheet.write_string(r, 4, &row.email).map_err(xlsx_err)?;
+            worksheet.write_number(r, 5, row.score).map_err(xlsx_err)?;
+            worksheet
+                .write_number(r, 6, gradebook.max_score as f64)
                 .map_err(xlsx_err)?;
             worksheet
-                .write_string(r, 6, row.started_at.to_rfc3339())
+                .write_number(r, 7, Self::percent(row.score, gradebook.max_score))
                 .map_err(xlsx_err)?;
             worksheet
-                .write_string(r, 7, row.ends_at.to_rfc3339())
+                .write_string(r, 8, Self::status_label(row.status))
+                .map_err(xlsx_err)?;
+            worksheet
+                .write_string(r, 9, row.started_at.to_rfc3339())
+                .map_err(xlsx_err)?;
+            worksheet
+                .write_string(r, 10, row.ends_at.to_rfc3339())
                 .map_err(xlsx_err)?;
             for (i, task) in gradebook.tasks.iter().enumerate() {
                 let score = row

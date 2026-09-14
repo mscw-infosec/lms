@@ -12,7 +12,7 @@ impl ReportRepository for RepositoryPostgres {
         let users = sqlx::query_as!(
             ReportUser,
             r#"
-                SELECT id, username, email
+                SELECT id, username, email, first_name, last_name, patronymic
                 FROM users
                 WHERE id = ANY($1)
             "#,
