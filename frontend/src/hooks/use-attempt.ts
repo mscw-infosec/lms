@@ -140,6 +140,7 @@ export function useAttempt(
 
 	const [startErrorMsg, setStartErrorMsg] = useState<string | null>(null);
 	const [timespanError, setTimespanError] = useState(false);
+	const startInFlightRef = useRef(false);
 
 	const startAttemptMutation = useMutation({
 		mutationFn: async () => {
@@ -191,6 +192,9 @@ export function useAttempt(
 				return;
 			}
 			toast({ description: m });
+		},
+		onSettled: () => {
+			startInFlightRef.current = false;
 		},
 	});
 
@@ -259,7 +263,8 @@ export function useAttempt(
 	}, [flush]);
 
 	const start = useCallback(() => {
-		if (!examId || startAttemptMutation.isPending) return;
+		if (!examId || startInFlightRef.current) return;
+		startInFlightRef.current = true;
 		startAttemptMutation.mutate();
 	}, [examId, startAttemptMutation]);
 

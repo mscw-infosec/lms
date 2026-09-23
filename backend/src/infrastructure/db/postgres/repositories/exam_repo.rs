@@ -400,9 +400,20 @@ impl ExamRepository for RepositoryPostgres {
 
     #[allow(clippy::cast_sign_loss)]
     async fn start_exam(&self, id: Uuid, user_id: Uuid) -> Result<ExamAttempt> {
+        let exam = self.get(id).await?;
         let mut tx = self.pool.begin().await?;
 
-        let exam = self.get(id).await?;
+        sqlx::query!(
+            r#"
+                SELECT id
+                FROM users
+                WHERE id = $1
+                FOR NO KEY UPDATE
+            "#,
+            user_id
+        )
+        .fetch_one(tx.as_mut())
+        .await?;
 
         let attempts: Vec<ExamAttempt> = sqlx::query_as!(
             ExamAttempt,
