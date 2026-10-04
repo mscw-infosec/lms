@@ -6,6 +6,7 @@ import {
 	getLecture,
 } from "@/api/lectures";
 import { getVideoUrl } from "@/api/video";
+import AttachmentList from "@/components/attachments/attachment-list";
 import Markdown from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -122,6 +123,8 @@ export default function LectureViewer({
 							className="markdown-body max-w-none text-slate-200"
 						/>
 					) : null}
+
+					<AttachmentList owner={{ kind: "lecture", id: lectureId }} />
 
 					<div className="flex justify-end pt-2">
 						<Button

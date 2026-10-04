@@ -27,6 +27,8 @@ pub struct Config {
     pub s3_endpoint: String,
     pub s3_region: String,
     pub s3_bucket_name: String,
+    /// Largest lecture/task attachment accepted, in bytes.
+    pub attachment_max_size: usize,
 
     #[validate(url)]
     pub frontend_redirect_url: String,
@@ -50,6 +52,8 @@ pub struct Config {
 
     pub sso_private_key: String,
 }
+
+const DEFAULT_ATTACHMENT_MAX_SIZE_MB: usize = 50;
 
 pub fn env(key: &str) -> String {
     dotenvy::var(key).unwrap_or_else(|_| panic!("`{key}` environment variable not found"))
@@ -106,6 +110,10 @@ impl Config {
             s3_endpoint: env("S3_ENDPOINT"),
             s3_region: env("S3_REGION"),
             s3_bucket_name: env("S3_BUCKET_NAME"),
+            attachment_max_size: env_opt("ATTACHMENT_MAX_SIZE_MB")
+                .map_or(Ok(DEFAULT_ATTACHMENT_MAX_SIZE_MB), |mb| mb.parse())?
+                * 1024
+                * 1024,
 
             frontend_redirect_url: env("FRONTEND_REDIRECT_URL"),
             frontend_base_url: env("FRONTEND_BASE_URL"),

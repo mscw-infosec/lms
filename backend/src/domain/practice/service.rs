@@ -183,6 +183,22 @@ impl PracticeService {
         self.repo.remove_task(practice_id, task_id).await
     }
 
+    /// Whether the task is offered as practice in at least one topic the
+    /// caller can access.
+    pub async fn is_task_accessible(
+        &self,
+        user: Uuid,
+        role: UserRole,
+        task_id: i32,
+    ) -> Result<bool> {
+        for topic_id in self.repo.get_practice_topic_ids(task_id).await? {
+            if self.ensure_topic_access(user, role, topic_id).await.is_ok() {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
     /// Grades a practice submission and records the attempt. Unlimited attempts.
     pub async fn submit(
         &self,
@@ -193,20 +209,12 @@ impl PracticeService {
     ) -> Result<(TaskVerdict, PracticeProgressModel, Option<TaskSolution>)> {
         // The task must be published as practice, and the user must have access
         // to at least one topic that offers it.
-        let topic_ids = self.repo.get_practice_topic_ids(task_id).await?;
-        if topic_ids.is_empty() {
+        if self.repo.get_practice_topic_ids(task_id).await?.is_empty() {
             return Err(LMSError::NotFound(
                 "This task is not available for practice".to_string(),
             ));
         }
-        let mut has_access = false;
-        for topic_id in topic_ids {
-            if self.ensure_topic_access(user, role, topic_id).await.is_ok() {
-                has_access = true;
-                break;
-            }
-        }
-        if !has_access {
+        if !self.is_task_accessible(user, role, task_id).await? {
             return Err(LMSError::Forbidden(
                 "You do not have access to this practice task".to_string(),
             ));

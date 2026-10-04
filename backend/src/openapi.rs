@@ -49,6 +49,7 @@ impl Modify for CookieAuthAddon {
         (name = "Video", description = "Video creation and streaming"),
         (name = "Exam", description = "Exam management"),
         (name = "Lecture", description = "Lecture management and course material"),
+        (name = "Attachment", description = "Additional materials (files in S3) attached to lectures and tasks"),
         (name = "Practice", description = "Endless practice tasks outside of exams"),
         (name = "Report", description = "Dashboards and exam result export (CSV/XLSX)"),
         (name = "Rating", description = "Student scoring across courses, exams and practice (CSV/XLSX)"),

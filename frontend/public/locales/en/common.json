@@ -510,5 +510,16 @@
 	"yes_hide": "Yes, hide",
 	"yes_show": "Yes, show",
 	"zero_based_comma_separated": "0-based, comma separated",
-	"zero_based_do_not_add_one": "0-based, do not add +1"
+	"zero_based_do_not_add_one": "0-based, do not add +1",
+	"additional_materials": "Additional materials",
+	"attach_files": "Attach files",
+	"no_attachments": "No files attached yet.",
+	"download": "Download",
+	"download_failed": "Failed to download the file",
+	"delete_attachment_title": "Delete file?",
+	"attachments_upload_after_create": "Files are uploaded once you click Create.",
+	"attachments_upload_failed": "Some files failed to upload",
+	"oauth_sign_in_failed": "Couldn't sign you in",
+	"oauth_email_missing": "Your account with this provider has no email address, and we need one to sign you in. Add an email in the provider's account settings (for Yandex, in Yandex ID), then try again — or sign in with email and password.",
+	"oauth_sign_in_failed_generic": "Something went wrong while signing in. Please try again."
 }

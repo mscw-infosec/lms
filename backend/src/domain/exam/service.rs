@@ -70,6 +70,22 @@ impl ExamService {
         self.repo.get_entities(exam_id).await
     }
 
+    /// Whether the caller may see the exam's entities: staff always, students
+    /// only during an active attempt or once results of an attempt are shown.
+    pub async fn can_view_entities(
+        &self,
+        exam_id: Uuid,
+        user: Uuid,
+        role: UserRole,
+    ) -> Result<bool> {
+        if matches!(role, UserRole::Admin | UserRole::Teacher) {
+            return Ok(true);
+        }
+        let attempts = self.get_user_attempts_in_exam(exam_id, user).await?;
+        Ok(attempts.iter().any(|att| att.ends_at > Utc::now())
+            || attempts.iter().any(|att| att.scoring_data.show_results))
+    }
+
     pub async fn update_entities(&self, exam_id: Uuid, entities: Vec<ExamEntity>) -> Result<()> {
         if entities.iter().collect::<HashSet<_>>().len() != entities.len() {
             return Err(LMSError::Conflict(

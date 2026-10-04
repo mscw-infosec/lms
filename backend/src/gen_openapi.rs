@@ -4,13 +4,13 @@ use crate::{
     app::{Services, generate_router},
     config::Config,
     domain::{
-        account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService,
-        lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, rating::service::RatingService,
-        refresh_token::service::RefreshTokenService, report::service::ReportService,
-        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
-        video::service::VideoService,
+        account::service::AccountService, attachments::service::AttachmentService,
+        basic::service::BasicAuthService, courses::service::CourseService,
+        exam::service::ExamService, lectures::service::LectureService,
+        oauth::service::OAuthService, practice::service::PracticeService,
+        rating::service::RatingService, refresh_token::service::RefreshTokenService,
+        report::service::ReportService, sso::service::SsoService, task::service::TaskService,
+        topics::service::TopicService, video::service::VideoService,
     },
     infrastructure::{email::EmailService, jwt::JWT, sso_keys::SsoKeys},
 };
@@ -59,6 +59,15 @@ pub fn save_openapi() {
     let rating = RatingService::new(course.clone(), dummy.clone());
     let video = VideoService::new(dummy.clone(), config.channel_id.clone(), dummy.clone())
         .expect("Failed to create VideoService");
+    let attachment = AttachmentService::new(
+        dummy.clone(),
+        dummy.clone(),
+        lecture.clone(),
+        task.clone(),
+        practice.clone(),
+        exam.clone(),
+        config.attachment_max_size,
+    );
     let sso = SsoService::new(
         dummy.clone(),
         dummy,
@@ -71,6 +80,7 @@ pub fn save_openapi() {
 
     let services = Services {
         account,
+        attachment,
         basic_auth,
         course,
         exam,

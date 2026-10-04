@@ -56,6 +56,11 @@ pub enum LMSError {
     #[error("profile_incomplete")]
     ProfileIncomplete,
 
+    /// The account (or the OAuth provider's answer) has no email address. Such
+    /// accounts may not sign in: email is what identifies and links accounts.
+    #[error("email_missing")]
+    EmailMissing,
+
     /// The Yandex `SmartCaptcha` challenge was missing, expired, already spent
     /// or judged to be a robot.
     #[error("captcha_failed")]
@@ -92,6 +97,10 @@ pub enum LMSError {
     #[error("{0}")]
     ServerError(String),
 
+    /// The uploaded body is over the allowed size.
+    #[error("{0}")]
+    PayloadTooLarge(String),
+
     #[error("You've sent your request not in allowed timespan: {0}")]
     NotInTime(String),
 }
@@ -116,12 +125,14 @@ impl IntoResponse for LMSError {
             Self::Forbidden(_)
             | Self::InvalidToken(_)
             | Self::EmailNotVerified
+            | Self::EmailMissing
             | Self::ProfileIncomplete
             | Self::CaptchaFailed => StatusCode::FORBIDDEN,
             Self::Conflict(_) | Self::VerificationError | Self::NotInTime(_) => {
                 StatusCode::CONFLICT
             }
             Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::PayloadTooLarge(_) => StatusCode::PAYLOAD_TOO_LARGE,
             Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
         };
 

@@ -1729,6 +1729,7 @@ dependencies = [
  "impl_unimplemented",
  "jsonwebtoken",
  "lettre",
+ "percent-encoding",
  "prost 0.11.9",
  "prost-types",
  "rand 0.9.1",

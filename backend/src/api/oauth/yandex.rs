@@ -6,7 +6,7 @@ use axum::{
 use tower_cookies::Cookies;
 
 use crate::{
-    api::oauth::YandexState,
+    api::oauth::{YandexState, redirect_with_error},
     domain::oauth::service::{OAuthProvider, OAuthService},
     dto::oauth::OAuthCallbackQuery,
     errors::LMSError,
@@ -44,7 +44,16 @@ pub async fn callback(
         .get_user(query.code, code_verifier)
         .await?;
 
-    let user_id = state.oauth_service.save_user(user).await?;
+    let user_id = match state.oauth_service.save_user(user).await {
+        Err(err @ LMSError::EmailMissing) => {
+            return Ok(redirect_with_error(
+                &cookies,
+                &state.account_service.redirect_url,
+                &err,
+            ));
+        }
+        result => result?,
+    };
 
     let (refresh_token, _) = state
         .refresh_token_service

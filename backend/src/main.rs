@@ -14,12 +14,20 @@ use crate::{
     app::{Services, generate_router},
     config::Config,
     domain::{
-        account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService,
-        lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, rating::service::RatingService,
-        refresh_token::service::RefreshTokenService, report::service::ReportService,
-        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
+        account::service::AccountService,
+        attachments::{model::ATTACHMENTS_KEY_PREFIX, service::AttachmentService},
+        basic::service::BasicAuthService,
+        courses::service::CourseService,
+        exam::service::ExamService,
+        lectures::service::LectureService,
+        oauth::service::OAuthService,
+        practice::service::PracticeService,
+        rating::service::RatingService,
+        refresh_token::service::RefreshTokenService,
+        report::service::ReportService,
+        sso::service::SsoService,
+        task::service::TaskService,
+        topics::service::TopicService,
         video::service::VideoService,
     },
     infrastructure::{
@@ -38,7 +46,7 @@ use axum::http::{
 };
 use infrastructure::{db::redis::RepositoryRedis, jwt::JWT};
 use openapi::ApiDoc;
-use std::{net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{
@@ -92,6 +100,7 @@ fn cors_layer() -> CorsLayer {
 }
 
 #[tokio::main]
+#[allow(clippy::too_many_lines)] // plain service wiring
 async fn main() -> anyhow::Result<()> {
     #[cfg(feature = "gen-openapi")]
     gen_openapi::save_openapi();
@@ -110,6 +119,9 @@ async fn main() -> anyhow::Result<()> {
         .expect("Failed to build client");
 
     let s3 = Arc::new(S3Manager::new(config.clone(), client.clone()).await?);
+    // The bucket policy makes only some prefixes public (avatars); attachments
+    // must stay reachable through presigned links alone.
+    s3.warn_if_publicly_readable(ATTACHMENTS_KEY_PREFIX).await;
     let jwt = Arc::new(JWT::new(&config.jwt_secret));
     let iam = Arc::new(IAMTokenManager::new(&config.iam_key_file)?);
     let rdb_repo = Arc::new(RepositoryRedis::new(&config.redis_url).await?);
@@ -143,6 +155,16 @@ async fn main() -> anyhow::Result<()> {
     let report = ReportService::new(exam.clone(), db_repo.clone());
     let rating = RatingService::new(course.clone(), db_repo.clone());
     let video = VideoService::new(db_repo.clone(), config.channel_id.clone(), iam)?;
+    let attachment = AttachmentService::new(
+        db_repo.clone(),
+        s3.clone(),
+        lecture.clone(),
+        task.clone(),
+        practice.clone(),
+        exam.clone(),
+        config.attachment_max_size,
+    );
+    attachment.spawn_object_cleanup(Duration::from_secs(10 * 60));
 
     let sso_keys = Arc::new(if config.sso_private_key.is_empty() {
         SsoKeys::generate_ephemeral()?
@@ -162,6 +184,7 @@ async fn main() -> anyhow::Result<()> {
 
     let services = Services {
         account,
+        attachment,
         basic_auth,
         course,
         exam,

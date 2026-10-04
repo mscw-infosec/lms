@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO attachments (id, lecture_id, task_id, file_name, content_type, size, s3_key, uploaded_by)\n                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n                RETURNING id, lecture_id, task_id, file_name, content_type, size, s3_key, uploaded_by, created_at, uploaded_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "lecture_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "task_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "file_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "content_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "size",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "s3_key",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "uploaded_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "uploaded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Text",
+        "Text",
+        "Int8",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "21f50176c4841af9f1e3c92d864b0d957f6b3f036197866d8265bcd824c7b043"
+}

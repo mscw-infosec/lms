@@ -178,6 +178,96 @@ export interface paths {
         patch: operations["update_user_role"];
         trace?: never;
     };
+    "/attachments/lecture/{lecture_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List additional materials of a lecture. */
+        get: operations["list_lecture"];
+        put?: never;
+        /** Start uploading a file to a lecture: returns a presigned POST to storage. */
+        post: operations["upload_lecture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/task/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List additional materials of a task (exam or practice).
+         * @description Students can list a task's files when it is in a practice they can access, or in an exam whose tasks they can currently view.
+         */
+        get: operations["list_task"];
+        put?: never;
+        /** Start uploading a file to a task (exam or practice): returns a presigned POST to storage. */
+        post: operations["upload_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a file, or cancel an upload that hasn't been completed. */
+        delete: operations["delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm that the browser finished uploading a file to storage. */
+        post: operations["complete_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attachments/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a short-lived download link for a file. */
+        get: operations["download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/logout-all": {
         parameters: {
             query?: never;
@@ -1600,6 +1690,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Additional material attached to a lecture or a task. */
+        AttachmentDTO: {
+            content_type: string;
+            /** Format: date-time */
+            created_at: string;
+            file_name: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Size in bytes.
+             */
+            size: number;
+        };
+        /** @description Short-lived link that downloads the file under its original name. */
+        AttachmentDownloadDTO: {
+            /**
+             * Format: u-int32
+             * @description Seconds until `url` stops working.
+             */
+            expires_in: number;
+            url: string;
+        };
+        /** @description Presigned POST for uploading the file straight to storage.
+         *
+         *     Send `multipart/form-data` to `url` with every entry of `fields` (unchanged,
+         *     as form fields) followed by the file itself as the `file` field, then call
+         *     `POST /attachments/{attachment_id}/complete`. */
+        AttachmentUploadDTO: {
+            /** Format: uuid */
+            attachment_id: string;
+            /**
+             * Format: u-int32
+             * @description Seconds until the upload must have started.
+             */
+            expires_in: number;
+            fields: {
+                [key: string]: string;
+            };
+            url: string;
+        };
         /** @enum {string} */
         AttemptStatus: "in_progress" | "on_review" | "graded";
         AttemptVisibilityPatchRequest: {
@@ -2127,8 +2258,6 @@ export interface components {
             kind: string;
             /** Format: double */
             max: number;
-            /** @description `true` when the viewer has attempts on this exam whose results the
-             *     teacher has not published yet, so `earned` does not include them. */
             pending: boolean;
             title: string;
         };
@@ -2141,6 +2270,17 @@ export interface components {
         };
         ReorderTopicContentDTO: {
             items: components["schemas"]["ReorderItemDTO"][];
+        };
+        /** @description Announces a file the client is about to upload. */
+        RequestAttachmentUploadDTO: {
+            /** @description MIME type of the file; falls back to `application/octet-stream`. */
+            content_type?: string | null;
+            file_name: string;
+            /**
+             * Format: int64
+             * @description Size in bytes.
+             */
+            size: number;
         };
         ResetPasswordRequest: {
             /** @example NewPassword12345 */
@@ -2884,6 +3024,355 @@ export interface operations {
             };
         };
     };
+    list_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files attached to the lecture */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentDTO"][];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upload_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestAttachmentUploadDTO"];
+            };
+        };
+        responses: {
+            /** @description Upload started */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadDTO"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to manage materials */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description File is over the size limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Files attached to the task */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentDTO"][];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this task */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upload_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequestAttachmentUploadDTO"];
+            };
+        };
+        responses: {
+            /** @description Upload started */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentUploadDTO"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to manage materials */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Task not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description File is over the size limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to manage materials */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    complete_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description File is attached */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no permission to manage materials */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Upload not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The file is not in storage yet */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description File is over the size limit */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    download: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Presigned download link */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentDownloadDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to the file's lecture or task */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description File not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     logout_all: {
         parameters: {
             query?: never;
@@ -2955,6 +3444,13 @@ export interface operations {
             };
             /** @description Invalid or expired refresh token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `email_missing`: the account has no email and may not sign in; all its sessions are revoked */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

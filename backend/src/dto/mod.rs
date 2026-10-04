@@ -1,4 +1,5 @@
 pub mod account;
+pub mod attachments;
 pub mod auth;
 pub mod basic;
 pub mod course;

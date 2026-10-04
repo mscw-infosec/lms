@@ -1,6 +1,7 @@
 "use client";
 
 import { getLecture, updateLecture } from "@/api/lectures";
+import AttachmentList from "@/components/attachments/attachment-list";
 import VideoUploadField from "@/components/topic/video-upload-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,6 +114,10 @@ export default function LectureEditDialog({
 							/>
 						</div>
 						<VideoUploadField value={videoId} onChange={setVideoId} />
+						<AttachmentList
+							owner={{ kind: "lecture", id: lectureId }}
+							editable
+						/>
 					</div>
 				)}
 				<DialogFooter>

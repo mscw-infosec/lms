@@ -1,4 +1,5 @@
 pub mod account_repo;
+pub mod attachment_repo;
 pub mod basic_repo;
 pub mod course_repo;
 pub mod exam_repo;

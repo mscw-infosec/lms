@@ -454,6 +454,362 @@
         ]
       }
     },
+    "/attachments/lecture/{lecture_id}": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "List additional materials of a lecture.",
+        "operationId": "list_lecture",
+        "parameters": [
+          {
+            "name": "lecture_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Files attached to the lecture",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentDTO"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to this lecture's course"
+          },
+          "404": {
+            "description": "Lecture not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Start uploading a file to a lecture: returns a presigned POST to storage.",
+        "operationId": "upload_lecture",
+        "parameters": [
+          {
+            "name": "lecture_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAttachmentUploadDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Upload started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentUploadDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no permission to manage materials"
+          },
+          "404": {
+            "description": "Lecture not found"
+          },
+          "413": {
+            "description": "File is over the size limit"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/attachments/task/{task_id}": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "List additional materials of a task (exam or practice).",
+        "description": "Students can list a task's files when it is in a practice they can access, or in an exam whose tasks they can currently view.",
+        "operationId": "list_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Files attached to the task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttachmentDTO"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to this task"
+          },
+          "404": {
+            "description": "Task not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Start uploading a file to a task (exam or practice): returns a presigned POST to storage.",
+        "operationId": "upload_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAttachmentUploadDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Upload started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentUploadDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no permission to manage materials"
+          },
+          "404": {
+            "description": "Task not found"
+          },
+          "413": {
+            "description": "File is over the size limit"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/attachments/{id}": {
+      "delete": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Delete a file, or cancel an upload that hasn't been completed.",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "File deleted"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no permission to manage materials"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/attachments/{id}/complete": {
+      "post": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Confirm that the browser finished uploading a file to storage.",
+        "operationId": "complete_upload",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File is attached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no permission to manage materials"
+          },
+          "404": {
+            "description": "Upload not found"
+          },
+          "409": {
+            "description": "The file is not in storage yet"
+          },
+          "413": {
+            "description": "File is over the size limit"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/attachments/{id}/download": {
+      "get": {
+        "tags": [
+          "Attachment"
+        ],
+        "summary": "Get a short-lived download link for a file.",
+        "operationId": "download",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presigned download link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttachmentDownloadDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to the file's lecture or task"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/auth/logout-all": {
       "post": {
         "tags": [
@@ -529,6 +885,9 @@
           },
           "401": {
             "description": "Invalid or expired refresh token"
+          },
+          "403": {
+            "description": "`email_missing`: the account has no email and may not sign in; all its sessions are revoked"
           }
         },
         "security": [
@@ -4799,6 +5158,91 @@
   },
   "components": {
     "schemas": {
+      "AttachmentDTO": {
+        "type": "object",
+        "description": "Additional material attached to a lecture or a task.",
+        "required": [
+          "id",
+          "file_name",
+          "content_type",
+          "size",
+          "created_at"
+        ],
+        "properties": {
+          "content_type": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size in bytes."
+          }
+        }
+      },
+      "AttachmentDownloadDTO": {
+        "type": "object",
+        "description": "Short-lived link that downloads the file under its original name.",
+        "required": [
+          "url",
+          "expires_in"
+        ],
+        "properties": {
+          "expires_in": {
+            "type": "integer",
+            "format": "u-int32",
+            "description": "Seconds until `url` stops working.",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "AttachmentUploadDTO": {
+        "type": "object",
+        "description": "Presigned POST for uploading the file straight to storage.\n\nSend `multipart/form-data` to `url` with every entry of `fields` (unchanged,\nas form fields) followed by the file itself as the `file` field, then call\n`POST /attachments/{attachment_id}/complete`.",
+        "required": [
+          "attachment_id",
+          "url",
+          "fields",
+          "expires_in"
+        ],
+        "properties": {
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expires_in": {
+            "type": "integer",
+            "format": "u-int32",
+            "description": "Seconds until the upload must have started.",
+            "minimum": 0
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
       "AttemptStatus": {
         "type": "string",
         "enum": [
@@ -6701,6 +7145,31 @@
             "items": {
               "$ref": "#/components/schemas/ReorderItemDTO"
             }
+          }
+        }
+      },
+      "RequestAttachmentUploadDTO": {
+        "type": "object",
+        "description": "Announces a file the client is about to upload.",
+        "required": [
+          "file_name",
+          "size"
+        ],
+        "properties": {
+          "content_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "MIME type of the file; falls back to `application/octet-stream`."
+          },
+          "file_name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size in bytes."
           }
         }
       },

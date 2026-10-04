@@ -1,6 +1,7 @@
 "use client";
 
 import type { PublicTaskDTO } from "@/api/exam";
+import AttachmentList from "@/components/attachments/attachment-list";
 import Markdown from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -626,6 +627,9 @@ export function TaskPlayer({
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{dto?.description ? <Markdown content={dto.description} /> : null}
+						{taskId != null ? (
+							<AttachmentList owner={{ kind: "task", id: taskId }} />
+						) : null}
 						<div className="text-slate-400 text-xs">
 							{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
 							{t(getTaskTypeKey() ?? "task")}
@@ -745,6 +749,9 @@ export function TaskPlayer({
 				</CardHeader>
 				<CardContent className="space-y-3">
 					{dto?.description ? <Markdown content={dto.description} /> : null}
+					{taskId != null ? (
+						<AttachmentList owner={{ kind: "task", id: taskId }} />
+					) : null}
 					<div className="text-slate-400 text-xs">
 						{dto?.points ?? 0} {t(getPointsPlural(dto?.points ?? 0))} ·{" "}
 						{t(getTaskTypeKey() ?? "task")}

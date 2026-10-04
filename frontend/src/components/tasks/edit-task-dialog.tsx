@@ -2,6 +2,7 @@
 
 import type { TaskConfig, TaskDTO, UpsertTaskRequestDTO } from "@/api/tasks";
 import { updateTask } from "@/api/tasks";
+import AttachmentList from "@/components/attachments/attachment-list";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -354,7 +355,7 @@ export default function EditTaskDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			{children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
-			<DialogContent className="border-slate-800 bg-slate-900 text-slate-200">
+			<DialogContent className="max-h-[85vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-200">
 				<DialogHeader>
 					<DialogTitle className="text-white">
 						{t("edit") || "Edit"} {t("task") || "Task"}
@@ -639,6 +640,8 @@ export default function EditTaskDialog({
 							</div>
 						</div>
 					)}
+
+					<AttachmentList owner={{ kind: "task", id: task.id }} editable />
 				</div>
 
 				<DialogFooter>

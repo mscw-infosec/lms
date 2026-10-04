@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT s3_key\n                FROM s3_deletion_queue\n                ORDER BY enqueued_at\n                LIMIT $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "s3_key",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4d9e1af8947ef2c6c3eef003a1c954a04cf2cd044f890f3a49bac7bcb360737f"
+}

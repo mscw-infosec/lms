@@ -1,7 +1,9 @@
 "use client";
 
+import { uploadAttachments } from "@/api/attachments";
 import type { TaskConfig, TaskType, UpsertTaskRequestDTO } from "@/api/tasks";
 import { createTask } from "@/api/tasks";
+import PendingAttachmentsField from "@/components/attachments/pending-attachments-field";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -22,6 +24,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -49,7 +52,9 @@ export default function CreateTaskDialog({
 	allowedTypes,
 }: CreateTaskDialogProps) {
 	const { t } = useTranslation("common");
+	const { toast } = useToast();
 	const [open, setOpen] = useState(false);
+	const [files, setFiles] = useState<File[]>([]);
 	const typeAllowed = (ty: TaskType) =>
 		!allowedTypes || allowedTypes.includes(ty);
 	const [title, setTitle] = useState("");
@@ -239,6 +244,15 @@ export default function CreateTaskDialog({
 				configuration: config,
 			};
 			const res = await (submitTask ?? createTask)(payload);
+			const failedUploads = await uploadAttachments(
+				{ kind: "task", id: res.id },
+				files,
+			);
+			if (failedUploads.length) {
+				toast({
+					description: `${t("attachments_upload_failed") || "Some files failed to upload"}: ${failedUploads.join(", ")}`,
+				});
+			}
 			onCreated?.({
 				id: res.id,
 				title: payloadTitle,
@@ -248,6 +262,7 @@ export default function CreateTaskDialog({
 				configuration: config,
 			});
 			setOpen(false);
+			setFiles([]);
 			setTitle("");
 			setDescription("");
 			setPoints(1);
@@ -276,7 +291,7 @@ export default function CreateTaskDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
-			<DialogContent className="border-slate-800 bg-slate-900 text-slate-200">
+			<DialogContent className="max-h-[85vh] overflow-y-auto border-slate-800 bg-slate-900 text-slate-200">
 				<DialogHeader>
 					<DialogTitle className="text-white">{t("create_task")}</DialogTitle>
 					<DialogDescription className="text-slate-400">
@@ -636,6 +651,8 @@ export default function CreateTaskDialog({
 							</div>
 						</div>
 					)}
+
+					<PendingAttachmentsField files={files} onChange={setFiles} />
 				</div>
 
 				<DialogFooter>

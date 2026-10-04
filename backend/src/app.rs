@@ -4,13 +4,13 @@ use crate::{
     api,
     config::Config,
     domain::{
-        account::service::AccountService, basic::service::BasicAuthService,
-        courses::service::CourseService, exam::service::ExamService,
-        lectures::service::LectureService, oauth::service::OAuthService,
-        practice::service::PracticeService, rating::service::RatingService,
-        refresh_token::service::RefreshTokenService, report::service::ReportService,
-        sso::service::SsoService, task::service::TaskService, topics::service::TopicService,
-        video::service::VideoService,
+        account::service::AccountService, attachments::service::AttachmentService,
+        basic::service::BasicAuthService, courses::service::CourseService,
+        exam::service::ExamService, lectures::service::LectureService,
+        oauth::service::OAuthService, practice::service::PracticeService,
+        rating::service::RatingService, refresh_token::service::RefreshTokenService,
+        report::service::ReportService, sso::service::SsoService, task::service::TaskService,
+        topics::service::TopicService, video::service::VideoService,
     },
     errors::Result,
     infrastructure::{captcha::SmartCaptchaService, jwt::JWT},
@@ -21,6 +21,7 @@ use utoipa_axum::router::OpenApiRouter;
 
 pub struct Services {
     pub account: AccountService,
+    pub attachment: AttachmentService,
     pub basic_auth: BasicAuthService,
     pub course: CourseService,
     pub exam: ExamService,
@@ -109,6 +110,10 @@ pub fn generate_router(
         .nest(
             "/exam",
             api::exam::configure(svcs.exam, svcs.account.clone(), jwt.clone()),
+        )
+        .nest(
+            "/attachments",
+            api::attachments::configure(svcs.attachment, jwt.clone()),
         )
         .nest(
             "/lecture",

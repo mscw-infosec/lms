@@ -1,10 +1,12 @@
 "use client";
 
+import { uploadAttachments } from "@/api/attachments";
 import { createExam } from "@/api/exam";
 import { createLecture } from "@/api/lectures";
 import { createPractice } from "@/api/practice";
 import type { components } from "@/api/schema/schema";
 import { createTopicText } from "@/api/topics";
+import PendingAttachmentsField from "@/components/attachments/pending-attachments-field";
 import VideoUploadField from "@/components/topic/video-upload-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +58,7 @@ export default function CreateTopicItemDialog({
 	const [lectureDescription, setLectureDescription] = useState("");
 	const [lectureContent, setLectureContent] = useState("");
 	const [lectureVideoId, setLectureVideoId] = useState("");
+	const [lectureFiles, setLectureFiles] = useState<File[]>([]);
 
 	// Practice
 	const [practiceTitle, setPracticeTitle] = useState("");
@@ -83,6 +86,7 @@ export default function CreateTopicItemDialog({
 		setLectureDescription("");
 		setLectureContent("");
 		setLectureVideoId("");
+		setLectureFiles([]);
 		setPracticeTitle("");
 		setPracticeDescription("");
 		setTextTitle("");
@@ -112,16 +116,25 @@ export default function CreateTopicItemDialog({
 		});
 
 	const lectureMutation = useMutation({
-		mutationFn: () =>
-			createLecture({
+		mutationFn: async () => {
+			const { id } = await createLecture({
 				topic_id: topicId,
 				title: lectureTitle.trim(),
 				description: lectureDescription.trim() || undefined,
 				content: lectureContent.trim() || undefined,
 				video_id: lectureVideoId.trim() || undefined,
 				order_index: 0,
-			}),
-		onSuccess: done,
+			});
+			return uploadAttachments({ kind: "lecture", id }, lectureFiles);
+		},
+		onSuccess: (failed) => {
+			done();
+			if (failed.length) {
+				toast({
+					description: `${t("attachments_upload_failed") || "Some files failed to upload"}: ${failed.join(", ")}`,
+				});
+			}
+		},
 		onError: fail,
 	});
 
@@ -275,6 +288,10 @@ export default function CreateTopicItemDialog({
 							<VideoUploadField
 								value={lectureVideoId}
 								onChange={setLectureVideoId}
+							/>
+							<PendingAttachmentsField
+								files={lectureFiles}
+								onChange={setLectureFiles}
 							/>
 						</div>
 					) : kind === "text" ? (

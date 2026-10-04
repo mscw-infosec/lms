@@ -27,6 +27,7 @@ jsonwebtoken = "9.3.1"
 lettre = { version = "0.11", default-features = false, features = ["tokio1-rustls-tls", "smtp-transport", "builder", "pool"] }
 prost = "0.11"
 prost-types = "0.11"
+percent-encoding = "2.3"
 rand = "0.9.1"
 redis = { version = "0.32.4", features = ["r2d2", "tokio-rustls-comp", "ahash", "json"] }
 redis-macros = "0.5.5"

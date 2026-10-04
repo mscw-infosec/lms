@@ -12,7 +12,7 @@ use crate::{
     utils::{add_cookie, device_from_headers, remove_cookie},
 };
 
-use super::GithubState;
+use super::{GithubState, redirect_with_error};
 
 /// Redirect user to github oauth login page
 #[utoipa::path(get, path = "/login", tag = "OAuth")]
@@ -44,7 +44,16 @@ pub async fn callback(
         .github_provider
         .get_user(query.code, code_verifier)
         .await?;
-    let user_id = state.oauth_service.save_user(user).await?;
+    let user_id = match state.oauth_service.save_user(user).await {
+        Err(err @ LMSError::EmailMissing) => {
+            return Ok(redirect_with_error(
+                &cookies,
+                &state.account_service.redirect_url,
+                &err,
+            ));
+        }
+        result => result?,
+    };
 
     let (refresh_token, _) = state
         .refresh_token_service

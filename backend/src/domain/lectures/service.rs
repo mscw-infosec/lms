@@ -32,6 +32,12 @@ impl LectureService {
         Ok(())
     }
 
+    /// Ensures the lecture exists and the caller may access its topic.
+    pub async fn ensure_access(&self, user: Uuid, role: UserRole, id: i32) -> Result<()> {
+        let topic_id = self.repo.get_topic_id(id).await?;
+        self.ensure_topic_access(user, role, topic_id).await
+    }
+
     pub async fn create_lecture(
         &self,
         user: Uuid,

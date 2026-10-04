@@ -38,7 +38,16 @@ impl OAuthService {
         Self { repo, s3 }
     }
 
-    pub async fn save_user(&self, oauth_user: OAuth) -> Result<Uuid, LMSError> {
+    pub async fn save_user(&self, mut oauth_user: OAuth) -> Result<Uuid, LMSError> {
+        // Providers may answer without an email (Yandex accounts without one,
+        // GitHub without a primary address). Email is what links an OAuth
+        // identity to an account, so an empty one would merge every such user
+        // into the same account - refuse instead.
+        oauth_user.email = oauth_user.email.trim().to_string();
+        if oauth_user.email.is_empty() {
+            return Err(LMSError::EmailMissing);
+        }
+
         let user_id = self.repo.find_by_email(&oauth_user.email).await?;
 
         if let Some(user) = user_id {
@@ -87,5 +96,35 @@ impl OAuthService {
             ))?;
 
         Ok((state, code_verifier))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{domain::oauth::model::Providers, gen_openapi::DummyRepository};
+
+    fn oauth_user(email: &str) -> OAuth {
+        OAuth {
+            client_id: "42".to_string(),
+            username: "someone".to_string(),
+            email: email.to_string(),
+            avatar_url: String::new(),
+            provider: Providers::Yandex,
+        }
+    }
+
+    #[tokio::test]
+    async fn refuses_blank_email_before_touching_accounts() {
+        // the dummy repository fails every call, so reaching it would not
+        // yield `EmailMissing`: no lookup or linking may happen for these
+        let service = OAuthService::new(Arc::new(DummyRepository), Arc::new(DummyRepository));
+
+        for email in ["", "   ", "\t\n"] {
+            assert!(matches!(
+                service.save_user(oauth_user(email)).await,
+                Err(LMSError::EmailMissing)
+            ));
+        }
     }
 }

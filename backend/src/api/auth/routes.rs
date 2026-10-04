@@ -23,7 +23,8 @@ use super::AuthState;
     tag = "Auth",
     responses(
         (status = 200, body = RefreshResponse),
-        (status = 401, description = "Invalid or expired refresh token")
+        (status = 401, description = "Invalid or expired refresh token"),
+        (status = 403, description = "`email_missing`: the account has no email and may not sign in; all its sessions are revoked")
     ),
     security(
         ("CookieAuth" = [])
@@ -34,8 +35,13 @@ pub async fn refresh(
     RefreshCookie(token): RefreshCookie,
     State(state): State<AuthState>,
 ) -> Result<Json<RefreshResponse>, LMSError> {
-    let (new_refresh_token, _) = state.refresh_service.validate_and_rotate(&token).await?;
     let user = state.account_service.get_user(token.sub).await?;
+    // accounts created before empty emails were refused must not stay signed in
+    if user.email.trim().is_empty() {
+        state.refresh_service.logout_all_sessions(token.sub).await?;
+        return Err(LMSError::EmailMissing);
+    }
+    let (new_refresh_token, _) = state.refresh_service.validate_and_rotate(&token).await?;
     let access_token = state.jwt.generate_access_token(
         token.sub,
         user.role,

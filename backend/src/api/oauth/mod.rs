@@ -3,6 +3,8 @@ pub mod yandex;
 
 use std::sync::Arc;
 
+use axum::response::Redirect;
+use tower_cookies::Cookies;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::domain::account::service::AccountService;
@@ -15,7 +17,9 @@ use crate::{
         },
         refresh_token::service::RefreshTokenService,
     },
+    errors::LMSError,
     infrastructure::jwt::JWT,
+    utils::remove_cookie,
 };
 
 #[derive(Clone)]
@@ -34,6 +38,14 @@ pub struct YandexState {
     pub oauth_service: OAuthService,
     pub yandex_provider: YandexProvider,
     pub refresh_token_service: RefreshTokenService,
+}
+
+/// Sends the browser back to the frontend with a machine-readable `error`
+/// instead of leaving it on the API's raw JSON error page.
+fn redirect_with_error(cookies: &Cookies, redirect_url: &str, error: &LMSError) -> Redirect {
+    remove_cookie(cookies, "oauth_state");
+    remove_cookie(cookies, "code_verifier");
+    Redirect::to(&format!("{redirect_url}?error={error}"))
 }
 
 pub fn configure(

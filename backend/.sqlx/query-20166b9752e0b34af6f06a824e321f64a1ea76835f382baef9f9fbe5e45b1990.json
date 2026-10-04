@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM attachments\n                WHERE uploaded_at IS NULL AND created_at < $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "20166b9752e0b34af6f06a824e321f64a1ea76835f382baef9f9fbe5e45b1990"
+}

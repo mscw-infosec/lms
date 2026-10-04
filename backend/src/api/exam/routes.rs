@@ -12,7 +12,6 @@ use crate::utils::ValidatedJson;
 use axum::Json;
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
-use chrono::Utc;
 use rand::prelude::SliceRandom;
 use rand::rng;
 use uuid::Uuid;
@@ -239,13 +238,10 @@ pub async fn get_entities(
     Path(exam_id): Path<Uuid>,
     State(state): State<ExamState>,
 ) -> Result<Json<Vec<PubExamExtendedEntity>>, LMSError> {
-    let attempts = state
+    if state
         .exam_service
-        .get_user_attempts_in_exam(exam_id, claims.sub)
-        .await?;
-    if attempts.iter().any(|att| att.ends_at > Utc::now())
-        || attempts.iter().any(|att| att.scoring_data.show_results)
-        || matches!(claims.role, UserRole::Admin | UserRole::Teacher)
+        .can_view_entities(exam_id, claims.sub, claims.role)
+        .await?
     {
         let entities = state.exam_service.get_entities(exam_id).await?;
         let mut public_entities: Vec<PubExamExtendedEntity> = Vec::new();
