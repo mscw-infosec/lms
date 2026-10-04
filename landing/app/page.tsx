@@ -412,7 +412,7 @@ export default function InfoSecAnnualProgram() {
 											<div className="font-semibold text-[11px] text-gray-900">
 												Начало занятий
 											</div>
-											<div className="text-[10px] text-gray-600">1 Окт</div>
+											<div className="text-[10px] text-gray-600">Октябрь</div>
 										</div>
 									</li>
 								</ul>
@@ -431,7 +431,7 @@ export default function InfoSecAnnualProgram() {
 									{ title: "Отборочный тест", date: "13 Сен" },
 									{ title: "Результаты теста", date: "15–17 Сен" },
 									{ title: "Входной тест", date: "19 Сен" },
-									{ title: "Начало занятий", date: "1 Окт" },
+									{ title: "Начало занятий", date: "Октябрь" },
 								].map((m) => (
 									<li
 										key={m.title}
