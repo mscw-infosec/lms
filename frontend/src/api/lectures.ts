@@ -53,3 +53,10 @@ export async function completeLecture(id: number): Promise<void> {
 		withAuth: true,
 	});
 }
+
+export async function uncompleteLecture(id: number): Promise<void> {
+	await http<void>(`/api/lecture/${id}/complete`, {
+		method: "DELETE",
+		withAuth: true,
+	});
+}

@@ -4,6 +4,7 @@ import {
 	type LectureResponseDTO,
 	completeLecture,
 	getLecture,
+	uncompleteLecture,
 } from "@/api/lectures";
 import { getVideoUrl } from "@/api/video";
 import AttachmentList from "@/components/attachments/attachment-list";
@@ -45,6 +46,20 @@ export default function LectureViewer({
 		mutationFn: () => completeLecture(lectureId),
 		onSuccess: async () => {
 			toast({ description: t("lecture_completed") || "Marked as completed" });
+			await queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
+			if (topicId != null) {
+				await queryClient.invalidateQueries({
+					queryKey: ["topic-lectures", topicId],
+				});
+			}
+		},
+		onError: () => toast({ description: t("save_failed") || "Failed" }),
+	});
+
+	const uncompleteMutation = useMutation({
+		mutationFn: () => uncompleteLecture(lectureId),
+		onSuccess: async () => {
+			toast({ description: t("lecture_uncompleted") });
 			await queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
 			if (topicId != null) {
 				await queryClient.invalidateQueries({
@@ -128,17 +143,25 @@ export default function LectureViewer({
 
 					<div className="flex justify-end pt-2">
 						<Button
-							onClick={() => completeMutation.mutate()}
-							disabled={completeMutation.isPending || lecture.completed}
+							onClick={() => {
+								if (lecture.completed) {
+									uncompleteMutation.mutate();
+								} else {
+									completeMutation.mutate();
+								}
+							}}
+							disabled={
+								completeMutation.isPending || uncompleteMutation.isPending
+							}
 							className="bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
 						>
-							{completeMutation.isPending ? (
+							{completeMutation.isPending || uncompleteMutation.isPending ? (
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							) : (
 								<CheckCircle2 className="mr-2 h-4 w-4" />
 							)}
 							{lecture.completed
-								? t("completed") || "Completed"
+								? t("unmark_complete")
 								: t("mark_complete") || "Mark as completed"}
 						</Button>
 					</div>

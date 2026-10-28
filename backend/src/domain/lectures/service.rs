@@ -95,4 +95,10 @@ impl LectureService {
         self.ensure_topic_access(user, role, topic_id).await?;
         self.repo.mark_completed(user, id).await
     }
+
+    pub async fn unmark_completed(&self, user: Uuid, role: UserRole, id: i32) -> Result<()> {
+        let topic_id = self.repo.get_topic_id(id).await?;
+        self.ensure_topic_access(user, role, topic_id).await?;
+        self.repo.unmark_completed(user, id).await
+    }
 }

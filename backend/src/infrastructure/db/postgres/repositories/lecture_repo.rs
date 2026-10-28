@@ -194,4 +194,18 @@ impl LectureRepository for RepositoryPostgres {
 
         Ok(())
     }
+
+    async fn unmark_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<()> {
+        sqlx::query!(
+            r#"
+                DELETE FROM lecture_progress WHERE user_id = $1 AND lecture_id = $2
+            "#,
+            user_id,
+            lecture_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
 }
