@@ -218,3 +218,33 @@ pub async fn complete(
 
     Ok(StatusCode::NO_CONTENT)
 }
+
+#[utoipa::path(
+    delete,
+    tag = "Lecture",
+    path = "/{id}/complete",
+    params(
+        ("id" = i32, Path)
+    ),
+    responses(
+        (status = 204, description = "Lecture completion mark removed"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "User has no access to this lecture's course"),
+        (status = 404, description = "Lecture not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn uncomplete(
+    claims: AccessTokenClaim,
+    Path(id): Path<i32>,
+    State(state): State<LectureState>,
+) -> Result<StatusCode, LMSError> {
+    state
+        .lecture_service
+        .unmark_completed(claims.sub, claims.role, id)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
