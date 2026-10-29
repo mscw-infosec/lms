@@ -394,7 +394,7 @@ export default function LearnPage() {
 		retry: false,
 	});
 
-	const itemStatus = useItemStatus(
+	const { getStatus: itemStatus, ready: statusReady } = useItemStatus(
 		(topicsQuery.data ?? []).map((topic) => topic.id),
 		contentByTopicQuery.data,
 	);
@@ -1288,7 +1288,7 @@ export default function LearnPage() {
 							</span>
 						</div>
 					</button>
-					{contentComplete && courseTotal > 0 ? (
+					{contentComplete && statusReady && courseTotal > 0 ? (
 						<div
 							className={`space-y-1.5 px-1 ${sidebarOpen ? "" : "sm:hidden"}`}
 						>

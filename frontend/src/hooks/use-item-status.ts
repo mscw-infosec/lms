@@ -45,9 +45,12 @@ export function useItemStatus(
 	}
 
 	const practices = new Map<number, ItemStatus>();
+	const emptyPractices = new Set<number>();
 	for (const q of practiceQueries) {
 		for (const p of q.data ?? []) {
-			if (p.task_count > 0 && p.solved_count >= p.task_count) {
+			if (p.task_count === 0) {
+				emptyPractices.add(p.id);
+			} else if (p.task_count > 0 && p.solved_count >= p.task_count) {
 				practices.set(p.id, "completed");
 			} else if (p.solved_count > 0) {
 				practices.set(p.id, "in_progress");
@@ -62,16 +65,29 @@ export function useItemStatus(
 		else if (attempts.length > 0) exams.set(examId, "completed");
 	});
 
-	return (item: TopicContentItemDTO): ItemStatus | null => {
+	const lecturesFailed = lectureQueries.some((q) => q.isError);
+	const practicesFailed = practiceQueries.some((q) => q.isError);
+	const examsFailed = examQueries.some((q) => q.isError);
+
+	const ready = ![...lectureQueries, ...practiceQueries, ...examQueries].some(
+		(q) => !q.isSuccess,
+	);
+
+	const getStatus = (item: TopicContentItemDTO): ItemStatus | null => {
 		switch (item.kind) {
 			case "lecture":
+				if (lecturesFailed) return null;
 				return lectures.get(Number(item.id)) ? "completed" : "not_started";
 			case "practice":
+				if (practicesFailed || emptyPractices.has(Number(item.id))) return null;
 				return practices.get(Number(item.id)) ?? "not_started";
 			case "exam":
+				if (examsFailed) return null;
 				return exams.get(item.id) ?? "not_started";
 			default:
 				return null;
 		}
 	};
+
+	return { getStatus, ready };
 }
