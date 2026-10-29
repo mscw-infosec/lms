@@ -376,13 +376,13 @@ export default function LearnPage() {
 			const topics = topicsQuery.data ?? [];
 			const entries = await Promise.all(
 				topics.map(async (topic) => {
-					const content = await getTopicContent(topic.id).catch(() => []);
+					const content = await getTopicContent(topic.id).catch(() => null);
 					return [topic.id, content] as const;
 				}),
 			);
 			return Object.fromEntries(entries) as Record<
 				number,
-				TopicContentItemDTO[]
+				TopicContentItemDTO[] | null
 			>;
 		},
 		enabled: topicsQuery.isSuccess,
@@ -393,6 +393,10 @@ export default function LearnPage() {
 		(topicsQuery.data ?? []).map((topic) => topic.id),
 		contentByTopicQuery.data,
 	);
+
+	const contentComplete =
+		!!contentByTopicQuery.data &&
+		Object.values(contentByTopicQuery.data).every((items) => items !== null);
 
 	const progressByTopic = new Map<number, { done: number; total: number }>();
 	let courseDone = 0;
@@ -1279,7 +1283,7 @@ export default function LearnPage() {
 							</span>
 						</div>
 					</button>
-					{courseTotal > 0 ? (
+					{contentComplete && courseTotal > 0 ? (
 						<div
 							className={`space-y-1.5 px-1 ${sidebarOpen ? "" : "sm:hidden"}`}
 						>
