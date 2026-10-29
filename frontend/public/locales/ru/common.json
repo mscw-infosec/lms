@@ -86,6 +86,7 @@
 	"course_name_placeholder": "Введите название курса...",
 	"course_name_required": "Требуется название курса",
 	"course_not_found": "Курс не найден или не удалось загрузить.",
+	"progress_done_of_total": "Пройдено {{done}} из {{total}}",
 	"course_structure": "Структура курса",
 	"courses": "Курсы",
 	"create": "Создать",
