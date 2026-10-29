@@ -113,6 +113,9 @@ export default function LearnPage() {
 	const [selectedPracticeId, setSelectedPracticeId] = useState<number | null>(
 		null,
 	);
+	const [selectedPracticeTopicId, setSelectedPracticeTopicId] = useState<
+		number | null
+	>(null);
 
 	const [selectedText, setSelectedText] = useState<TopicContentItemDTO | null>(
 		null,
@@ -121,6 +124,7 @@ export default function LearnPage() {
 		setSelectedLectureId(null);
 		setSelectedLectureTopicId(null);
 		setSelectedPracticeId(null);
+		setSelectedPracticeTopicId(null);
 		setSelectedText(null);
 	};
 	const closeSidebarOnMobile = () => {
@@ -140,7 +144,7 @@ export default function LearnPage() {
 		setSelectedLectureTopicId(topicId);
 		closeSidebarOnMobile();
 	};
-	const selectPractice = (practiceId: number) => {
+	const selectPractice = (practiceId: number, topicId: number) => {
 		setReviewMode(false);
 		setPendingExam(null);
 		setSelectedExam(null);
@@ -148,6 +152,7 @@ export default function LearnPage() {
 		setSelectedLectureTopicId(null);
 		setSelectedText(null);
 		setSelectedPracticeId(practiceId);
+		setSelectedPracticeTopicId(topicId);
 		closeSidebarOnMobile();
 	};
 	const selectText = (item: TopicContentItemDTO) => {
@@ -1369,7 +1374,7 @@ export default function LearnPage() {
 													if (item.kind === "lecture")
 														selectLecture(Number(item.id), topic.id);
 													else if (item.kind === "practice")
-														selectPractice(Number(item.id));
+														selectPractice(Number(item.id), topic.id);
 													else if (item.kind === "exam") selectExam(item.id);
 													else selectText(item);
 												}}
@@ -1402,6 +1407,9 @@ export default function LearnPage() {
 														) : (
 															<Circle className="h-5 w-5 text-slate-500" />
 														)}
+														<span className="sr-only">
+															{t(`status_${status}`)}
+														</span>
 													</span>
 												) : null}
 											</button>
@@ -1676,7 +1684,10 @@ export default function LearnPage() {
 								topicId={selectedLectureTopicId ?? undefined}
 							/>
 						) : selectedPracticeId != null ? (
-							<PracticeRunner practiceId={selectedPracticeId} />
+							<PracticeRunner
+								practiceId={selectedPracticeId}
+								topicId={selectedPracticeTopicId ?? undefined}
+							/>
 						) : !selectedExam ? (
 							<Card className="mx-auto w-full max-w-[680px] border-slate-800 bg-slate-900">
 								<CardHeader className="p-4 sm:p-6">
