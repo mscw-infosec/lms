@@ -86,6 +86,7 @@
 	"course_name_placeholder": "Enter course name...",
 	"course_name_required": "Course name is required",
 	"course_not_found": "Course not found or failed to load.",
+	"progress_done_of_total": "{{done}} of {{total}} completed",
 	"course_structure": "Course Structure",
 	"courses": "Courses",
 	"create": "Create",
