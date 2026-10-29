@@ -37,6 +37,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
 	Select,
@@ -47,6 +48,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { useAttempt } from "@/hooks/use-attempt";
+import { useItemStatus } from "@/hooks/use-item-status";
 import type { UiAnswerPayload } from "@/lib/answers";
 import { buildTaskAnswer } from "@/lib/answers";
 import { serverNow } from "@/lib/server-time";
@@ -60,10 +62,12 @@ import {
 	ChevronDown,
 	ChevronLeft,
 	ChevronRight,
+	Circle,
 	Dumbbell,
 	FileText,
 	HelpCircle,
 	Info,
+	LoaderCircle,
 	Menu,
 	Pencil,
 	Play,
@@ -384,6 +388,28 @@ export default function LearnPage() {
 		enabled: topicsQuery.isSuccess,
 		retry: false,
 	});
+
+	const itemStatus = useItemStatus(
+		(topicsQuery.data ?? []).map((topic) => topic.id),
+		contentByTopicQuery.data,
+	);
+
+	const progressByTopic = new Map<number, { done: number; total: number }>();
+	let courseDone = 0;
+	let courseTotal = 0;
+	for (const topic of topicsQuery.data ?? []) {
+		let done = 0;
+		let total = 0;
+		for (const item of contentByTopicQuery.data?.[topic.id] ?? []) {
+			const status = itemStatus(item);
+			if (!status) continue;
+			total += 1;
+			if (status === "completed") done += 1;
+		}
+		progressByTopic.set(topic.id, { done, total });
+		courseDone += done;
+		courseTotal += total;
+	}
 
 	const courseQuery = useQuery({
 		queryKey: ["course", courseId],
@@ -1253,91 +1279,134 @@ export default function LearnPage() {
 							</span>
 						</div>
 					</button>
-					{(topicsQuery.data ?? []).map((topic) => (
-						<Collapsible key={topic.id} defaultOpen>
-							<CollapsibleTrigger
-								className={`group flex w-full items-center overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700 ${sidebarOpen ? "justify-between" : "sm:justify-center"}`}
-							>
-								<div
-									className={`flex min-w-0 items-center ${sidebarOpen ? "" : "sm:w-full sm:justify-center"}`}
+					{courseTotal > 0 ? (
+						<div
+							className={`space-y-1.5 px-1 ${sidebarOpen ? "" : "sm:hidden"}`}
+						>
+							<div className="flex items-center justify-between text-slate-400 text-xs">
+								<span>
+									{t("progress_done_of_total", {
+										done: courseDone,
+										total: courseTotal,
+									})}
+								</span>
+								<span>{Math.round((courseDone / courseTotal) * 100)}%</span>
+							</div>
+							<Progress
+								value={(courseDone / courseTotal) * 100}
+								className="h-1.5 bg-slate-800"
+							/>
+						</div>
+					) : null}
+					{(topicsQuery.data ?? []).map((topic) => {
+						const topicProgress = progressByTopic.get(topic.id);
+						return (
+							<Collapsible key={topic.id} defaultOpen>
+								<CollapsibleTrigger
+									className={`group flex w-full items-center overflow-hidden rounded-lg bg-slate-800 p-3 transition-colors hover:bg-slate-700 ${sidebarOpen ? "justify-between" : "sm:justify-center"}`}
 								>
-									<BookOpen
-										className={`${sidebarOpen ? "mr-2" : "mr-0"} h-4 w-4 text-slate-400`}
-									/>
-									<span
-										className={`truncate font-medium text-sm text-white ${sidebarOpen ? "" : "sm:hidden"}`}
+									<div
+										className={`flex min-w-0 items-center ${sidebarOpen ? "" : "sm:w-full sm:justify-center"}`}
 									>
-										{topic.title}
-									</span>
-								</div>
-								<ChevronDown
-									className={`h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180 ${sidebarOpen ? "" : "sm:hidden"}`}
-								/>
-							</CollapsibleTrigger>
-							<CollapsibleContent
-								className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
-							>
-								{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
-									const selected =
-										item.kind === "lecture"
-											? selectedLectureId === Number(item.id)
-											: item.kind === "practice"
-												? selectedPracticeId === Number(item.id)
-												: item.kind === "exam"
-													? (pendingExam ?? selectedExam)?.id === item.id
-													: selectedText?.id === item.id;
-									const Icon =
-										item.kind === "lecture"
-											? Video
-											: item.kind === "practice"
-												? Dumbbell
-												: item.kind === "exam"
-													? HelpCircle
-													: FileText;
-									const iconColor =
-										item.kind === "lecture"
-											? "text-sky-400"
-											: item.kind === "practice"
-												? "text-emerald-400"
-												: item.kind === "exam"
-													? "text-orange-400"
-													: "text-slate-400";
-									return (
-										<button
-											type="button"
-											key={`${item.kind}-${item.id}`}
-											onClick={() => {
-												if (item.kind === "lecture")
-													selectLecture(Number(item.id), topic.id);
-												else if (item.kind === "practice")
-													selectPractice(Number(item.id));
-												else if (item.kind === "exam") selectExam(item.id);
-												else selectText(item);
-											}}
-											className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
-												selected
-													? "bg-red-600 text-white"
-													: "text-slate-300 hover:bg-slate-700"
-											}`}
+										<BookOpen
+											className={`${sidebarOpen ? "mr-2" : "mr-0"} h-4 w-4 text-slate-400`}
+										/>
+										<span
+											className={`truncate font-medium text-sm text-white ${sidebarOpen ? "" : "sm:hidden"}`}
 										>
-											<div
-												className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+											{topic.title}
+										</span>
+									</div>
+									<div
+										className={`flex flex-shrink-0 items-center gap-2 ${sidebarOpen ? "" : "sm:hidden"}`}
+									>
+										{topicProgress?.total ? (
+											<span className="text-slate-400 text-xs">
+												{topicProgress.done}/{topicProgress.total}
+											</span>
+										) : null}
+										<ChevronDown className="h-4 w-4 text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+									</div>
+								</CollapsibleTrigger>
+								<CollapsibleContent
+									className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
+								>
+									{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
+										const selected =
+											item.kind === "lecture"
+												? selectedLectureId === Number(item.id)
+												: item.kind === "practice"
+													? selectedPracticeId === Number(item.id)
+													: item.kind === "exam"
+														? (pendingExam ?? selectedExam)?.id === item.id
+														: selectedText?.id === item.id;
+										const Icon =
+											item.kind === "lecture"
+												? Video
+												: item.kind === "practice"
+													? Dumbbell
+													: item.kind === "exam"
+														? HelpCircle
+														: FileText;
+										const iconColor =
+											item.kind === "lecture"
+												? "text-sky-400"
+												: item.kind === "practice"
+													? "text-emerald-400"
+													: item.kind === "exam"
+														? "text-orange-400"
+														: "text-slate-400";
+										const status = itemStatus(item);
+										return (
+											<button
+												type="button"
+												key={`${item.kind}-${item.id}`}
+												onClick={() => {
+													if (item.kind === "lecture")
+														selectLecture(Number(item.id), topic.id);
+													else if (item.kind === "practice")
+														selectPractice(Number(item.id));
+													else if (item.kind === "exam") selectExam(item.id);
+													else selectText(item);
+												}}
+												className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
+													selected
+														? "bg-red-600 text-white"
+														: "text-slate-300 hover:bg-slate-700"
+												}`}
 											>
-												<Icon
-													className={`h-4 w-4 flex-shrink-0 self-center ${iconColor} ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
-												/>
-												<span
-													className={`truncate text-sm ${sidebarOpen ? "" : "sm:hidden"}`}
+												<div
+													className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
 												>
-													{item.title}
-												</span>
-											</div>
-										</button>
-									);
-								})}
-							</CollapsibleContent>
-						</Collapsible>
-					))}
+													<Icon
+														className={`h-4 w-4 flex-shrink-0 self-center ${iconColor} ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
+													/>
+													<span
+														className={`truncate text-sm ${sidebarOpen ? "" : "sm:hidden"}`}
+													>
+														{item.title}
+													</span>
+												</div>
+												{status ? (
+													<span
+														className={`ml-2 flex-shrink-0 ${sidebarOpen ? "" : "sm:hidden"}`}
+													>
+														{status === "completed" ? (
+															<CheckCircle2 className="h-5 w-5 text-green-500" />
+														) : status === "in_progress" ? (
+															<LoaderCircle className="h-5 w-5 text-sky-400" />
+														) : (
+															<Circle className="h-5 w-5 text-slate-500" />
+														)}
+													</span>
+												) : null}
+											</button>
+										);
+									})}
+								</CollapsibleContent>
+							</Collapsible>
+						);
+					})}
 				</div>
 			</>
 		);
