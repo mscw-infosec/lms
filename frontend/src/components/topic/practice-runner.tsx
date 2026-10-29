@@ -64,7 +64,13 @@ function verdictTone(verdict: string): { label: string; className: string } {
 	}
 }
 
-export default function PracticeRunner({ practiceId }: { practiceId: number }) {
+export default function PracticeRunner({
+	practiceId,
+	topicId,
+}: {
+	practiceId: number;
+	topicId?: number;
+}) {
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
 	const queryClient = useQueryClient();
@@ -91,7 +97,10 @@ export default function PracticeRunner({ practiceId }: { practiceId: number }) {
 			const answer = buildTaskAnswer(task, ui).answer;
 			const res = await submitPractice(task.id, answer);
 			setResults((prev) => ({ ...prev, [task.id]: res }));
-			await queryClient.invalidateQueries({ queryKey: ["topic-practices"] });
+			await queryClient.invalidateQueries({
+				queryKey:
+					topicId != null ? ["topic-practices", topicId] : ["topic-practices"],
+			});
 		} catch (e) {
 			toast({
 				description:
