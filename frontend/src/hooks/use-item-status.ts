@@ -8,7 +8,7 @@ export type ItemStatus = "completed" | "in_progress" | "not_started";
 
 export function useItemStatus(
 	topicIds: number[],
-	contentByTopic: Record<number, TopicContentItemDTO[]> | undefined,
+	contentByTopic: Record<number, TopicContentItemDTO[] | null> | undefined,
 ) {
 	const lectureQueries = useQueries({
 		queries: topicIds.map((topicId) => ({
@@ -27,7 +27,7 @@ export function useItemStatus(
 	});
 
 	const examIds = Object.values(contentByTopic ?? {})
-		.flat()
+		.flatMap((items) => items ?? [])
 		.filter((item) => item.kind === "exam")
 		.map((item) => item.id);
 
