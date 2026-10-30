@@ -837,6 +837,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/lecture/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_note"];
+        put: operations["save_note"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/oauth/github/callback": {
         parameters: {
             query?: never;
@@ -2105,6 +2121,11 @@ export interface components {
             user_id: string;
             username: string;
         };
+        LectureNoteDTO: {
+            content: string;
+            /** Format: date-time */
+            updated_at?: string | null;
+        };
         /** @description Full lecture view, including the rich-text body and completion state.
          *
          *     The `video_id`, when present, is resolved to a playable URL through the
@@ -2625,6 +2646,9 @@ export interface components {
             /** Format: int32 */
             tries_count: number;
             type: components["schemas"]["ExamType"];
+        };
+        UpsertLectureNoteDTO: {
+            content: string;
         };
         UpsertTaskRequestDTO: {
             configuration: components["schemas"]["TaskConfig"];
@@ -5044,6 +5068,103 @@ export interface operations {
         responses: {
             /** @description Lecture completion mark removed */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_note: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The current user's note for the lecture */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LectureNoteDTO"];
+                };
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    save_note: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertLectureNoteDTO"];
+            };
+        };
+        responses: {
+            /** @description Note saved; an empty note is removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LectureNoteDTO"];
+                };
+            };
+            /** @description Invalid request data */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
