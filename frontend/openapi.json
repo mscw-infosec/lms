@@ -2441,6 +2441,40 @@
 						"BearerAuth": []
 					}
 				]
+			},
+			"delete": {
+				"tags": ["Lecture"],
+				"operationId": "uncomplete",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"format": "int32"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Lecture completion mark removed"
+					},
+					"401": {
+						"description": "No auth data found"
+					},
+					"403": {
+						"description": "User has no access to this lecture's course"
+					},
+					"404": {
+						"description": "Lecture not found"
+					}
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
 			}
 		},
 		"/oauth/github/callback": {

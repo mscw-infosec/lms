@@ -18,4 +18,5 @@ pub trait LectureRepository {
     async fn delete(&self, id: i32) -> Result<()>;
     async fn is_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<bool>;
     async fn mark_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<()>;
+    async fn unmark_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<()>;
 }

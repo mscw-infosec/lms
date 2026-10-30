@@ -831,7 +831,7 @@ export interface paths {
         put?: never;
         /** Mark a lecture as completed for the current user. */
         post: operations["complete"];
-        delete?: never;
+        delete: operations["uncomplete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5002,6 +5002,47 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Lecture marked as completed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No auth data found */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description User has no access to this lecture's course */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lecture not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    uncomplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lecture completion mark removed */
             204: {
                 headers: {
                     [name: string]: unknown;
