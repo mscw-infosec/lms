@@ -9,8 +9,8 @@ use crate::{
     api::lecture::LectureState,
     domain::account::model::UserRole,
     dto::lectures::{
-        CreateLectureRequestDTO, CreateLectureResponseDTO, LectureResponseDTO, LectureSummaryDTO,
-        UpdateLectureRequestDTO,
+        CreateLectureRequestDTO, CreateLectureResponseDTO, LectureNoteDTO, LectureResponseDTO,
+        LectureSummaryDTO, UpdateLectureRequestDTO, UpsertLectureNoteDTO,
     },
     errors::LMSError,
     utils::ValidatedJson,
@@ -247,4 +247,67 @@ pub async fn uncomplete(
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[utoipa::path(
+    get,
+    tag = "Lecture",
+    path = "/{id}/notes",
+    params(
+        ("id" = i32, Path)
+    ),
+    responses(
+        (status = 200, body = LectureNoteDTO, description = "The current user's note for the lecture"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "User has no access to this lecture's course"),
+        (status = 404, description = "Lecture not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn get_note(
+    claims: AccessTokenClaim,
+    Path(id): Path<i32>,
+    State(state): State<LectureState>,
+) -> Result<Json<LectureNoteDTO>, LMSError> {
+    let note = state
+        .lecture_service
+        .get_note(claims.sub, claims.role, id)
+        .await?;
+
+    Ok(Json(note.into()))
+}
+
+#[utoipa::path(
+    put,
+    tag = "Lecture",
+    path = "/{id}/notes",
+    params(
+        ("id" = i32, Path)
+    ),
+    request_body = UpsertLectureNoteDTO,
+    responses(
+        (status = 200, body = LectureNoteDTO, description = "Note saved; an empty note is removed"),
+        (status = 400, description = "Invalid request data"),
+        (status = 401, description = "No auth data found"),
+        (status = 403, description = "User has no access to this lecture's course"),
+        (status = 404, description = "Lecture not found")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn save_note(
+    claims: AccessTokenClaim,
+    Path(id): Path<i32>,
+    State(state): State<LectureState>,
+    ValidatedJson(payload): ValidatedJson<UpsertLectureNoteDTO>,
+) -> Result<Json<LectureNoteDTO>, LMSError> {
+    let note = state
+        .lecture_service
+        .save_note(claims.sub, claims.role, id, &payload.content)
+        .await?;
+
+    Ok(Json(note.into()))
 }

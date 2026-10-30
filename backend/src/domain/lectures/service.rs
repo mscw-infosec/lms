@@ -1,5 +1,5 @@
 use crate::domain::account::model::UserRole;
-use crate::domain::lectures::model::{LectureModel, TopicLectureModel};
+use crate::domain::lectures::model::{LectureModel, LectureNoteModel, TopicLectureModel};
 use crate::domain::lectures::repository::LectureRepository;
 use crate::domain::topics::service::TopicService;
 use crate::dto::lectures::{CreateLectureRequestDTO, UpdateLectureRequestDTO};
@@ -100,5 +100,34 @@ impl LectureService {
         let topic_id = self.repo.get_topic_id(id).await?;
         self.ensure_topic_access(user, role, topic_id).await?;
         self.repo.unmark_completed(user, id).await
+    }
+
+    pub async fn get_note(
+        &self,
+        user: Uuid,
+        role: UserRole,
+        id: i32,
+    ) -> Result<Option<LectureNoteModel>> {
+        let topic_id = self.repo.get_topic_id(id).await?;
+        self.ensure_topic_access(user, role, topic_id).await?;
+        self.repo.get_note(user, id).await
+    }
+
+    pub async fn save_note(
+        &self,
+        user: Uuid,
+        role: UserRole,
+        id: i32,
+        content: &str,
+    ) -> Result<Option<LectureNoteModel>> {
+        let topic_id = self.repo.get_topic_id(id).await?;
+        self.ensure_topic_access(user, role, topic_id).await?;
+
+        if content.trim().is_empty() {
+            self.repo.delete_note(user, id).await?;
+            return Ok(None);
+        }
+
+        self.repo.upsert_note(user, id, content).await.map(Some)
     }
 }

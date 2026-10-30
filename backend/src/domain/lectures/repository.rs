@@ -1,4 +1,4 @@
-use crate::domain::lectures::model::{LectureModel, TopicLectureModel};
+use crate::domain::lectures::model::{LectureModel, LectureNoteModel, TopicLectureModel};
 use crate::dto::lectures::{CreateLectureRequestDTO, UpdateLectureRequestDTO};
 use crate::errors::Result;
 use crate::gen_openapi::DummyRepository;
@@ -19,4 +19,12 @@ pub trait LectureRepository {
     async fn is_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<bool>;
     async fn mark_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<()>;
     async fn unmark_completed(&self, user_id: Uuid, lecture_id: i32) -> Result<()>;
+    async fn get_note(&self, user_id: Uuid, lecture_id: i32) -> Result<Option<LectureNoteModel>>;
+    async fn upsert_note(
+        &self,
+        user_id: Uuid,
+        lecture_id: i32,
+        content: &str,
+    ) -> Result<LectureNoteModel>;
+    async fn delete_note(&self, user_id: Uuid, lecture_id: i32) -> Result<()>;
 }

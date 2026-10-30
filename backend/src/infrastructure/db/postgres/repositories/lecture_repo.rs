@@ -1,6 +1,6 @@
 use crate::{
     domain::lectures::{
-        model::{LectureModel, TopicLectureModel},
+        model::{LectureModel, LectureNoteModel, TopicLectureModel},
         repository::LectureRepository,
     },
     dto::lectures::{CreateLectureRequestDTO, UpdateLectureRequestDTO},
@@ -199,6 +199,62 @@ impl LectureRepository for RepositoryPostgres {
         sqlx::query!(
             r#"
                 DELETE FROM lecture_progress WHERE user_id = $1 AND lecture_id = $2
+            "#,
+            user_id,
+            lecture_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn get_note(&self, user_id: Uuid, lecture_id: i32) -> Result<Option<LectureNoteModel>> {
+        let note = sqlx::query_as!(
+            LectureNoteModel,
+            r#"
+                SELECT content, updated_at
+                FROM lecture_notes
+                WHERE user_id = $1 AND lecture_id = $2
+            "#,
+            user_id,
+            lecture_id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(note)
+    }
+
+    async fn upsert_note(
+        &self,
+        user_id: Uuid,
+        lecture_id: i32,
+        content: &str,
+    ) -> Result<LectureNoteModel> {
+        let note = sqlx::query_as!(
+            LectureNoteModel,
+            r#"
+                INSERT INTO lecture_notes (user_id, lecture_id, content)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (user_id, lecture_id)
+                DO UPDATE SET content = EXCLUDED.content, updated_at = now()
+                RETURNING content, updated_at
+            "#,
+            user_id,
+            lecture_id,
+            content
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(note)
+    }
+
+    async fn delete_note(&self, user_id: Uuid, lecture_id: i32) -> Result<()> {
+        sqlx::query!(
+            r#"
+                DELETE FROM lecture_notes WHERE user_id = $1 AND lecture_id = $2
             "#,
             user_id,
             lecture_id
