@@ -89,15 +89,17 @@ type TaskConfig = {
 	items?: string[];
 };
 
+const CONTENT_KINDS = ["lecture", "practice", "text", "exam"] as const;
+type ContentKind = (typeof CONTENT_KINDS)[number];
+
 export default function LearnPage() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const lectureParam = searchParams.get("lecture");
-	const updateLectureUrl = (lectureId: number | null) => {
+	const updateContentUrl = (kind: ContentKind | null, id?: string) => {
 		const nextParams = new URLSearchParams(searchParams.toString());
-		if (lectureId == null) nextParams.delete("lecture");
-		else nextParams.set("lecture", String(lectureId));
+		for (const contentKind of CONTENT_KINDS) nextParams.delete(contentKind);
+		if (kind && id) nextParams.set(kind, id);
 		if (nextParams.toString() === searchParams.toString()) return;
 		const query = nextParams.toString();
 		router.push(
@@ -123,57 +125,15 @@ export default function LearnPage() {
 	>(null);
 	const [reviewTaskIndex, setReviewTaskIndex] = useState(0);
 	const [editExamOpen, setEditExamOpen] = useState(false);
-	const [selectedPracticeId, setSelectedPracticeId] = useState<number | null>(
-		null,
-	);
-	const [selectedPracticeTopicId, setSelectedPracticeTopicId] = useState<
-		number | null
-	>(null);
-
-	const [selectedText, setSelectedText] = useState<TopicContentItemDTO | null>(
-		null,
-	);
-	const clearLecturePractice = () => {
-		updateLectureUrl(null);
-		setSelectedPracticeId(null);
-		setSelectedPracticeTopicId(null);
-		setSelectedText(null);
-	};
 	const closeSidebarOnMobile = () => {
 		if (typeof window !== "undefined" && window.innerWidth < 640) {
 			setSidebarOpen(false);
 		}
 	};
-	const selectLecture = (lectureId: number) => {
-		updateLectureUrl(lectureId);
-		closeSidebarOnMobile();
-	};
-	const selectPractice = (practiceId: number, topicId: number) => {
-		setReviewMode(false);
-		setPendingExam(null);
-		setSelectedExam(null);
-		updateLectureUrl(null);
-		setSelectedText(null);
-		setSelectedPracticeId(practiceId);
-		setSelectedPracticeTopicId(topicId);
-		closeSidebarOnMobile();
-	};
-	const selectText = (item: TopicContentItemDTO) => {
-		setReviewMode(false);
-		setPendingExam(null);
-		setSelectedExam(null);
-		updateLectureUrl(null);
-		setSelectedPracticeId(null);
-		setSelectedText(item);
-		closeSidebarOnMobile();
-	};
-	const selectExam = async (examId: string) => {
-		setReviewMode(false);
-		setSelectedReviewAttemptId(null);
-		latestAnswersRef.current = {};
-		clearLecturePractice();
-		const exam = await getExamById(examId).catch(() => null);
-		if (exam) setPendingExam(exam as ExamDTO);
+	const selectContent = (item: TopicContentItemDTO) => {
+		const kind = CONTENT_KINDS.find((kind) => kind === item.kind);
+		if (!kind) return;
+		updateContentUrl(kind, item.id);
 		closeSidebarOnMobile();
 	};
 
@@ -396,34 +356,54 @@ export default function LearnPage() {
 		retry: false,
 	});
 
-	const selectedLecture = useMemo(() => {
-		if (!lectureParam || !/^\d+$/.test(lectureParam)) return null;
-		const id = Number(lectureParam);
-		if (!Number.isSafeInteger(id) || id <= 0) return null;
+	const selectedContent = useMemo(() => {
+		const requested = CONTENT_KINDS.flatMap((kind) =>
+			searchParams.getAll(kind).map((id) => ({ kind, id })),
+		);
+		if (requested.length !== 1) return null;
+		const selection = requested[0];
+		if (!selection) return null;
+		if (selection.kind !== "exam") {
+			if (!/^\d+$/.test(selection.id)) return null;
+			const id = Number(selection.id);
+			if (!Number.isSafeInteger(id) || id <= 0) return null;
+		}
 		for (const topic of topicsQuery.data ?? []) {
-			const lecture = contentByTopicQuery.data?.[topic.id]?.find(
-				(item) => item.kind === "lecture" && Number(item.id) === id,
+			const item = contentByTopicQuery.data?.[topic.id]?.find(
+				(item) => item.kind === selection.kind && (selection.kind === "exam"
+					? item.id.toLowerCase() === selection.id.toLowerCase()
+					: Number(item.id) === Number(selection.id)),
 			);
-			if (lecture) return { id, topicId: topic.id };
+			if (item) return { item, topicId: topic.id };
 		}
 		return null;
-	}, [lectureParam, topicsQuery.data, contentByTopicQuery.data]);
-	const selectedLectureId = selectedLecture?.id ?? null;
-	const selectedLectureTopicId = selectedLecture?.topicId ?? null;
+	}, [searchParams, topicsQuery.data, contentByTopicQuery.data]);
+	const selectedKind = selectedContent?.item.kind;
+	const selectedId = selectedContent?.item.id;
+	const selectedTopicId = selectedContent?.topicId;
+	const selectedLectureId = selectedKind === "lecture" ? Number(selectedId) : null;
+	const selectedLectureTopicId = selectedKind === "lecture" ? selectedTopicId : null;
+	const selectedPracticeId = selectedKind === "practice" ? Number(selectedId) : null;
+	const selectedPracticeTopicId = selectedKind === "practice" ? selectedTopicId : null;
+	const selectedText = selectedKind === "text" ? selectedContent?.item : null;
 
 	useEffect(() => {
-		if (lectureParam == null) return;
+		let cancelled = false;
 		setReviewMode(false);
 		setSelectedReviewAttemptId(null);
 		latestAnswersRef.current = {};
 		setPendingExam(null);
 		setSelectedExam(null);
-		setSelectedPracticeId(null);
-		setSelectedText(null);
-		if (selectedLectureId != null && window.innerWidth < 640) {
+		if (selectedId != null && window.innerWidth < 640) {
 			setSidebarOpen(false);
 		}
-	}, [lectureParam, selectedLectureId]);
+		if (selectedKind === "exam" && selectedId) {
+			getExamById(selectedId).then((exam) => {
+				if (!cancelled) setPendingExam(exam);
+			}).catch(() => {});
+		}
+		return () => { cancelled = true; };
+	}, [selectedKind, selectedId]);
 	const { getStatus: itemStatus, ready: statusReady } = useItemStatus(
 		(topicsQuery.data ?? []).map((topic) => topic.id),
 		contentByTopicQuery.data,
@@ -1291,16 +1271,14 @@ export default function LearnPage() {
 					<button
 						type="button"
 						onClick={() => {
-							clearLecturePractice();
+							updateContentUrl(null);
 							setPendingExam(null);
 							if (typeof window !== "undefined" && window.innerWidth < 640) {
 								setSidebarOpen(false);
 							}
 						}}
 						className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-							!(pendingExam ?? selectedExam) &&
-							selectedLectureId == null &&
-							selectedPracticeId == null
+							!selectedContent
 								? "bg-red-600 text-white"
 								: "text-slate-300 hover:bg-slate-700"
 						}`}
@@ -1371,14 +1349,8 @@ export default function LearnPage() {
 									className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
 								>
 									{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
-										const selected =
-											item.kind === "lecture"
-												? selectedLectureId === Number(item.id)
-												: item.kind === "practice"
-													? selectedPracticeId === Number(item.id)
-													: item.kind === "exam"
-														? (pendingExam ?? selectedExam)?.id === item.id
-														: selectedText?.id === item.id;
+										const selected = selectedTopicId === topic.id &&
+											selectedKind === item.kind && selectedId === item.id;
 										const Icon =
 											item.kind === "lecture"
 												? Video
@@ -1400,14 +1372,7 @@ export default function LearnPage() {
 											<button
 												type="button"
 												key={`${item.kind}-${item.id}`}
-												onClick={() => {
-													if (item.kind === "lecture")
-														selectLecture(Number(item.id));
-													else if (item.kind === "practice")
-														selectPractice(Number(item.id), topic.id);
-													else if (item.kind === "exam") selectExam(item.id);
-													else selectText(item);
-												}}
+												onClick={() => selectContent(item)}
 												className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
 													selected
 														? "bg-red-600 text-white"
