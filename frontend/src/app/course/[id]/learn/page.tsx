@@ -370,9 +370,11 @@ export default function LearnPage() {
 		}
 		for (const topic of topicsQuery.data ?? []) {
 			const item = contentByTopicQuery.data?.[topic.id]?.find(
-				(item) => item.kind === selection.kind && (selection.kind === "exam"
-					? item.id.toLowerCase() === selection.id.toLowerCase()
-					: Number(item.id) === Number(selection.id)),
+				(item) =>
+					item.kind === selection.kind &&
+					(selection.kind === "exam"
+						? item.id.toLowerCase() === selection.id.toLowerCase()
+						: Number(item.id) === Number(selection.id)),
 			);
 			if (item) return { item, topicId: topic.id };
 		}
@@ -381,10 +383,14 @@ export default function LearnPage() {
 	const selectedKind = selectedContent?.item.kind;
 	const selectedId = selectedContent?.item.id;
 	const selectedTopicId = selectedContent?.topicId;
-	const selectedLectureId = selectedKind === "lecture" ? Number(selectedId) : null;
-	const selectedLectureTopicId = selectedKind === "lecture" ? selectedTopicId : null;
-	const selectedPracticeId = selectedKind === "practice" ? Number(selectedId) : null;
-	const selectedPracticeTopicId = selectedKind === "practice" ? selectedTopicId : null;
+	const selectedLectureId =
+		selectedKind === "lecture" ? Number(selectedId) : null;
+	const selectedLectureTopicId =
+		selectedKind === "lecture" ? selectedTopicId : null;
+	const selectedPracticeId =
+		selectedKind === "practice" ? Number(selectedId) : null;
+	const selectedPracticeTopicId =
+		selectedKind === "practice" ? selectedTopicId : null;
 	const selectedText = selectedKind === "text" ? selectedContent?.item : null;
 
 	useEffect(() => {
@@ -398,11 +404,15 @@ export default function LearnPage() {
 			setSidebarOpen(false);
 		}
 		if (selectedKind === "exam" && selectedId) {
-			getExamById(selectedId).then((exam) => {
-				if (!cancelled) setPendingExam(exam);
-			}).catch(() => {});
+			getExamById(selectedId)
+				.then((exam) => {
+					if (!cancelled) setPendingExam(exam);
+				})
+				.catch(() => {});
 		}
-		return () => { cancelled = true; };
+		return () => {
+			cancelled = true;
+		};
 	}, [selectedKind, selectedId]);
 	const { getStatus: itemStatus, ready: statusReady } = useItemStatus(
 		(topicsQuery.data ?? []).map((topic) => topic.id),
@@ -1349,8 +1359,10 @@ export default function LearnPage() {
 									className={`mt-2 w-full space-y-1 overflow-x-hidden ${sidebarOpen ? "" : "sm:hidden"}`}
 								>
 									{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
-										const selected = selectedTopicId === topic.id &&
-											selectedKind === item.kind && selectedId === item.id;
+										const selected =
+											selectedTopicId === topic.id &&
+											selectedKind === item.kind &&
+											selectedId === item.id;
 										const Icon =
 											item.kind === "lecture"
 												? Video
