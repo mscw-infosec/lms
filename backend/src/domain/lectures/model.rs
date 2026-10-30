@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use utoipa::ToSchema;
@@ -24,4 +25,10 @@ pub struct TopicLectureModel {
     pub video_id: Option<String>,
     pub order_index: i32,
     pub completed: bool,
+}
+
+#[derive(FromRow, Debug)]
+pub struct LectureNoteModel {
+    pub content: String,
+    pub updated_at: DateTime<Utc>,
 }
