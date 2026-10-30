@@ -70,7 +70,7 @@ import {
 	Video,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,6 +82,17 @@ type TaskConfig = {
 
 export default function LearnPage() {
 	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const lectureParam = searchParams.get("lecture");
+	const updateLectureUrl = (lectureId: number | null) => {
+		const nextParams = new URLSearchParams(searchParams.toString());
+		if (lectureId == null) nextParams.delete("lecture");
+		else nextParams.set("lecture", String(lectureId));
+		if (nextParams.toString() === searchParams.toString()) return;
+		const query = nextParams.toString();
+		router.push(`${pathname}${query ? `?${query}` : ""}${window.location.hash}`, { scroll: false });
+	};
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
 	const params = useParams<{ id: string }>();
@@ -100,12 +111,6 @@ export default function LearnPage() {
 	>(null);
 	const [reviewTaskIndex, setReviewTaskIndex] = useState(0);
 	const [editExamOpen, setEditExamOpen] = useState(false);
-	const [selectedLectureId, setSelectedLectureId] = useState<number | null>(
-		null,
-	);
-	const [selectedLectureTopicId, setSelectedLectureTopicId] = useState<
-		number | null
-	>(null);
 	const [selectedPracticeId, setSelectedPracticeId] = useState<number | null>(
 		null,
 	);
@@ -114,8 +119,7 @@ export default function LearnPage() {
 		null,
 	);
 	const clearLecturePractice = () => {
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
+		updateLectureUrl(null);
 		setSelectedPracticeId(null);
 		setSelectedText(null);
 	};
@@ -124,24 +128,15 @@ export default function LearnPage() {
 			setSidebarOpen(false);
 		}
 	};
-	const selectLecture = (lectureId: number, topicId: number) => {
-		setReviewMode(false);
-		setSelectedReviewAttemptId(null);
-		latestAnswersRef.current = {};
-		setPendingExam(null);
-		setSelectedExam(null);
-		setSelectedPracticeId(null);
-		setSelectedText(null);
-		setSelectedLectureId(lectureId);
-		setSelectedLectureTopicId(topicId);
+	const selectLecture = (lectureId: number) => {
+		updateLectureUrl(lectureId);
 		closeSidebarOnMobile();
 	};
 	const selectPractice = (practiceId: number) => {
 		setReviewMode(false);
 		setPendingExam(null);
 		setSelectedExam(null);
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
+		updateLectureUrl(null);
 		setSelectedText(null);
 		setSelectedPracticeId(practiceId);
 		closeSidebarOnMobile();
@@ -150,8 +145,7 @@ export default function LearnPage() {
 		setReviewMode(false);
 		setPendingExam(null);
 		setSelectedExam(null);
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
+		updateLectureUrl(null);
 		setSelectedPracticeId(null);
 		setSelectedText(item);
 		closeSidebarOnMobile();
@@ -384,6 +378,35 @@ export default function LearnPage() {
 		enabled: topicsQuery.isSuccess,
 		retry: false,
 	});
+
+	const selectedLecture = useMemo(() => {
+		if (!lectureParam || !/^\d+$/.test(lectureParam)) return null;
+		const id = Number(lectureParam);
+		if (!Number.isSafeInteger(id) || id <= 0) return null;
+		for (const topic of topicsQuery.data ?? []) {
+			const lecture = contentByTopicQuery.data?.[topic.id]?.find(
+				item => item.kind === "lecture" && Number(item.id) === id,
+			);
+			if (lecture) return { id, topicId: topic.id };
+		}
+		return null;
+	}, [lectureParam, topicsQuery.data, contentByTopicQuery.data]);
+	const selectedLectureId = selectedLecture?.id ?? null;
+	const selectedLectureTopicId = selectedLecture?.topicId ?? null;
+
+	useEffect(() => {
+		if (lectureParam == null) return;
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+		setPendingExam(null);
+		setSelectedExam(null);
+		setSelectedPracticeId(null);
+		setSelectedText(null);
+		if (selectedLectureId != null && window.innerWidth < 640) {
+			setSidebarOpen(false);
+		}
+	}, [lectureParam, selectedLectureId]);
 
 	const courseQuery = useQuery({
 		queryKey: ["course", courseId],
@@ -1308,7 +1331,7 @@ export default function LearnPage() {
 											key={`${item.kind}-${item.id}`}
 											onClick={() => {
 												if (item.kind === "lecture")
-													selectLecture(Number(item.id), topic.id);
+													selectLecture(Number(item.id));
 												else if (item.kind === "practice")
 													selectPractice(Number(item.id));
 												else if (item.kind === "exam") selectExam(item.id);
