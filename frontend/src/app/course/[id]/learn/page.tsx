@@ -74,7 +74,12 @@ import {
 	Video,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import {
+	useParams,
+	usePathname,
+	useRouter,
+	useSearchParams,
+} from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -84,8 +89,24 @@ type TaskConfig = {
 	items?: string[];
 };
 
+const CONTENT_KINDS = ["lecture", "practice", "text", "exam"] as const;
+type ContentKind = (typeof CONTENT_KINDS)[number];
+
 export default function LearnPage() {
 	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	const updateContentUrl = (kind: ContentKind | null, id?: string) => {
+		const nextParams = new URLSearchParams(searchParams.toString());
+		for (const contentKind of CONTENT_KINDS) nextParams.delete(contentKind);
+		if (kind && id) nextParams.set(kind, id);
+		if (nextParams.toString() === searchParams.toString()) return;
+		const query = nextParams.toString();
+		router.push(
+			`${pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+			{ scroll: false },
+		);
+	};
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
 	const params = useParams<{ id: string }>();
@@ -104,74 +125,15 @@ export default function LearnPage() {
 	>(null);
 	const [reviewTaskIndex, setReviewTaskIndex] = useState(0);
 	const [editExamOpen, setEditExamOpen] = useState(false);
-	const [selectedLectureId, setSelectedLectureId] = useState<number | null>(
-		null,
-	);
-	const [selectedLectureTopicId, setSelectedLectureTopicId] = useState<
-		number | null
-	>(null);
-	const [selectedPracticeId, setSelectedPracticeId] = useState<number | null>(
-		null,
-	);
-	const [selectedPracticeTopicId, setSelectedPracticeTopicId] = useState<
-		number | null
-	>(null);
-
-	const [selectedText, setSelectedText] = useState<TopicContentItemDTO | null>(
-		null,
-	);
-	const clearLecturePractice = () => {
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
-		setSelectedPracticeId(null);
-		setSelectedPracticeTopicId(null);
-		setSelectedText(null);
-	};
 	const closeSidebarOnMobile = () => {
 		if (typeof window !== "undefined" && window.innerWidth < 640) {
 			setSidebarOpen(false);
 		}
 	};
-	const selectLecture = (lectureId: number, topicId: number) => {
-		setReviewMode(false);
-		setSelectedReviewAttemptId(null);
-		latestAnswersRef.current = {};
-		setPendingExam(null);
-		setSelectedExam(null);
-		setSelectedPracticeId(null);
-		setSelectedText(null);
-		setSelectedLectureId(lectureId);
-		setSelectedLectureTopicId(topicId);
-		closeSidebarOnMobile();
-	};
-	const selectPractice = (practiceId: number, topicId: number) => {
-		setReviewMode(false);
-		setPendingExam(null);
-		setSelectedExam(null);
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
-		setSelectedText(null);
-		setSelectedPracticeId(practiceId);
-		setSelectedPracticeTopicId(topicId);
-		closeSidebarOnMobile();
-	};
-	const selectText = (item: TopicContentItemDTO) => {
-		setReviewMode(false);
-		setPendingExam(null);
-		setSelectedExam(null);
-		setSelectedLectureId(null);
-		setSelectedLectureTopicId(null);
-		setSelectedPracticeId(null);
-		setSelectedText(item);
-		closeSidebarOnMobile();
-	};
-	const selectExam = async (examId: string) => {
-		setReviewMode(false);
-		setSelectedReviewAttemptId(null);
-		latestAnswersRef.current = {};
-		clearLecturePractice();
-		const exam = await getExamById(examId).catch(() => null);
-		if (exam) setPendingExam(exam as ExamDTO);
+	const selectContent = (item: TopicContentItemDTO) => {
+		const kind = CONTENT_KINDS.find((kind) => kind === item.kind);
+		if (!kind) return;
+		updateContentUrl(kind, item.id);
 		closeSidebarOnMobile();
 	};
 
@@ -394,6 +356,64 @@ export default function LearnPage() {
 		retry: false,
 	});
 
+	const selectedContent = useMemo(() => {
+		const requested = CONTENT_KINDS.flatMap((kind) =>
+			searchParams.getAll(kind).map((id) => ({ kind, id })),
+		);
+		if (requested.length !== 1) return null;
+		const selection = requested[0];
+		if (!selection) return null;
+		if (selection.kind !== "exam") {
+			if (!/^\d+$/.test(selection.id)) return null;
+			const id = Number(selection.id);
+			if (!Number.isSafeInteger(id) || id <= 0) return null;
+		}
+		for (const topic of topicsQuery.data ?? []) {
+			const item = contentByTopicQuery.data?.[topic.id]?.find(
+				(item) =>
+					item.kind === selection.kind &&
+					(selection.kind === "exam"
+						? item.id.toLowerCase() === selection.id.toLowerCase()
+						: Number(item.id) === Number(selection.id)),
+			);
+			if (item) return { item, topicId: topic.id };
+		}
+		return null;
+	}, [searchParams, topicsQuery.data, contentByTopicQuery.data]);
+	const selectedKind = selectedContent?.item.kind;
+	const selectedId = selectedContent?.item.id;
+	const selectedTopicId = selectedContent?.topicId;
+	const selectedLectureId =
+		selectedKind === "lecture" ? Number(selectedId) : null;
+	const selectedLectureTopicId =
+		selectedKind === "lecture" ? selectedTopicId : null;
+	const selectedPracticeId =
+		selectedKind === "practice" ? Number(selectedId) : null;
+	const selectedPracticeTopicId =
+		selectedKind === "practice" ? selectedTopicId : null;
+	const selectedText = selectedKind === "text" ? selectedContent?.item : null;
+
+	useEffect(() => {
+		let cancelled = false;
+		setReviewMode(false);
+		setSelectedReviewAttemptId(null);
+		latestAnswersRef.current = {};
+		setPendingExam(null);
+		setSelectedExam(null);
+		if (selectedId != null && window.innerWidth < 640) {
+			setSidebarOpen(false);
+		}
+		if (selectedKind === "exam" && selectedId) {
+			getExamById(selectedId)
+				.then((exam) => {
+					if (!cancelled) setPendingExam(exam);
+				})
+				.catch(() => {});
+		}
+		return () => {
+			cancelled = true;
+		};
+	}, [selectedKind, selectedId]);
 	const { getStatus: itemStatus, ready: statusReady } = useItemStatus(
 		(topicsQuery.data ?? []).map((topic) => topic.id),
 		contentByTopicQuery.data,
@@ -1261,16 +1281,14 @@ export default function LearnPage() {
 					<button
 						type="button"
 						onClick={() => {
-							clearLecturePractice();
+							updateContentUrl(null);
 							setPendingExam(null);
 							if (typeof window !== "undefined" && window.innerWidth < 640) {
 								setSidebarOpen(false);
 							}
 						}}
 						className={`flex w-full items-center rounded-lg p-2 text-left transition-colors ${
-							!(pendingExam ?? selectedExam) &&
-							selectedLectureId == null &&
-							selectedPracticeId == null
+							!selectedContent
 								? "bg-red-600 text-white"
 								: "text-slate-300 hover:bg-slate-700"
 						}`}
@@ -1342,13 +1360,9 @@ export default function LearnPage() {
 								>
 									{(contentByTopicQuery.data?.[topic.id] ?? []).map((item) => {
 										const selected =
-											item.kind === "lecture"
-												? selectedLectureId === Number(item.id)
-												: item.kind === "practice"
-													? selectedPracticeId === Number(item.id)
-													: item.kind === "exam"
-														? (pendingExam ?? selectedExam)?.id === item.id
-														: selectedText?.id === item.id;
+											selectedTopicId === topic.id &&
+											selectedKind === item.kind &&
+											selectedId === item.id;
 										const Icon =
 											item.kind === "lecture"
 												? Video
@@ -1370,14 +1384,7 @@ export default function LearnPage() {
 											<button
 												type="button"
 												key={`${item.kind}-${item.id}`}
-												onClick={() => {
-													if (item.kind === "lecture")
-														selectLecture(Number(item.id), topic.id);
-													else if (item.kind === "practice")
-														selectPractice(Number(item.id), topic.id);
-													else if (item.kind === "exam") selectExam(item.id);
-													else selectText(item);
-												}}
+												onClick={() => selectContent(item)}
 												className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
 													selected
 														? "bg-red-600 text-white"
