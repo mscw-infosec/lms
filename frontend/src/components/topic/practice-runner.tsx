@@ -12,7 +12,7 @@ import { TaskPlayer } from "@/components/task-player";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { type UiAnswerPayload, buildTaskAnswer } from "@/lib/answers";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,9 +64,16 @@ function verdictTone(verdict: string): { label: string; className: string } {
 	}
 }
 
-export default function PracticeRunner({ practiceId }: { practiceId: number }) {
+export default function PracticeRunner({
+	practiceId,
+	topicId,
+}: {
+	practiceId: number;
+	topicId?: number;
+}) {
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
+	const queryClient = useQueryClient();
 	const [results, setResults] = useState<
 		Record<number, PracticeSubmitResultDTO>
 	>({});
@@ -90,6 +97,10 @@ export default function PracticeRunner({ practiceId }: { practiceId: number }) {
 			const answer = buildTaskAnswer(task, ui).answer;
 			const res = await submitPractice(task.id, answer);
 			setResults((prev) => ({ ...prev, [task.id]: res }));
+			await queryClient.invalidateQueries({
+				queryKey:
+					topicId != null ? ["topic-practices", topicId] : ["topic-practices"],
+			});
 		} catch (e) {
 			toast({
 				description:
