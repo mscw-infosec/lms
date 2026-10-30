@@ -70,7 +70,12 @@ import {
 	Video,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+	useParams,
+	usePathname,
+	useRouter,
+	useSearchParams,
+} from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -91,7 +96,10 @@ export default function LearnPage() {
 		else nextParams.set("lecture", String(lectureId));
 		if (nextParams.toString() === searchParams.toString()) return;
 		const query = nextParams.toString();
-		router.push(`${pathname}${query ? `?${query}` : ""}${window.location.hash}`, { scroll: false });
+		router.push(
+			`${pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+			{ scroll: false },
+		);
 	};
 	const { t } = useTranslation("common");
 	const { toast } = useToast();
@@ -385,7 +393,7 @@ export default function LearnPage() {
 		if (!Number.isSafeInteger(id) || id <= 0) return null;
 		for (const topic of topicsQuery.data ?? []) {
 			const lecture = contentByTopicQuery.data?.[topic.id]?.find(
-				item => item.kind === "lecture" && Number(item.id) === id,
+				(item) => item.kind === "lecture" && Number(item.id) === id,
 			);
 			if (lecture) return { id, topicId: topic.id };
 		}
