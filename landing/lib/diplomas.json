@@ -1,0 +1,1533 @@
+[
+	{
+		"name": "Алексей Новиков",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа № 1537"
+			},
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1537"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1537"
+			}
+		]
+	},
+	{
+		"name": "Борис Бернадский",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»",
+				"studyGrade": 8
+			},
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Максим Еронин",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			},
+			{
+				"season": "2023/24",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			},
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Артемий Жданкин",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 179"
+			}
+		]
+	},
+	{
+		"name": "Глеб Курочкин",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»",
+				"studyGrade": 8
+			},
+			{
+				"season": "2023/24",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»"
+			},
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Школа «ЛЕТОВО»"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Михаил Резниченко",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1520 им. Капцовых"
+			},
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1520 им. Капцовых"
+			},
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 1520 им. Капцовых"
+			}
+		]
+	},
+	{
+		"name": "Никита Курлаев",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Николай Кусмауль",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1449"
+			},
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1449"
+			}
+		]
+	},
+	{
+		"name": "Арсений Порхунов",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1518"
+			},
+			{
+				"season": "2023/24",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 1518"
+			}
+		]
+	},
+	{
+		"name": "Артём Туревич",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа Центра педагогического мастерства"
+			}
+		]
+	},
+	{
+		"name": "Елизавета Авдеева",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Александр Василега",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 444"
+			}
+		]
+	},
+	{
+		"name": "Даниил Иванькин",
+		"diplomas": [
+			{
+				"season": "2022/23",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 192"
+			}
+		]
+	},
+	{
+		"name": "Илья Ершов",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1520 им. Капцовых"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Лицей НИУ ВШЭ"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Карим Карамов",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей НИУ ВШЭ"
+			},
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Михаил Раздолькин",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей НИУ ВШЭ"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Фёдор Фроловичев",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1517"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1517"
+			}
+		]
+	},
+	{
+		"name": "Георгий Балашов",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Егор Заборов",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 179"
+			},
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 179"
+			}
+		]
+	},
+	{
+		"name": "Георгий Лагутин",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 152"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 152"
+			}
+		]
+	},
+	{
+		"name": "Максим Никитин",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 548"
+			},
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 548"
+			}
+		]
+	},
+	{
+		"name": "Дмитрий Ванин",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Антон Егоров",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Арсений Семенов",
+		"diplomas": [
+			{
+				"season": "2023/24",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Международная Ломоносовская гимназия"
+			}
+		]
+	},
+	{
+		"name": "Павел Девяткин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа № 444"
+			},
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Школа № 444"
+			}
+		]
+	},
+	{
+		"name": "Георгий Калита",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Алексей Матюшин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Евгений Подыряка",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа № 179",
+				"studyGrade": 8
+			},
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа № 179"
+			}
+		]
+	},
+	{
+		"name": "Илья Старчак",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова",
+				"studyGrade": 8
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Николай Белоусов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Школа № 1502"
+			},
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 2031"
+			}
+		]
+	},
+	{
+		"name": "Иван Катушев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 1158"
+			}
+		]
+	},
+	{
+		"name": "Михаил Селин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Алексей Васильев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Исмаиль Галеев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 179"
+			}
+		]
+	},
+	{
+		"name": "Тимофей Гуленок",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1506"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1506"
+			}
+		]
+	},
+	{
+		"name": "Дарья Дударева",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Матвей Киселев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 2048",
+				"studyGrade": 8
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 2048"
+			}
+		]
+	},
+	{
+		"name": "Николай Копытин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1514"
+			},
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Школа № 1514"
+			}
+		]
+	},
+	{
+		"name": "Тимофей Костенок",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»",
+				"studyGrade": 8
+			}
+		]
+	},
+	{
+		"name": "Кирилл Крымский",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Никита Кузьмин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1905"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1905"
+			}
+		]
+	},
+	{
+		"name": "Тимофей Медведицков",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Владимир Папазов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Артемий Семёнов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 201"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 201"
+			}
+		]
+	},
+	{
+		"name": "Владимир Старостин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1557"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1557"
+			}
+		]
+	},
+	{
+		"name": "Максим Таран",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Глеб Филатов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 548"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 548"
+			}
+		]
+	},
+	{
+		"name": "Арсений Алешин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Артемий Анохин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Предуниверситарий НИЯУ МИФИ"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Предуниверситарий НИЯУ МИФИ"
+			}
+		]
+	},
+	{
+		"name": "Даниил Гладышев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 57"
+			}
+		]
+	},
+	{
+		"name": "Дмитрий Карпович",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1580"
+			}
+		]
+	},
+	{
+		"name": "Дмитрий Лясевич",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 57"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 57"
+			}
+		]
+	},
+	{
+		"name": "Михаил Макеенко",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1449"
+			}
+		]
+	},
+	{
+		"name": "Даниил Мелехов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа Центра педагогического мастерства"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа ЦПМ"
+			}
+		]
+	},
+	{
+		"name": "Александр Субботин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 548"
+			}
+		]
+	},
+	{
+		"name": "Анна Сусак",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 179"
+			}
+		]
+	},
+	{
+		"name": "Тихон Ткаченко",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1535"
+			}
+		]
+	},
+	{
+		"name": "Амир Тлепбергенов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Леон Щукин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1542"
+			},
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1542"
+			}
+		]
+	},
+	{
+		"name": "Сергей Ядов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1580"
+			}
+		]
+	},
+	{
+		"name": "Егор Бабич",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "СУНЦ МГУ"
+			}
+		]
+	},
+	{
+		"name": "Александр Веденяпин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа Центра педагогического мастерства"
+			}
+		]
+	},
+	{
+		"name": "Матвей Давидян",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Лука Дорохин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 152"
+			}
+		]
+	},
+	{
+		"name": "Николай Емельянцев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1537"
+			}
+		]
+	},
+	{
+		"name": "Артём Киселев",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1568"
+			}
+		]
+	},
+	{
+		"name": "Владимир Колтыгин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 548"
+			}
+		]
+	},
+	{
+		"name": "Андрей Манин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа «Олимп-Плюс»"
+			}
+		]
+	},
+	{
+		"name": "Матвей Михайлов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1506"
+			}
+		]
+	},
+	{
+		"name": "Кирилл Надрус",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Александра Норкина",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1363"
+			}
+		]
+	},
+	{
+		"name": "Никита Попов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "СУНЦ МГУ"
+			}
+		]
+	},
+	{
+		"name": "Роман Прокопов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1537"
+			}
+		]
+	},
+	{
+		"name": "Егор Рыков",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1420"
+			}
+		]
+	},
+	{
+		"name": "Евгений Суворов",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 17"
+			}
+		]
+	},
+	{
+		"name": "Дмитрий Чагин",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа «Олимп-Плюс»"
+			}
+		]
+	},
+	{
+		"name": "Дарья Шамсутдинова",
+		"diplomas": [
+			{
+				"season": "2024/25",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Образовательный комплекс «Воробьевы горы»"
+			}
+		]
+	},
+	{
+		"name": "Александр Кравченко",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа № 548"
+			}
+		]
+	},
+	{
+		"name": "Станислав Невровский",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова"
+			}
+		]
+	},
+	{
+		"name": "Севастьян Велигура",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 10,
+				"school": "Школа № 57"
+			}
+		]
+	},
+	{
+		"name": "Леонид Лукашук",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "winner",
+				"grade": 11,
+				"school": "Школа № 57"
+			}
+		]
+	},
+	{
+		"name": "Евгений Григорьев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1580"
+			}
+		]
+	},
+	{
+		"name": "Сергей Григорьев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маяковского"
+			}
+		]
+	},
+	{
+		"name": "Артём Гусев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова",
+				"studyGrade": 8
+			}
+		]
+	},
+	{
+		"name": "Всеволод Жданов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1158"
+			}
+		]
+	},
+	{
+		"name": "Александр Занин",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Денис Калинкин",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 354 им.Д. М. Карбышева"
+			}
+		]
+	},
+	{
+		"name": "Назарий Колесников",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей НИУ ВШЭ"
+			}
+		]
+	},
+	{
+		"name": "Анна Корлякова",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Предуниверситарий НИЯУ МИФИ"
+			}
+		]
+	},
+	{
+		"name": "Григорий Куракин",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 814"
+			}
+		]
+	},
+	{
+		"name": "Арсений Мисюренко",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа «ЛЕТОВО»"
+			}
+		]
+	},
+	{
+		"name": "Андрей Надрус",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1270 «Вектор»"
+			}
+		]
+	},
+	{
+		"name": "Алексей Пронин",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Владислав Садовский",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Артемий Синицын",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1454 «Тимирязевская»"
+			}
+		]
+	},
+	{
+		"name": "Александр Степанов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1502"
+			}
+		]
+	},
+	{
+		"name": "Михаил Тонис",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа имени Маршала В.И. Чуйкова",
+				"studyGrade": 7
+			}
+		]
+	},
+	{
+		"name": "Иван Филиппов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1540"
+			}
+		]
+	},
+	{
+		"name": "Андрей Черкасов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Предуниверситарий НИЯУ МИФИ"
+			}
+		]
+	},
+	{
+		"name": "Михаил Шальнов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 9,
+				"school": "Школа № 1582"
+			}
+		]
+	},
+	{
+		"name": "Дмитрий Демьянов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 58"
+			}
+		]
+	},
+	{
+		"name": "Александр Доценко",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа Глория"
+			}
+		]
+	},
+	{
+		"name": "Данила Косяк",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Артём Лебедев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 1474"
+			}
+		]
+	},
+	{
+		"name": "Евгений Рыженков",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 10,
+				"school": "Школа № 2094"
+			}
+		]
+	},
+	{
+		"name": "Максим Гольцев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1354 «Вектор»"
+			}
+		]
+	},
+	{
+		"name": "Денис Ефремов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1580"
+			}
+		]
+	},
+	{
+		"name": "Константин Кирюшин",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 57"
+			}
+		]
+	},
+	{
+		"name": "Максим Козлов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1520 им. Капцовых"
+			}
+		]
+	},
+	{
+		"name": "Александр Марковский",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1533 «ЛИТ»"
+			}
+		]
+	},
+	{
+		"name": "Артём Румянцев",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Лицей «Вторая школа» имени В.Ф. Овчинникова"
+			}
+		]
+	},
+	{
+		"name": "Ярослав Саидов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1502"
+			}
+		]
+	},
+	{
+		"name": "Алексей Топычканов",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Школа № 1576"
+			}
+		]
+	},
+	{
+		"name": "Никита Черняк",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "СУНЦ МГУ"
+			}
+		]
+	},
+	{
+		"name": "Андрей Шпак",
+		"diplomas": [
+			{
+				"season": "2025/26",
+				"kind": "prize",
+				"grade": 11,
+				"school": "Предуниверситарий НИЯУ МИФИ"
+			}
+		]
+	}
+]
