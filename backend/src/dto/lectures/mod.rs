@@ -1,8 +1,9 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::domain::lectures::model::{LectureModel, TopicLectureModel};
+use crate::domain::lectures::model::{LectureModel, LectureNoteModel, TopicLectureModel};
 
 #[derive(Deserialize, Serialize, Validate, ToSchema)]
 pub struct CreateLectureRequestDTO {
@@ -105,6 +106,33 @@ impl From<TopicLectureModel> for LectureSummaryDTO {
             video_id: value.video_id,
             order_index: value.order_index,
             completed: value.completed,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Validate, ToSchema)]
+pub struct UpsertLectureNoteDTO {
+    #[validate(length(max = 20000, message = "Note must be at most 20000 characters"))]
+    pub content: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct LectureNoteDTO {
+    pub content: String,
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+impl From<Option<LectureNoteModel>> for LectureNoteDTO {
+    fn from(note: Option<LectureNoteModel>) -> Self {
+        match note {
+            Some(note) => Self {
+                content: note.content,
+                updated_at: Some(note.updated_at),
+            },
+            None => Self {
+                content: String::new(),
+                updated_at: None,
+            },
         }
     }
 }

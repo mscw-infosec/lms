@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                DELETE FROM lecture_notes WHERE user_id = $1 AND lecture_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0dcce6e1d1de2f77bf350bf4b5ab06fa4df0edb3fb08aa306de43bd9717d7a34"
+}

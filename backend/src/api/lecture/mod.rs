@@ -26,5 +26,6 @@ pub fn configure(lecture_service: LectureService, jwt: Arc<JWT>) -> OpenApiRoute
         .routes(routes!(list_in_topic))
         .routes(routes!(complete))
         .routes(routes!(uncomplete))
+        .routes(routes!(get_note, save_note))
         .with_state(state)
 }

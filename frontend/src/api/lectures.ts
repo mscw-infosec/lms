@@ -60,3 +60,20 @@ export async function uncompleteLecture(id: number): Promise<void> {
 		withAuth: true,
 	});
 }
+
+export type LectureNoteDTO = components["schemas"]["LectureNoteDTO"];
+
+export async function getLectureNote(id: number): Promise<LectureNoteDTO> {
+	return http<LectureNoteDTO>(`/api/lecture/${id}/notes`, { withAuth: true });
+}
+
+export async function saveLectureNote(
+	id: number,
+	content: string,
+): Promise<LectureNoteDTO> {
+	return http<LectureNoteDTO>(`/api/lecture/${id}/notes`, {
+		method: "PUT",
+		body: JSON.stringify({ content }),
+		withAuth: true,
+	});
+}
