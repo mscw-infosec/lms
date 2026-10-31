@@ -1,8 +1,27 @@
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { JetBrains_Mono, Manrope, Unbounded } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+
+const display = Unbounded({
+	subsets: ["latin", "cyrillic"],
+	weight: ["500", "700"],
+	variable: "--nf-display",
+});
+const sans = Manrope({
+	subsets: ["latin", "cyrillic"],
+	variable: "--nf-body",
+});
+const mono = JetBrains_Mono({
+	subsets: ["latin", "cyrillic"],
+	weight: ["400", "600"],
+	variable: "--nf-code",
+});
+
+export const viewport: Viewport = {
+	themeColor: "#0b0a0c",
+	colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
 	title: "infosec.moscow",
@@ -16,6 +35,11 @@ export const metadata: Metadata = {
 		"всош иб",
 		"всош по иб",
 		"сборная москвы иб",
+		"цпм",
+		"цпм иб",
+		"цпм информационная безопасность",
+		"инфобез",
+		"цпм инфобез",
 	],
 };
 
@@ -25,25 +49,17 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en">
+		<html
+			lang="ru"
+			className={`${display.variable} ${sans.variable} ${mono.variable}`}
+		>
 			<head>
-				<link
-					rel="icon"
-					href="https://infosec.moscow/favicon.ico"
-					type="image/x-icon"
-				/>
+				<link rel="icon" href="/favicon.ico" sizes="any" />
 				<script
 					defer
 					src="https://umami.justmarfix.ru/script.js"
 					data-website-id="7551edd5-225b-4490-a0b0-6cfb1a6a13d8"
-				></script>
-				<style>{`
-html {
-  font-family: ${GeistSans.style.fontFamily};
-  --font-sans: ${GeistSans.variable};
-  --font-mono: ${GeistMono.variable};
-}
-        `}</style>
+				/>
 				{/* Yandex.Metrika counter */}
 				<Script id="yandex-metrika" strategy="afterInteractive">
 					{`
@@ -75,10 +91,7 @@ html {
 				/>
 				<meta property="og:type" content="website" />
 				<meta property="og:url" content="https://infosec.moscow/" />
-				<meta
-					property="og:image"
-					content="https://infosec.moscow/favicon.ico"
-				/>
+				<meta property="og:image" content="https://infosec.moscow/og.jpg" />
 			</head>
 			<body>{children}</body>
 		</html>

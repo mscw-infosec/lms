@@ -1,472 +1,349 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
+import { Render } from "@/components/render";
+import { ResultsWall, TeamPhoto } from "@/components/results";
+import marks from "@/lib/path-marks.json";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
+	ArrowRight,
 	Award,
-	BookOpen,
 	Calendar,
 	Clock,
-	DollarSign,
 	FileWarning,
+	Info,
+	Mail,
 	MapPin,
 	PersonStanding,
+	Send,
 	Shield,
-	Target,
+	Sparkles,
 	Users,
-	X,
 } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 
-export default function InfoSecAnnualProgram() {
-	const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+const LMS = "https://lms.infosec.moscow";
+const EMAIL = "trainers@infosec.moscow";
+const TELEGRAM = "infosec_moscow";
 
-	// Handle escape key to close modal
-	useEffect(() => {
-		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape" && isLoginModalOpen) {
-				setIsLoginModalOpen(false);
-			}
-		};
+const facts = [
+	{ icon: Clock, title: "8 месяцев", text: "3 дня в неделю" },
+	{ icon: MapPin, title: "Гибрид", text: "Москва + занятия онлайн" },
+	{
+		icon: PersonStanding,
+		title: "Кто преподаёт",
+		text: "Практикующие специалисты и студенты",
+	},
+	{ icon: Sparkles, title: "Бесплатно", text: "Главное - занимайтесь" },
+];
 
-		if (isLoginModalOpen) {
-			document.addEventListener("keydown", handleEscape);
-			document.body.style.overflow = "hidden";
-		}
+const tracks = [
+	{
+		render: "icon_offense",
+		alt: "Замок",
+		title: "Наступательная кибербезопасность",
+		text: "Атаки на web-приложения, reverse engineering, современная криптография",
+		tags: ["web", "reverse", "crypto", "pwn"],
+	},
+	{
+		render: "icon_defense",
+		alt: "Сервер",
+		title: "Оборонительная кибербезопасность",
+		text: "Администрирование Linux-систем, Threat Hunting, компьютерные сети, программирование",
+		tags: ["linux", "networks", "ppc"],
+	},
+	{
+		render: "icon_forensics",
+		alt: "Лупа",
+		title: "Работа с инцидентами ИБ",
+		text: "Форензика памяти и сетевая форензика, работа с артефактами инцидентов, анализ кода",
+		tags: ["dfir"],
+	},
+	{
+		render: "icon_law",
+		alt: "Стопка книг",
+		title: "Нормативная база",
+		text: "Современное российское и международное регулирование ИБ, стандарты IT-отрасли",
+		tags: ["law", "standards"],
+	},
+];
 
-		return () => {
-			document.removeEventListener("keydown", handleEscape);
-			document.body.style.overflow = "unset";
-		};
-	}, [isLoginModalOpen]);
+const timeline = [
+	{ title: "Сбор заявок", date: "1–13 сен" },
+	{ title: "Отборочный тест", date: "13 сен" },
+	{ title: "Результаты теста", date: "15–17 сен" },
+	{ title: "Входной тест", date: "19 сен" },
+	{ title: "Начало занятий", date: "Октябрь" },
+];
 
-	const heroDescription = (
-		<p className="mt-4 max-w-2xl text-base text-gray-600 md:text-lg">
-			Обучение навыкам в области информационной безопасности для школьников на
-			протяжении всего учебного года, занятия с преподавателями онлайн и
-			оффлайн, интересные задачи и крутое сообщество учеников-единомышленников.
-		</p>
-	);
+const path = [
+	"Отбор в сборную",
+	"Занятия весь год",
+	"Отборочные этапы ВсОШ",
+	"Финал ВсОШ",
+];
 
+const outcomes = [
+	{
+		icon: Award,
+		title: "Шанс поехать на финал ВсОШ",
+		text: "Успешно прошедшие все отборочные этапы олимпиады поедут на заключительный этап",
+	},
+	{
+		icon: Users,
+		title: "Сообщество",
+		text: "Уникальное сообщество школьников-единомышленников со схожими интересами",
+	},
+	{
+		icon: Shield,
+		title: "Интересную практику",
+		text: "Мы делаем интересные задания для участников сборной, а также храним большой архив задач олимпиады",
+	},
+	{
+		icon: Calendar,
+		title: "Рекомендации",
+		text: "Преподаватели готовы рекомендовать талантливых выпускников на стажировки в ведущие IT‑компании",
+	},
+];
+
+const steps = [
+	{ title: "Подайте заявку", text: "Расскажите нам немного о себе" },
+	{ title: "Пройдите тест", text: "Потребуется ПК и доступ к сети" },
+	{ title: "Получите приглашение", text: "Мы свяжемся со всеми после теста" },
+];
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+	return <span className="tag">~/{children}</span>;
+}
+
+function SectionTitle({
+	path,
+	title,
+	lead,
+}: {
+	path: string;
+	title: string;
+	lead?: string;
+}) {
 	return (
-		<div className="flex min-h-screen flex-col">
-			<header className="h-12 border-b bg-white/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-white/60 md:h-16 md:px-6">
-				<div className="mx-auto flex h-full w-full min-w-0 max-w-6xl items-center">
-					<Link href="/" className="flex min-w-0 items-center">
-						<Shield className="h-6 w-6 text-red-600 md:h-7 md:w-7" />
-						<span className="ml-2 max-w-[14ch] truncate font-bold text-base text-gray-900 md:max-w-none md:text-lg">
+		<div className="max-w-2xl">
+			<Eyebrow>{path}</Eyebrow>
+			<h2 className="mt-4 font-bold font-display text-2xl tracking-tight sm:text-4xl">
+				{title}
+			</h2>
+			{lead && <p className="mt-3 text-muted sm:text-lg">{lead}</p>}
+		</div>
+	);
+}
+
+function Faq({
+	q,
+	children,
+}: {
+	q: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<article className="tile reveal p-5 sm:p-6">
+			<h3 className="flex gap-3 font-semibold">
+				<span className="font-mono text-accent">?</span>
+				{q}
+			</h3>
+			<div className="mt-3 pl-6 text-muted text-sm leading-relaxed">
+				{children}
+			</div>
+		</article>
+	);
+}
+
+export default function Home() {
+	return (
+		<div className="flex min-h-screen flex-col overflow-x-clip">
+			<header className="sticky top-3 z-40 px-3">
+				<div className="mx-auto flex h-14 max-w-6xl items-center gap-2 rounded-full border border-line bg-surface/75 pr-2 pl-4 shadow-[var(--shadow)] backdrop-blur-xl">
+					<a href="/" className="flex min-w-0 items-center gap-2">
+						<Logo className="h-7 w-7 shrink-0" />
+						<span className="truncate font-bold font-display text-sm sm:text-base">
 							infosec.moscow
 						</span>
-					</Link>
-
-					<nav className="ml-4 hidden gap-6 md:flex">
-						<a
-							href="#program"
-							className="font-medium text-gray-600 text-sm hover:text-red-600"
-						>
-							О занятиях
-						</a>
-						<a
-							href="#curriculum"
-							className="font-medium text-gray-600 text-sm hover:text-red-600"
-						>
-							Программа
-						</a>
-						<a
-							href="#admissions"
-							className="font-medium text-gray-600 text-sm hover:text-red-600"
-						>
-							Поступление
-						</a>
-						<a
-							href="#faq"
-							className="font-medium text-gray-600 text-sm hover:text-red-600"
-						>
-							FAQ
-						</a>
+					</a>
+					<nav className="ml-6 hidden gap-1 whitespace-nowrap text-sm lg:flex">
+						{[
+							["#program", "О занятиях"],
+							["#curriculum", "Программа"],
+							["#admissions", "Поступление"],
+							["#faq", "FAQ"],
+						].map(([href, label]) => (
+							<a
+								key={href}
+								href={href}
+								className="rounded-full px-3 py-2 font-medium text-muted transition-colors hover:bg-accent-soft hover:text-accent"
+							>
+								{label}
+							</a>
+						))}
 					</nav>
-
-					{/*<div className="ml-auto flex items-center gap-1.5 md:gap-2">*/}
-					{/*	<Button*/}
-					{/*		size="sm"*/}
-					{/*		className="whitespace-nowrap bg-red-600 hover:bg-red-700"*/}
-					{/*		asChild*/}
-					{/*		onClick={() => setIsLoginModalOpen(true)}*/}
-					{/*	>*/}
-					{/*		<Link href="#">Вход</Link>*/}
-					{/*	</Button>*/}
-					{/*</div>*/}
 				</div>
 			</header>
 
-			{/* Login Modal */}
-			{isLoginModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center">
-					{/* Backdrop */}
-					<div
-						className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-						onClick={() => setIsLoginModalOpen(false)}
-					/>
-
-					{/* Modal */}
-					<div className="relative mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-						<div className="mb-4 flex items-center justify-between">
-							<h2 className="font-semibold text-gray-900 text-lg">
-								Вход в систему
-							</h2>
-							<button
-								onClick={() => setIsLoginModalOpen(false)}
-								className="text-gray-400 transition-colors hover:text-gray-600"
-							>
-								<X className="h-5 w-5" />
-							</button>
-						</div>
-
-						<div className="py-8 text-center">
-							<Shield className="mx-auto mb-4 h-12 w-12 text-red-600" />
-							<p className="mb-2 text-gray-600">
-								Для перехода в LMS нажмите на кнопку ниже
-							</p>
-						</div>
-
-						<div className="flex gap-3">
-							<Button
-								variant="outline"
-								className="flex-1 bg-transparent"
-								onClick={() => setIsLoginModalOpen(false)}
-							>
-								Закрыть
-							</Button>
-							<Button
-								className="flex-1 bg-red-600 hover:bg-red-700"
-								asChild
-								onClick={() => setIsLoginModalOpen(false)}
-							>
-								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
-
 			<main className="flex-1">
-				{/* Hero */}
-				<section className="w-full bg-gradient-to-br from-gray-50 to-gray-100 py-14 md:py-24 lg:py-28">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<div className="flex flex-col items-center text-center">
-							{/*<div className="mb-8 w-full max-w-3xl rounded-xl border-2 border-red-600 bg-red-600 px-5 py-4 text-white shadow-lg md:px-8 md:py-5">*/}
-							{/*	<div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4">*/}
-							{/*		<Clock className="h-6 w-6 shrink-0 md:h-7 md:w-7" />*/}
-							{/*		<p className="font-semibold text-base leading-snug md:text-lg">*/}
-							{/*			Отборочный тест проходит 13 сентября на платформе{" "}*/}
-							{/*			<a*/}
-							{/*				href="https://lms.infosec.moscow"*/}
-							{/*				className="font-bold underline decoration-2 underline-offset-4 hover:no-underline"*/}
-							{/*			>*/}
-							{/*				lms.infosec.moscow*/}
-							{/*			</a>{" "}*/}
-							{/*			с 10:00 до 21:00 по московскому времени*/}
-							{/*		</p>*/}
-							{/*	</div>*/}
-							{/*</div>*/}
-							<h1 className="max-w-3xl font-bold text-3xl tracking-tight sm:text-5xl">
-								Сборная Москвы на ВсОШ по Информационной Безопасности
+				<section className="dots -mt-[4.25rem] relative pt-[4.25rem]">
+					<div className="mx-auto grid max-w-6xl items-center gap-6 px-4 pt-10 pb-16 md:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:pt-20 lg:pb-24">
+						<div>
+							<h1 className="font-bold font-display text-[2rem] leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.6rem]">
+								Сборная Москвы{" "}
+								<span className="text-accent">на ВсОШ по ИБ</span>
+								<span className="caret" />
 							</h1>
-							{heroDescription}
+							<p className="mt-6 max-w-xl text-base text-muted leading-relaxed md:text-lg">
+								Обучение навыкам в области информационной безопасности для
+								школьников на протяжении всего учебного года, занятия с
+								преподавателями онлайн и оффлайн, интересные задачи и крутое
+								сообщество учеников-единомышленников.
+							</p>
 							<div className="mt-8 flex flex-col gap-3 sm:flex-row">
-								<Button
-									size="lg"
-									className="bg-red-600 hover:bg-red-700"
-									asChild
-								>
-									<a href="https://lms.infosec.moscow">Открыть LMS</a>
-								</Button>
-								<Button variant="outline" size="lg" asChild>
-									<a href="#timeline">Даты и сроки</a>
-								</Button>
+								<a href={LMS} className="btn btn-primary">
+									Открыть LMS <ArrowRight className="h-4 w-4" />
+								</a>
+								<a href="#timeline" className="btn btn-ghost">
+									Даты и сроки
+								</a>
 							</div>
 						</div>
-					</div>
-				</section>
-
-				{/* Program at a glance */}
-				<section id="program" className="w-full py-12 md:py-20">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-							<Card>
-								<CardHeader className="pb-2">
-									<div className="flex items-center gap-2">
-										<Clock className="h-5 w-5 text-red-600" />
-										<CardTitle className="text-base">
-											Продолжительность программы
-										</CardTitle>
-									</div>
-									<CardDescription>8 месяцев - 3 дня в неделю</CardDescription>
-								</CardHeader>
-							</Card>
-							<Card>
-								<CardHeader className="pb-2">
-									<div className="flex items-center gap-2">
-										<MapPin className="h-5 w-5 text-red-600" />
-										<CardTitle className="text-base">Формат</CardTitle>
-									</div>
-									<CardDescription>
-										Гибридный: Москва + занятия онлайн
-									</CardDescription>
-								</CardHeader>
-							</Card>
-							<Card>
-								<CardHeader className="pb-2">
-									<div className="flex items-center gap-2">
-										<PersonStanding className="h-5 w-5 text-red-600" />
-										<CardTitle className="text-base">Кто преподаёт</CardTitle>
-									</div>
-									<CardDescription>
-										Практикующие специалисты и студенты
-									</CardDescription>
-								</CardHeader>
-							</Card>
-							<Card>
-								<CardHeader className="pb-2">
-									<div className="flex items-center gap-2">
-										<DollarSign className="h-5 w-5 text-red-600" />
-										<CardTitle className="text-base">Стоимость</CardTitle>
-									</div>
-									<CardDescription>
-										Это бесплатно! Главное - занимайтесь.
-									</CardDescription>
-								</CardHeader>
-							</Card>
+						<div className="relative mx-auto aspect-square w-full max-w-[20rem] sm:max-w-[26rem] lg:max-w-none">
+							<div className="glow inset-[18%]" />
+							<div className="-translate-x-1/2 absolute bottom-[4%] left-1/2 h-[7%] w-[42%] rounded-[50%] bg-[rgb(255_30_50/0.22)] blur-xl" />
+							<div
+								className="hero-shield absolute inset-0"
+								role="img"
+								aria-label="Объёмный красный щит - логотип сборной"
+							/>
 						</div>
 					</div>
 				</section>
 
-				{/* Curriculum pillars */}
-				<section id="curriculum" className="w-full bg-gray-50 py-12 md:py-20">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<div className="text-center">
-							<h2 className="font-bold text-2xl tracking-tight sm:text-4xl">
-								Чему вы научитесь
-							</h2>
-							<p className="mx-auto mt-3 max-w-2xl text-gray-600">
-								Мы стараемся совмещать теоретические знания с практическими,
-								чтобы научить большему.
+				<section className="px-4 md:px-6">
+					<ResultsWall />
+					<TeamPhoto />
+				</section>
+
+				<section
+					id="program"
+					className="scroll-mt-24 px-4 py-16 md:px-6 md:py-24"
+				>
+					<div className="mx-auto max-w-6xl">
+						<SectionTitle path="program" title="О занятиях" />
+						<div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+							{facts.map(({ icon: Icon, title, text }) => (
+								<div key={title} className="tile reveal p-6">
+									<span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+										<Icon className="h-5 w-5" />
+									</span>
+									<div className="mt-5 font-bold font-display text-lg">
+										{title}
+									</div>
+									<p className="mt-1 text-muted text-sm">{text}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				<section
+					id="curriculum"
+					className="dots scroll-mt-24 px-4 py-16 md:px-6 md:py-24"
+				>
+					<div className="mx-auto max-w-6xl">
+						<SectionTitle
+							path="curriculum"
+							title="Чему вы научитесь"
+							lead="Мы стараемся совмещать теоретические знания с практическими, чтобы научить большему."
+						/>
+						<div className="mt-8 grid gap-4 md:grid-cols-2">
+							{tracks.map(({ render, alt, title, text, tags }) => (
+								<div
+									key={title}
+									className="tile reveal group relative flex flex-col overflow-hidden p-6 sm:flex-row sm:items-center sm:gap-2 sm:p-8"
+								>
+									<div className="glow -right-10 -top-10 h-40 w-40 opacity-60" />
+									<div className="relative order-2 flex flex-1 flex-col sm:order-1">
+										<h3 className="font-bold font-display text-lg leading-snug">
+											{title}
+										</h3>
+										<p className="mt-3 text-muted text-sm leading-relaxed">
+											{text}
+										</p>
+										<div className="mt-5 flex flex-wrap gap-1.5">
+											{tags.map((t) => (
+												<span
+													key={t}
+													className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-[11px] text-muted"
+												>
+													#{t}
+												</span>
+											))}
+										</div>
+									</div>
+									<Render
+										name={render}
+										alt={alt}
+										width={900}
+										height={900}
+										sizes="(min-width: 640px) 176px, 144px"
+										className="-mx-2 -mt-2 group-hover:-translate-y-1 relative order-1 h-36 w-36 shrink-0 transition-transform duration-500 group-hover:rotate-2 sm:order-2 sm:m-0 sm:h-44 sm:w-44"
+									/>
+								</div>
+							))}
+						</div>
+					</div>
+				</section>
+
+				<section
+					id="timeline"
+					className="scroll-mt-24 px-4 py-16 md:px-6 md:py-24"
+				>
+					<div className="mx-auto max-w-6xl">
+						<SectionTitle
+							path="timeline"
+							title="Таймлайн набора сентября 2026"
+						/>
+						<div className="reveal mt-8 flex items-start gap-3 rounded-[1.75rem] border border-line bg-surface p-5 sm:items-center sm:p-6">
+							<span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+								<Info className="h-5 w-5" />
+							</span>
+							<p className="text-sm leading-relaxed sm:text-base">
+								<strong>Набор сентября 2026 года завершён.</strong>{" "}
+								<span className="text-muted">
+									В течение учебного года могут проходить дополнительные наборы
+									- например, после отборочных этапов ВсОШ.
+								</span>
 							</p>
 						</div>
-						<div className="mt-10 grid gap-6 md:grid-cols-2">
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<Target className="h-6 w-6 text-red-600" />
-										<CardTitle>Наступательная кибербезопасность</CardTitle>
+						<ol className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-5">
+							{timeline.map((m, i) => (
+								<li
+									key={m.title}
+									className="tile reveal relative flex items-center gap-4 p-5 md:flex-col md:items-start md:gap-6"
+								>
+									<span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent font-bold font-mono text-accent-ink text-sm">
+										{String(i + 1).padStart(2, "0")}
+									</span>
+									<div>
+										<div className="font-semibold">{m.title}</div>
+										<div className="mt-0.5 font-mono text-accent text-sm">
+											{m.date}
+										</div>
 									</div>
-								</CardHeader>
-								<CardContent className="text-gray-600 text-sm">
-									Атаки на web-приложения, reverse engineering, современная
-									криптография
-								</CardContent>
-							</Card>
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<Shield className="h-6 w-6 text-red-600" />
-										<CardTitle>Оборонительная кибербезопасность</CardTitle>
-									</div>
-								</CardHeader>
-								<CardContent className="text-gray-600 text-sm">
-									Администрирование Linux-систем, Threat Hunting, компьютерные
-									сети, программирование
-								</CardContent>
-							</Card>
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<FileWarning className="h-6 w-6 text-red-600" />
-										<CardTitle>Работа с инцидентами ИБ</CardTitle>
-									</div>
-								</CardHeader>
-								<CardContent className="text-gray-600 text-sm">
-									Форензика памяти и сетевая форензика, работа с артефактами
-									инцидентов, анализ кода
-								</CardContent>
-							</Card>
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-2">
-										<BookOpen className="h-6 w-6 text-red-600" />
-										<CardTitle>Нормативная база</CardTitle>
-									</div>
-								</CardHeader>
-								<CardContent className="text-gray-600 text-sm">
-									Современное российское и международное регулирование ИБ,
-									стандарты IT-отрасли
-								</CardContent>
-							</Card>
-						</div>
-					</div>
-				</section>
+								</li>
+							))}
+						</ol>
 
-				{/* Cohort timeline (mobile-optimized) */}
-				<section id="timeline" className="w-full py-12 md:py-20">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						{/*<div className="mb-6 rounded-lg border-l-4 border-amber-500 bg-amber-50 p-4">*/}
-						{/*<p className="text-gray-800 text-sm font-medium">*/}
-						{/*	Сентябрьский отбор 2025 года завершён. Даты следующих отборов будут анонсированы позже.*/}
-						{/*</p>*/}
-						{/*</div>*/}
-
-						<h3 className="font-bold text-xl">Таймлайн набора сентября 2026</h3>
-
-						{/* Mobile: two rows (3 + 2) to avoid overflow */}
-						<div
-							className="mt-6 space-y-10 md:hidden"
-							aria-label="Таймлайн набора (мобильная версия)"
-						>
-							{/* Row 1: items 1-3 */}
-							<div className="relative pt-8">
-								<div className="absolute top-6 right-2 left-2 h-1 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
-								<ul className="relative grid grid-cols-3 place-items-center gap-3 px-1">
-									{/* 1 */}
-									<li className="relative flex min-w-0 flex-col items-center">
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[6.5rem] text-center">
-											<div className="font-semibold text-[11px] text-gray-900">
-												Сбор заявок
-											</div>
-											<div className="text-[10px] text-gray-600">1–13 Сен</div>
-										</div>
-									</li>
-									{/* 2 */}
-									<li className="relative flex min-w-0 flex-col items-center">
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[6.5rem] text-center">
-											<div className="font-semibold text-[11px] text-gray-900">
-												Отборочный тест
-											</div>
-											<div className="text-[10px] text-gray-600">13 Сен</div>
-										</div>
-									</li>
-									{/* 3 */}
-									<li className="relative flex min-w-0 flex-col items-center">
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[6.5rem] text-center">
-											<div className="font-semibold text-[11px] text-gray-900">
-												Результаты теста
-											</div>
-											<div className="text-[10px] text-gray-600">15-17 Сен</div>
-										</div>
-									</li>
-								</ul>
-							</div>
-
-							{/* Row 2: items 4-5 */}
-							<div className="relative pt-8">
-								<div className="absolute top-6 right-8 left-8 h-1 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
-								<ul className="relative grid grid-cols-2 place-items-center gap-3 px-4">
-									{/* 4 */}
-									<li className="relative flex min-w-0 flex-col items-center">
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[7rem] text-center">
-											<div className="font-semibold text-[11px] text-gray-900">
-												Входной тест
-											</div>
-											<div className="text-[10px] text-gray-600">19 Сен</div>
-										</div>
-									</li>
-									{/* 5 */}
-									<li className="relative flex min-w-0 flex-col items-center">
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-3.5 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[7rem] text-center">
-											<div className="font-semibold text-[11px] text-gray-900">
-												Начало занятий
-											</div>
-											<div className="text-[10px] text-gray-600">Октябрь</div>
-										</div>
-									</li>
-								</ul>
-							</div>
-						</div>
-
-						{/* Desktop: single line, no clipping */}
-						<div
-							className="relative mt-8 hidden pt-10 md:block"
-							aria-label="Таймлайн набора (десктоп)"
-						>
-							<div className="absolute top-8 right-4 left-4 h-1 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200" />
-							<ul className="relative grid grid-cols-5 place-items-center gap-4 px-2">
-								{[
-									{ title: "Сбор заявок", date: "1–13 Сен" },
-									{ title: "Отборочный тест", date: "13 Сен" },
-									{ title: "Результаты теста", date: "15–17 Сен" },
-									{ title: "Входной тест", date: "19 Сен" },
-									{ title: "Начало занятий", date: "Октябрь" },
-								].map((m) => (
-									<li
-										key={m.title}
-										className="relative flex min-w-0 flex-col items-center"
-									>
-										<span className="relative z-10 inline-flex items-center justify-center">
-											<span className="h-4 w-4 rounded-full bg-white shadow-sm ring-2 ring-red-600">
-												<span className="block h-2 w-2 translate-x-1 translate-y-1 rounded-full bg-red-600" />
-											</span>
-										</span>
-										<span className="mt-1 h-4 w-0.5 rounded-full bg-gray-300" />
-										<div className="mt-2 w-full min-w-0 max-w-[9rem] text-center">
-											<div className="font-semibold text-gray-900 text-xs">
-												{m.title}
-											</div>
-											<div className="text-[11px] text-gray-600">{m.date}</div>
-										</div>
-									</li>
-								))}
-							</ul>
-						</div>
-
-						<p className="sr-only">
-							Таймлайн: сбор заявок, отборочный тест, проверка теста,
-							результаты, начало занятий.
-						</p>
-
-						<div className="mt-10 rounded-lg border border-red-100 bg-red-50 p-5 md:p-6">
-							<div className="flex items-start gap-3">
-								<FileWarning className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-								<div>
-									<h4 className="font-semibold text-base text-gray-900">
+						<div className="reveal mt-6 rounded-[1.75rem] border border-accent/25 bg-accent-soft p-6 md:p-8">
+							<div className="flex items-start gap-4">
+								<span className="hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-ink sm:inline-flex">
+									<FileWarning className="h-5 w-5" />
+								</span>
+								<div className="text-sm leading-relaxed [&_a:hover]:underline [&_a]:font-semibold [&_a]:text-accent [&_a]:underline-offset-4">
+									<h3 className="font-bold font-display text-lg">
 										О тестированиях
-									</h4>
-									<p className="mt-2 text-gray-700 text-sm leading-relaxed">
+									</h3>
+									<p className="mt-3">
 										В 2026/2027 учебном году отбор в сборную состоит из двух
 										этапов: отборочного и входного тестов. Первый нужен для
 										того, чтобы понять, кто из участников готов к обучению в
@@ -476,7 +353,7 @@ export default function InfoSecAnnualProgram() {
 										тесте смогут принять участие ученики, успешно прошедшие
 										первый тест.
 									</p>
-									<p className="mt-3 text-gray-700 text-sm leading-relaxed">
+									<p className="mt-3">
 										<strong>
 											Для участия в отборочном тесте необходимо заранее
 											заполнить форму с данными об ученике
@@ -486,14 +363,13 @@ export default function InfoSecAnnualProgram() {
 											href="https://цпм.рф/%D0%BA%D1%83%D1%80%D1%81%D1%8B/%d0%bd%d0%b0%d0%b1%d0%be%d1%80-%d0%bf%d0%be-%d0%b8%d0%b1-2026/"
 											target="_blank"
 											rel="noopener noreferrer"
-											className="font-medium text-red-600 hover:underline"
 										>
 											сайте ЦПМ
 										</a>
 										. Без заполненной формы мы не сможем пригласить вас в
 										сборную по результатам тестирования.
 									</p>
-									<p className="mt-3 text-gray-700 text-sm leading-relaxed">
+									<p className="mt-3">
 										Отборочный тест не является обязательным для учеников,
 										являющихся участниками, призёрами или победителями
 										заключительного этапа, а также призёрами или победителями
@@ -506,274 +382,278 @@ export default function InfoSecAnnualProgram() {
 										</strong>{" "}
 										Входной тест обязателен к прохождению для всех. Подробнее
 										про подготовку к тестированиям можно узнать в разделе{" "}
-										<a
-											href="#faq"
-											className="font-medium text-red-600 hover:underline"
+										<a href="#faq">FAQ</a>.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section className="dots px-4 py-16 md:px-6 md:py-24">
+					<div className="mx-auto max-w-6xl">
+						<SectionTitle path="perks" title="Что вы получите" />
+						<div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+							{outcomes.map(({ icon: Icon, title, text }) => (
+								<div key={title} className="tile reveal p-6">
+									<span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+										<Icon className="h-5 w-5" />
+									</span>
+									<div className="mt-5 font-bold font-display text-base leading-snug">
+										{title}
+									</div>
+									<p className="mt-2 text-muted text-sm leading-relaxed">
+										{text}
+									</p>
+								</div>
+							))}
+						</div>
+
+						<figure className="tile reveal relative mt-4 overflow-hidden">
+							<Render
+								name="path"
+								alt="Четыре ступени к золотому кубку: путь от отбора до финала ВсОШ"
+								width={2400}
+								height={1200}
+								sizes="(min-width: 1152px) 1152px, 100vw"
+								className="block h-auto w-full"
+							/>
+							<figcaption className="absolute top-5 left-5 max-w-[16rem] sm:top-8 sm:left-8 md:top-10 md:left-10 md:max-w-xs">
+								<span className="tag">~/road-to-final</span>
+								<div className="mt-3 hidden font-bold font-display text-2xl leading-tight md:block lg:text-3xl">
+									Путь до финала ВсОШ
+								</div>
+							</figcaption>
+							{marks.map((m, i) => {
+								const last = i === path.length - 1;
+								return (
+									<div
+										key={path[i]}
+										className={`absolute flex items-center gap-1.5 ${last ? "-translate-y-1/2 flex-row" : "-translate-x-1/2 -translate-y-full flex-col pb-[2.5%]"}`}
+										style={
+											last
+												? {
+														right: `calc(${100 - m.x}% - 1rem)`,
+														top: `${m.y}%`,
+													}
+												: { left: `${m.x}%`, top: `${m.y}%` }
+										}
+									>
+										<span className="hidden whitespace-nowrap rounded-full bg-surface/85 px-3 py-1 font-semibold text-xs backdrop-blur md:block lg:text-sm">
+											{path[i]}
+										</span>
+										<span
+											className={`inline-flex h-7 w-7 items-center justify-center rounded-full font-bold font-mono text-[11px] md:h-8 md:w-8 ${last ? "bg-[#d4a034] text-black" : "bg-accent text-accent-ink"}`}
 										>
-											FAQ
-										</a>
-										.
-									</p>
-								</div>
-							</div>
-						</div>
+											{String(i + 1).padStart(2, "0")}
+										</span>
+									</div>
+								);
+							})}
+						</figure>
+						<ol className="mt-3 grid grid-cols-2 gap-2 font-mono text-muted text-xs md:hidden">
+							{path.map((p, i) => (
+								<li
+									key={p}
+									className="rounded-2xl border border-line px-3 py-2"
+								>
+									<span className="text-accent">
+										{String(i + 1).padStart(2, "0")}
+									</span>{" "}
+									{p}
+								</li>
+							))}
+						</ol>
 					</div>
 				</section>
 
-				{/* Outcomes ("Что вы получите") as its own section, always stacked below */}
-				<section className="w-full bg-white py-8 md:py-16">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<h3 className="font-bold text-xl">Что вы получите</h3>
-						<div className="mt-6 grid gap-6 sm:grid-cols-2">
-							<div className="rounded-lg border">
-								<div className="pb-2">
-									<div className="flex items-center gap-2 p-4">
-										<Award className="h-5 w-5 text-red-600" />
-										<span className="font-semibold text-base">
-											Шанс поехать на финал ВсОШ
-										</span>
+				<section
+					id="admissions"
+					className="scroll-mt-24 px-4 py-16 md:px-6 md:py-24"
+				>
+					<div className="mx-auto max-w-6xl">
+						<SectionTitle
+							path="admissions"
+							title="Поступление"
+							lead="Отборы проходят несколько раз в год - в начале учебного года и после каждого из отборочных этапов ВсОШ."
+						/>
+						<ol className="mt-8 grid gap-4 md:grid-cols-3">
+							{steps.map((s, i) => (
+								<li key={s.title} className="tile reveal p-6">
+									<span className="font-bold font-display text-5xl text-accent/25">
+										{i + 1}
+									</span>
+									<div className="mt-3 font-bold font-display text-lg">
+										{s.title}
 									</div>
-									<p className="px-4 pb-4 text-gray-600 text-sm">
-										Успешно прошедшие все отборочные этапы олимпиады поедут на
-										заключительный этап
-									</p>
-								</div>
-							</div>
-							<div className="rounded-lg border">
-								<div className="pb-2">
-									<div className="flex items-center gap-2 p-4">
-										<Users className="h-5 w-5 text-red-600" />
-										<span className="font-semibold text-base">Сообщество</span>
-									</div>
-									<p className="px-4 pb-4 text-gray-600 text-sm">
-										Уникальное сообщество школьников-единомышленников со схожими
-										интересами
-									</p>
-								</div>
-							</div>
-							<div className="rounded-lg border">
-								<div className="pb-2">
-									<div className="flex items-center gap-2 p-4">
-										<Shield className="h-5 w-5 text-red-600" />
-										<span className="font-semibold text-base">
-											Интересную практику
-										</span>
-									</div>
-									<p className="px-4 pb-4 text-gray-600 text-sm">
-										Мы делаем интересные задания для участников сборной, а также
-										храним большой архив задач олимпиады
-									</p>
-								</div>
-							</div>
-							<div className="rounded-lg border">
-								<div className="pb-2">
-									<div className="flex items-center gap-2 p-4">
-										<Calendar className="h-5 w-5 text-red-600" />
-										<span className="font-semibold text-base">
-											Рекомендации
-										</span>
-									</div>
-									<p className="px-4 pb-4 text-gray-600 text-sm">
-										Преподаватели готовы рекомендовать талантливых выпускников
-										на стажировки в ведущие IT‑компании
-									</p>
-								</div>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				{/* Admissions process */}
-				<section id="admissions" className="w-full bg-gray-50 py-12 md:py-20">
-					<div className="mx-auto max-w-6xl px-4 md:px-6">
-						<div className="text-center">
-							<h2 className="font-bold text-2xl tracking-tight sm:text-4xl">
-								Поступление
-							</h2>
-							<p className="mx-auto mt-3 max-w-2xl text-gray-600">
-								Отборы проходят несколько раз в год - в начале учебного года и
-								после каждого из отборочных этапов ВсОШ.
-							</p>
-						</div>
-						<div className="mt-10 grid gap-6 md:grid-cols-3">
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-3">
-										<span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-red-50 font-semibold text-red-700 text-sm">
-											1
-										</span>
-										<CardTitle>Подайте заявку</CardTitle>
-									</div>
-									<CardDescription>
-										Расскажите нам немного о себе
-									</CardDescription>
-								</CardHeader>
-							</Card>
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-3">
-										<span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-red-50 font-semibold text-red-700 text-sm">
-											2
-										</span>
-										<CardTitle>Пройдите тест</CardTitle>
-									</div>
-									<CardDescription>
-										Потребуется ПК и доступ к сети
-									</CardDescription>
-								</CardHeader>
-							</Card>
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-3">
-										<span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-200 bg-red-50 font-semibold text-red-700 text-sm">
-											3
-										</span>
-										<CardTitle>Получите приглашение</CardTitle>
-									</div>
-									<CardDescription>
-										Мы свяжемся со всеми после теста
-									</CardDescription>
-								</CardHeader>
-							</Card>
-						</div>
-						<div
-							id="apply"
-							className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
+									<p className="mt-1 text-muted text-sm">{s.text}</p>
+								</li>
+							))}
+						</ol>
+						<a
+							href={`https://t.me/${TELEGRAM}`}
+							target="_blank"
+							rel="noreferrer"
+							className="tile reveal group relative mt-4 flex flex-col gap-5 overflow-hidden p-6 transition-colors hover:border-accent sm:flex-row sm:items-center sm:p-8"
 						>
-							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
-							</Button>
-							<Button
-								variant="outline"
-								size="lg"
-								asChild
-								onClick={() => setIsLoginModalOpen(true)}
-							>
-								<Link href="#">Уже подали? Входите!</Link>
-							</Button>
-						</div>
+							<div className="glow -left-16 -top-16 h-56 w-56 opacity-70" />
+							<span className="relative inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-ink shadow-[0_8px_24px_-8px_var(--glow)]">
+								<Send className="-translate-x-px h-6 w-6" />
+							</span>
+							<div className="relative flex-1">
+								<div className="font-bold font-display text-lg sm:text-xl">
+									Следите за новостями
+								</div>
+								<p className="mt-1 text-muted text-sm">
+									Новые наборы, даты тестирований и жизнь сборной - в нашем
+									Telegram-канале{" "}
+									<span className="font-mono text-text">@{TELEGRAM}</span>
+								</p>
+							</div>
+							<span className="btn btn-primary relative self-start sm:self-auto">
+								Подписаться
+								<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+							</span>
+						</a>
 					</div>
 				</section>
 
-				{/* FAQ */}
-				<section id="faq" className="w-full py-12 md:py-20">
-					<div className="mx-auto max-w-3xl px-4 md:px-6">
-						<h2 className="font-bold text-2xl tracking-tight sm:text-4xl">
-							Часто задаваемые вопросы
-						</h2>
-						<div className="mt-6 space-y-6">
-							<details className="group rounded-lg border p-4">
-								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Для кого эта программа?
-								</summary>
-								<p className="mt-2 text-gray-600 text-sm">
-									Для школьников, учащихся в школах Москвы. Мы принимаем заявки
-									от школьников всех возрастов, но участвовать в олимпиаде на
-									региональном и заключительном этапе могут только ученики 9-11
-									классов.
-								</p>
-							</details>
-							<details className="group rounded-lg border p-4">
-								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Есть ли у вас занятия для школьников 7-8 классов?
-								</summary>
-								<p className="mt-2 text-gray-600 text-sm">
-									Да, мы проводим отдельные занятия для школьников 7-8 классов.
-									Вступительные испытания одинаковы для 7-8 и 9-11 классов.
-								</p>
-							</details>
-							<details className="group rounded-lg border p-4">
-								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Я не в 9-11 классах, но хочу участвовать в заключительном
-									этапе ВсОШ. Так можно?
-								</summary>
-								<p className="mt-2 text-gray-600 text-sm">
-									Да, но только если вы пишете олимпиаду за класс выше
-									(например, девятый). Если вы хотите участвовать за класс выше,
-									начинать нужно со школьного этапа - подробности стоит уточнить
-									у ответственного за олимпиаду в вашей школе.
-								</p>
-							</details>
-							<details className="group rounded-lg border p-4">
-								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Как подготовиться к тестированиям?
-								</summary>
-								<p className="mt-2 text-gray-600 text-sm">
+				<section
+					id="faq"
+					className="dots scroll-mt-24 px-4 py-16 md:px-6 md:py-24"
+				>
+					<div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+						<div className="lg:sticky lg:top-24 lg:self-start">
+							<SectionTitle path="faq" title="Часто задаваемые вопросы" />
+							<div className="tile relative mt-8 hidden aspect-[16/11] overflow-hidden lg:block">
+								<Render
+									name="faq"
+									alt="Красный объёмный знак вопроса и облачка чата"
+									className="absolute inset-0 h-full w-full object-cover"
+								/>
+							</div>
+							<a
+								href={`mailto:${EMAIL}`}
+								className="tile group mt-4 flex items-center gap-4 p-5 transition-colors hover:border-accent"
+							>
+								<span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+									<Mail className="h-5 w-5" />
+								</span>
+								<span>
+									<span className="block text-muted text-sm">
+										Остались вопросы? Напишите нам
+									</span>
+									<span className="font-mono font-semibold group-hover:text-accent">
+										{EMAIL}
+									</span>
+								</span>
+							</a>
+						</div>
+						<div className="space-y-3">
+							<Faq q="Для кого эта программа?">
+								Для школьников, учащихся в школах Москвы. Мы принимаем заявки от
+								школьников всех возрастов, но участвовать в олимпиаде на
+								региональном и заключительном этапе могут только ученики 9-11
+								классов.
+							</Faq>
+							<Faq q="Есть ли у вас занятия для школьников 7-8 классов?">
+								Да, мы проводим отдельные занятия для школьников 7-8 классов.
+								Вступительные испытания одинаковы для 7-8 и 9-11 классов.
+							</Faq>
+							<Faq q="Я не в 9-11 классах, но хочу участвовать в заключительном этапе ВсОШ. Так можно?">
+								Да, но только если вы пишете олимпиаду за 9, 10 или 11 класс.
+								Если вы хотите участвовать за класс выше, начинать нужно со
+								школьного этапа - подробности стоит уточнить у ответственного за
+								олимпиаду в вашей школе.
+							</Faq>
+							<Faq q="Как подготовиться к тестированиям?">
+								<p>
 									Для успешного прохождения отборочного теста участникам
 									необходимо обладать базовыми знаниями о работе компьютеров,
 									программировании и алгоритмах. Плюсом будут знания о
 									криптографии.
-									<br />
-									<br />
+								</p>
+								<p className="mt-3">
 									Входной тест состоит из задач разной сложности и включает в
 									себя вопросы по различным темам, включая архитектуру
 									компьютера и операционных систем, программирование, алгоритмы,
 									безопасность веб-приложений, цифровую криминалистику
 									(форензику), reverse engineering бинарных программ.
-									<br />
-									<br />
+								</p>
+								<p className="mt-3">
 									Полезные материалы, которые помогут подготовиться к отбору:
-									<br />
-									1.{" "}
-									<a
-										className={"text-red-600"}
-										href={"https://course.ugractf.ru"}
-										target={"_blank"}
-										rel="noreferrer"
-									>
-										Курс от команды [team Team]
-									</a>
-									.
-									<br />
-									2.{" "}
-									<a
-										className={"text-red-600"}
-										href={"https://vsosh.miem.hse.ru/prepare"}
-										target={"_blank"}
-										rel="noreferrer"
-									>
-										Архив задач ВсОШ прошлых лет
-									</a>
-									.
 								</p>
-							</details>
-							<details className="group rounded-lg border p-4">
-								<summary className="cursor-pointer list-none font-medium text-gray-900">
-									Как будут проводиться занятия?
-								</summary>
-								<p className="mt-2 text-gray-600 text-sm">
-									Мы проводим одну онлайн-лекцию и несколько очных семинаров
-									каждую неделю. Очные занятия проводятся в Москве.
-								</p>
-							</details>
+								<ol className="mt-2 list-decimal space-y-1 pl-5 [&_a:hover]:underline [&_a]:font-semibold [&_a]:text-accent">
+									<li>
+										<a
+											href="https://course.ugractf.ru"
+											target="_blank"
+											rel="noreferrer"
+										>
+											Курс от команды [team Team]
+										</a>
+									</li>
+									<li>
+										<a
+											href="https://vsosh.miem.hse.ru/prepare"
+											target="_blank"
+											rel="noreferrer"
+										>
+											Архив задач ВсОШ прошлых лет
+										</a>
+									</li>
+								</ol>
+							</Faq>
+							<Faq q="Как будут проводиться занятия?">
+								Мы проводим одну онлайн-лекцию и несколько очных семинаров
+								каждую неделю. Очные занятия проводятся в Москве.
+							</Faq>
 						</div>
 					</div>
 				</section>
 
-				{/* Final CTA */}
-				<section className="w-full border-t bg-gray-50 py-12 md:py-20">
-					<div className="mx-auto max-w-6xl px-4 text-center md:px-6">
-						<h2 className="font-bold text-2xl tracking-tight sm:text-4xl">
+				<section className="px-4 pb-16 md:px-6 md:pb-24">
+					<div className="reveal relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-surface px-6 py-14 text-center ring-1 ring-line sm:px-12 md:py-20">
+						<div className="glow -top-24 -translate-x-1/2 left-1/2 h-72 w-72 bg-[rgb(255_40_60/0.35)]" />
+						<Logo className="relative mx-auto h-12 w-12" />
+						<h2 className="relative mt-6 font-bold font-display text-2xl tracking-tight sm:text-4xl">
 							Готовы учиться с нами?
 						</h2>
-						<div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-							<Button size="lg" className="bg-red-600 hover:bg-red-700" asChild>
-								<Link href="https://lms.infosec.moscow">Открыть LMS</Link>
-							</Button>
-							<Button variant="outline" size="lg" asChild>
-								<Link href="#curriculum">Программа</Link>
-							</Button>
+						<div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+							<a href={LMS} className="btn btn-primary">
+								Открыть LMS <ArrowRight className="h-4 w-4" />
+							</a>
+							<a
+								href="#curriculum"
+								className="btn border border-white/15 text-white hover:border-white/40"
+							>
+								Программа
+							</a>
 						</div>
 					</div>
 				</section>
 			</main>
 
-			{/* Footer */}
-			<footer className="w-full border-t bg-white px-4 py-6 md:px-6">
-				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+			<footer className="border-line border-t px-4 py-8 md:px-6">
+				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-muted text-sm sm:flex-row">
 					<div className="flex items-center gap-2">
-						<Shield className="h-5 w-5 text-red-600" />
-						<p className="text-gray-600 text-xs">infosec.moscow</p>
+						<Logo className="h-5 w-5" />
+						<span className="font-bold font-display text-text">
+							infosec.moscow
+						</span>
+					</div>
+					<div className="flex flex-wrap justify-center gap-x-5 gap-y-2 font-mono text-xs">
+						<a href={`mailto:${EMAIL}`} className="hover:text-accent">
+							{EMAIL}
+						</a>
+						<a
+							href={`https://t.me/${TELEGRAM}`}
+							target="_blank"
+							rel="noreferrer"
+							className="hover:text-accent"
+						>
+							t.me/{TELEGRAM}
+						</a>
 					</div>
 				</div>
 			</footer>
