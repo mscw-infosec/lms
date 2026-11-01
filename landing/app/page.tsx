@@ -419,7 +419,7 @@ export default function Home() {
 								className="block h-auto w-full"
 							/>
 							<figcaption className="absolute top-5 left-5 max-w-[16rem] sm:top-8 sm:left-8 md:top-10 md:left-10 md:max-w-xs">
-								<span className="tag">~/road-to-final</span>
+								<span className="tag">~/highway-to-hell</span>
 								<div className="mt-3 hidden font-bold font-display text-2xl leading-tight md:block lg:text-3xl">
 									Путь до финала ВсОШ
 								</div>
@@ -595,11 +595,21 @@ export default function Home() {
 									</li>
 									<li>
 										<a
+											href="https://infosec-archive.t.education"
+											target="_blank"
+											rel="noreferrer"
+										>
+											Архив задач ВсОШ прошлых лет (с возможностью практики) от
+											Т-Образования
+										</a>
+									</li>
+									<li>
+										<a
 											href="https://vsosh.miem.hse.ru/prepare"
 											target="_blank"
 											rel="noreferrer"
 										>
-											Архив задач ВсОШ прошлых лет
+											Архив задач ВсОШ прошлых лет от МИЭМ НИУ ВШЭ
 										</a>
 									</li>
 								</ol>
