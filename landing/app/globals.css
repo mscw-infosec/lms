@@ -15,7 +15,6 @@
 	--accent-soft: rgb(255 51 71 / 0.12);
 	--accent-ink: #ffffff;
 	--glow: rgb(255 30 50 / 0.28);
-	--dots: rgb(255 255 255 / 0.07);
 	--shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 20px 40px -20px
 		rgb(0 0 0 / 0.8);
 
@@ -96,10 +95,16 @@
 }
 
 @layer components {
-	/* dotted "graph paper" behind sections */
-	.dots {
-		background-image: radial-gradient(var(--dots) 1px, transparent 1px);
-		background-size: 22px 22px;
+	.container-page {
+		margin-inline: auto;
+		width: 100%;
+		max-width: 72rem;
+		padding-inline: 1.25rem;
+	}
+	@media (min-width: 640px) {
+		.container-page {
+			padding-inline: 2rem;
+		}
 	}
 
 	.tile {
@@ -141,20 +146,6 @@
 	.btn-ghost:hover {
 		border-color: var(--accent);
 		color: var(--accent);
-	}
-
-	/* small mono label */
-	.tag {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.45rem;
-		border-radius: 999px;
-		padding: 0.3rem 0.8rem;
-		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		letter-spacing: 0.02em;
-		background: var(--accent-soft);
-		color: var(--accent-strong);
 	}
 
 	.caret::after {
