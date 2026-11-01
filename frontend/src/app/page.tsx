@@ -1,6 +1,6 @@
 "use client";
 
-import { type UpsertCourseResponseDTO, getAllCourses } from "@/api/courses";
+import { type CourseWithProgressDTO, getAllCourses } from "@/api/courses";
 import { AuthModal } from "@/components/auth-modal";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useUserStore } from "@/store/user";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Loader2, Plus, Shield } from "lucide-react";
+import { CheckCircle2, Clock, Loader2, Plus, Shield } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,7 +24,7 @@ export default function HomePage() {
 	const { user, hasToken, loading: authLoading } = useUserStore();
 	const [authModal, setAuthModal] = useState<"login" | "register" | null>(null);
 
-	const coursesQuery = useQuery<UpsertCourseResponseDTO[], Error>({
+	const coursesQuery = useQuery<CourseWithProgressDTO[], Error>({
 		queryKey: ["courses"],
 		queryFn: getAllCourses,
 		retry: false,
@@ -147,23 +148,55 @@ export default function HomePage() {
 					coursesQuery.data &&
 					coursesQuery.data.length > 0 && (
 						<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-							{coursesQuery.data.map((course) => (
-								<Link key={course.id} href={`/course/${course.id}`}>
-									<Card className="h-full cursor-pointer border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-105 hover:border-slate-700">
-										<CardHeader className="pb-3">
-											<div
-												className={`h-32 w-full rounded-lg ${gradients[course.id % gradients.length]} mb-3 flex items-center justify-center`}
-											>
-												<Shield className="h-12 w-12 text-white opacity-80" />
-											</div>
-											<CardTitle className="text-lg text-white leading-tight">
-												{course.name}
-											</CardTitle>
-										</CardHeader>
-										<CardContent className="pt-0" />
-									</Card>
-								</Link>
-							))}
+							{coursesQuery.data.map((course) => {
+								const { completed, total } = course.progress;
+								const percent = total > 0 ? (completed / total) * 100 : 0;
+								const isCompleted = total > 0 && completed === total;
+								return (
+									<Link key={course.id} href={`/course/${course.id}`}>
+										<Card className="h-full cursor-pointer border-slate-800 bg-slate-900 transition-all duration-200 hover:scale-105 hover:border-slate-700">
+											<CardHeader className="pb-3">
+												<div
+													className={`h-32 w-full rounded-lg ${gradients[course.id % gradients.length]} mb-3 flex items-center justify-center`}
+												>
+													<Shield className="h-12 w-12 text-white opacity-80" />
+												</div>
+												<CardTitle className="text-lg text-white leading-tight">
+													{course.name}
+												</CardTitle>
+											</CardHeader>
+											<CardContent className="space-y-2 pt-0">
+												<div className="flex items-center justify-between gap-2 text-slate-400 text-xs">
+													<span>
+														{t("progress_done_of_total", {
+															done: completed,
+															total,
+														})}
+													</span>
+													{isCompleted ? (
+														<span className="inline-flex shrink-0 items-center gap-1 text-green-400">
+															<CheckCircle2
+																className="h-3.5 w-3.5"
+																aria-hidden="true"
+															/>
+															{t("completed")}
+														</span>
+													) : (
+														<span className="shrink-0">
+															{Math.round(percent)}%
+														</span>
+													)}
+												</div>
+												<Progress
+													value={percent}
+													aria-label={t("progress")}
+													className={`h-1.5 bg-slate-800 ${isCompleted ? "[&>div]:bg-green-500" : "[&>div]:bg-red-400"}`}
+												/>
+											</CardContent>
+										</Card>
+									</Link>
+								);
+							})}
 						</div>
 					)}
 			</main>
