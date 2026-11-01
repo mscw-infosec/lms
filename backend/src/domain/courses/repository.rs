@@ -1,8 +1,11 @@
 use crate::domain::account::model::UserRole;
 use crate::{
-    domain::courses::model::CourseModel, dto::course::UpsertCourseRequestDTO, errors::Result,
+    domain::courses::model::{CourseModel, CourseProgressModel},
+    dto::course::UpsertCourseRequestDTO,
+    errors::Result,
     gen_openapi::DummyRepository,
 };
+
 use async_trait::async_trait;
 use impl_unimplemented::impl_unimplemented;
 use uuid::Uuid;
@@ -28,4 +31,10 @@ pub trait CourseRepository {
     async fn get_course_feed(&self, user_id: Uuid) -> Result<Vec<CourseModel>>;
     async fn get_all_courses(&self) -> Result<Vec<CourseModel>>;
     async fn get_course_by_id(&self, course_id: i32) -> Result<CourseModel>;
+
+    async fn get_courses_progress(
+        &self,
+        user_id: Uuid,
+        course_ids: &[i32],
+    ) -> Result<Vec<CourseProgressModel>>;
 }

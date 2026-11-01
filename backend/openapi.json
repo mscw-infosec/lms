@@ -1116,7 +1116,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/UpsertCourseResponseDTO"
+                    "$ref": "#/components/schemas/CourseWithProgressDTO"
                   }
                 }
               }
@@ -2541,6 +2541,143 @@
         "responses": {
           "204": {
             "description": "Lecture marked as completed"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to this lecture's course"
+          },
+          "404": {
+            "description": "Lecture not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Lecture"
+        ],
+        "operationId": "uncomplete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Lecture completion mark removed"
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to this lecture's course"
+          },
+          "404": {
+            "description": "Lecture not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/lecture/{id}/notes": {
+      "get": {
+        "tags": [
+          "Lecture"
+        ],
+        "operationId": "get_note",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current user's note for the lecture",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LectureNoteDTO"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No auth data found"
+          },
+          "403": {
+            "description": "User has no access to this lecture's course"
+          },
+          "404": {
+            "description": "Lecture not found"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Lecture"
+        ],
+        "operationId": "save_note",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertLectureNoteDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Note saved; an empty note is removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LectureNoteDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request data"
           },
           "401": {
             "description": "No auth data found"
@@ -5619,6 +5756,23 @@
           }
         }
       },
+      "CourseProgressDTO": {
+        "type": "object",
+        "required": [
+          "completed",
+          "total"
+        ],
+        "properties": {
+          "completed": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "CourseScoreDTO": {
         "type": "object",
         "description": "A user's score within a single course (used in the overall breakdown).",
@@ -5702,6 +5856,24 @@
             "type": "string"
           }
         }
+      },
+      "CourseWithProgressDTO": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UpsertCourseResponseDTO"
+          },
+          {
+            "type": "object",
+            "required": [
+              "progress"
+            ],
+            "properties": {
+              "progress": {
+                "$ref": "#/components/schemas/CourseProgressDTO"
+              }
+            }
+          }
+        ]
       },
       "CreateClientRequest": {
         "type": "object",
@@ -6523,6 +6695,24 @@
           },
           "username": {
             "type": "string"
+          }
+        }
+      },
+      "LectureNoteDTO": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -8477,6 +8667,17 @@
           },
           "type": {
             "$ref": "#/components/schemas/ExamType"
+          }
+        }
+      },
+      "UpsertLectureNoteDTO": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
           }
         }
       },

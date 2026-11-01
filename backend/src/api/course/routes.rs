@@ -8,7 +8,7 @@ use crate::infrastructure::jwt::AccessTokenClaim;
 use crate::{
     api::course::CourseState,
     domain::account::model::UserRole,
-    dto::course::{UpsertCourseRequestDTO, UpsertCourseResponseDTO},
+    dto::course::{CourseWithProgressDTO, UpsertCourseRequestDTO, UpsertCourseResponseDTO},
     errors::LMSError,
     utils::ValidatedJson,
 };
@@ -122,7 +122,7 @@ pub async fn delete_course(
     tag = "Course",
     path = "/",
     responses(
-        (status = 200, body = [UpsertCourseResponseDTO], description = "Get all courses"),
+        (status = 200, body = [CourseWithProgressDTO], description = "Get all courses"),
         (status = 401, description = "Unauthorized")
     ),
     security(
@@ -132,8 +132,11 @@ pub async fn delete_course(
 pub async fn get_all_courses(
     AccessTokenClaim { sub, role, .. }: AccessTokenClaim,
     State(state): State<CourseState>,
-) -> Result<Json<Vec<UpsertCourseResponseDTO>>, LMSError> {
-    let courses = state.course_service.get_all_courses(sub, role).await?;
+) -> Result<Json<Vec<CourseWithProgressDTO>>, LMSError> {
+    let courses = state
+        .course_service
+        .get_courses_with_progress(sub, role)
+        .await?;
     Ok(Json(courses.into_iter().map(Into::into).collect()))
 }
 

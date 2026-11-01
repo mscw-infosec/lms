@@ -5,7 +5,7 @@ use uuid::Uuid;
 use crate::domain::account::model::UserRole;
 use crate::{
     domain::courses::{
-        model::{AttributeFilter, CourseModel},
+        model::{AttributeFilter, CourseModel, CourseProgressModel},
         repository::CourseRepository,
     },
     dto::course::UpsertCourseRequestDTO,
@@ -200,5 +200,67 @@ impl CourseRepository for RepositoryPostgres {
         })?;
 
         Ok(course)
+    }
+
+    async fn get_courses_progress(
+        &self,
+        user_id: Uuid,
+        course_ids: &[i32],
+    ) -> Result<Vec<CourseProgressModel>> {
+        if course_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        let progress = sqlx::query_as!(
+            CourseProgressModel,
+            r#"
+                WITH items AS (
+                    SELECT t.course_id,
+                           lp.user_id IS NOT NULL AS completed
+                    FROM topics t
+                        JOIN lecture_links ll ON ll.topic_id = t.id
+                        LEFT JOIN lecture_progress lp
+                            ON lp.lecture_id = ll.lecture_id AND lp.user_id = $1
+                    WHERE t.course_id = ANY($2)
+
+                    UNION ALL
+
+                    SELECT t.course_id,
+                           COUNT(pp.task_id) FILTER (WHERE pp.solved) = COUNT(pt.task_id)
+                    FROM topics t
+                        JOIN practices p ON p.topic_id = t.id
+                        JOIN practice_tasks pt ON pt.practice_id = p.id
+                        LEFT JOIN practice_progress pp
+                            ON pp.task_id = pt.task_id AND pp.user_id = $1
+                    WHERE t.course_id = ANY($2)
+                    GROUP BY t.course_id, p.id
+
+                    UNION ALL
+
+                    SELECT t.course_id,
+                           COUNT(a.id) > 0
+                               AND COUNT(a.id) FILTER (WHERE a.ends_at > NOW()) = 0
+                    FROM topics t
+                        JOIN exam_ordering eo ON eo.topic_id = t.id
+                        LEFT JOIN attempts a
+                            ON a.exam_id = eo.exam_id AND a.user_id = $1
+                    WHERE t.course_id = ANY($2)
+                    GROUP BY t.course_id, t.id, eo.exam_id
+                )
+                SELECT c.id AS course_id,
+                       COUNT(*) FILTER (WHERE i.completed) AS "completed!",
+                       COUNT(i.course_id) AS "total!"
+                FROM courses c
+                    LEFT JOIN items i ON i.course_id = c.id
+                WHERE c.id = ANY($2)
+                GROUP BY c.id
+            "#,
+            user_id,
+            course_ids
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(progress)
     }
 }

@@ -60,6 +60,13 @@ pub struct CourseModel {
     pub created_at: DateTime<Utc>,
 }
 
+#[derive(FromRow, Debug)]
+pub struct CourseProgressModel {
+    pub course_id: i32,
+    pub completed: i64,
+    pub total: i64,
+}
+
 pub struct CourseOwner {
     pub course_id: i32,
     pub user_id: Uuid,

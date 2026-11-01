@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                WITH items AS (\n                    SELECT t.course_id,\n                           lp.user_id IS NOT NULL AS completed\n                    FROM topics t\n                        JOIN lecture_links ll ON ll.topic_id = t.id\n                        LEFT JOIN lecture_progress lp\n                            ON lp.lecture_id = ll.lecture_id AND lp.user_id = $1\n                    WHERE t.course_id = ANY($2)\n\n                    UNION ALL\n\n                    SELECT t.course_id,\n                           COUNT(pp.task_id) FILTER (WHERE pp.solved) = COUNT(pt.task_id)\n                    FROM topics t\n                        JOIN practices p ON p.topic_id = t.id\n                        JOIN practice_tasks pt ON pt.practice_id = p.id\n                        LEFT JOIN practice_progress pp\n                            ON pp.task_id = pt.task_id AND pp.user_id = $1\n                    WHERE t.course_id = ANY($2)\n                    GROUP BY t.course_id, p.id\n\n                    UNION ALL\n\n                    SELECT t.course_id,\n                           COUNT(a.id) > 0\n                               AND COUNT(a.id) FILTER (WHERE a.ends_at > NOW()) = 0\n                    FROM topics t\n                        JOIN exam_ordering eo ON eo.topic_id = t.id\n                        LEFT JOIN attempts a\n                            ON a.exam_id = eo.exam_id AND a.user_id = $1\n                    WHERE t.course_id = ANY($2)\n                    GROUP BY t.course_id, t.id, eo.exam_id\n                )\n                SELECT c.id AS course_id,\n                       COUNT(*) FILTER (WHERE i.completed) AS \"completed!\",\n                       COUNT(i.course_id) AS \"total!\"\n                FROM courses c\n                    LEFT JOIN items i ON i.course_id = c.id\n                WHERE c.id = ANY($2)\n                GROUP BY c.id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "course_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "completed!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "total!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array"
+      ]
+    },
+    "nullable": [
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "21c851c341c79c342b9269a683a9283e3b6024654c390bddf42ea70797c50585"
+}

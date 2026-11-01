@@ -1849,6 +1849,12 @@ export interface components {
             /** Format: int64 */
             total: number;
         };
+        CourseProgressDTO: {
+            /** Format: int64 */
+            completed: number;
+            /** Format: int64 */
+            total: number;
+        };
         /** @description A user's score within a single course (used in the overall breakdown). */
         CourseScoreDTO: {
             /** Format: int32 */
@@ -1877,6 +1883,9 @@ export interface components {
             /** Format: uuid */
             user_id: string;
             username: string;
+        };
+        CourseWithProgressDTO: components["schemas"]["UpsertCourseResponseDTO"] & {
+            progress: components["schemas"]["CourseProgressDTO"];
         };
         CreateClientRequest: {
             allowed_scopes: string[];
@@ -3676,7 +3685,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"][];
+                    "application/json": components["schemas"]["CourseWithProgressDTO"][];
                 };
             };
             /** @description Unauthorized */

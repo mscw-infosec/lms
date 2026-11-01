@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-use crate::domain::courses::model::{AttributeFilter, CourseModel};
+use crate::domain::courses::model::{AttributeFilter, CourseModel, CourseProgressModel};
 
 #[derive(Serialize, Deserialize, ToSchema, Validate)]
 #[schema(example = json!({
@@ -62,12 +62,25 @@ pub struct UpsertCourseRequestDTO {
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
+pub struct CourseProgressDTO {
+    pub completed: i64,
+    pub total: i64,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct UpsertCourseResponseDTO {
     pub id: i32,
     pub name: String,
     pub description: Option<String>,
     pub created_at: DateTime<Utc>,
     pub access_filter: Option<AttributeFilter>,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct CourseWithProgressDTO {
+    #[serde(flatten)]
+    pub course: UpsertCourseResponseDTO,
+    pub progress: CourseProgressDTO,
 }
 
 impl From<CourseModel> for UpsertCourseResponseDTO {
@@ -78,6 +91,18 @@ impl From<CourseModel> for UpsertCourseResponseDTO {
             description: course.description,
             created_at: course.created_at,
             access_filter: course.access_filter,
+        }
+    }
+}
+
+impl From<(CourseModel, CourseProgressModel)> for CourseWithProgressDTO {
+    fn from((course, progress): (CourseModel, CourseProgressModel)) -> Self {
+        Self {
+            course: course.into(),
+            progress: CourseProgressDTO {
+                completed: progress.completed,
+                total: progress.total,
+            },
         }
     }
 }

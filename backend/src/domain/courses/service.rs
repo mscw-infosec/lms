@@ -7,7 +7,7 @@ use crate::{
             service::AccountService,
         },
         courses::{
-            model::{AttributeFilter, ConditionOp, CourseModel},
+            model::{AttributeFilter, ConditionOp, CourseModel, CourseProgressModel},
             repository::CourseRepository,
         },
     },
@@ -15,7 +15,7 @@ use crate::{
     errors::{LMSError, Result},
     repo,
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 #[derive(Clone)]
 pub struct CourseService {
@@ -60,6 +60,32 @@ impl CourseService {
         }
 
         Ok(filtered_courses)
+    }
+
+    pub async fn get_courses_with_progress(
+        &self,
+        user_id: Uuid,
+        role: UserRole,
+    ) -> Result<Vec<(CourseModel, CourseProgressModel)>> {
+        let courses = self.get_all_courses(user_id, role).await?;
+        let course_ids: Vec<i32> = courses.iter().map(|course| course.id).collect();
+        let mut progress: HashMap<i32, CourseProgressModel> = self
+            .repo
+            .get_courses_progress(user_id, &course_ids)
+            .await?
+            .into_iter()
+            .map(|progress| (progress.course_id, progress))
+            .collect();
+
+        courses
+            .into_iter()
+            .map(|course| {
+                let progress = progress.remove(&course.id).ok_or_else(|| {
+                    LMSError::ServerError("Course progress is missing".to_string())
+                })?;
+                Ok((course, progress))
+            })
+            .collect()
     }
 
     pub async fn get_course_by_id(
