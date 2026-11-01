@@ -1385,14 +1385,14 @@ export default function LearnPage() {
 												type="button"
 												key={`${item.kind}-${item.id}`}
 												onClick={() => selectContent(item)}
-												className={`flex w-full items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
+												className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center overflow-hidden rounded-lg p-2 text-left transition-colors ${
 													selected
 														? "bg-red-600 text-white"
 														: "text-slate-300 hover:bg-slate-700"
 												}`}
 											>
 												<div
-													className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+													className={`flex min-w-0 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
 												>
 													<Icon
 														className={`h-4 w-4 flex-shrink-0 self-center ${iconColor} ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
@@ -1405,7 +1405,7 @@ export default function LearnPage() {
 												</div>
 												{status ? (
 													<span
-														className={`ml-2 flex-shrink-0 ${sidebarOpen ? "" : "sm:hidden"}`}
+														className={`ml-2 justify-self-end ${sidebarOpen ? "" : "sm:hidden"}`}
 													>
 														{status === "completed" ? (
 															<CheckCircle2 className="h-5 w-5 text-green-500" />
