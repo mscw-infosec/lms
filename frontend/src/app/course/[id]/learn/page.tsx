@@ -1392,7 +1392,7 @@ export default function LearnPage() {
 												}`}
 											>
 												<div
-													className={`flex flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
+													className={`flex min-w-0 flex-1 items-center ${sidebarOpen ? "" : "sm:justify-center"}`}
 												>
 													<Icon
 														className={`h-4 w-4 flex-shrink-0 self-center ${iconColor} ${sidebarOpen ? "mr-2" : "sm:mr-0"}`}
