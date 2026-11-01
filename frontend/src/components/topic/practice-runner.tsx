@@ -97,6 +97,8 @@ export default function PracticeRunner({
 			const answer = buildTaskAnswer(task, ui).answer;
 			const res = await submitPractice(task.id, answer);
 			setResults((prev) => ({ ...prev, [task.id]: res }));
+			await queryClient.invalidateQueries({ queryKey: ["course"] });
+			await queryClient.invalidateQueries({ queryKey: ["courses"] });
 			await queryClient.invalidateQueries({
 				queryKey:
 					topicId != null ? ["topic-practices", topicId] : ["topic-practices"],

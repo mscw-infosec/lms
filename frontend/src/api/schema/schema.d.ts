@@ -3759,7 +3759,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UpsertCourseResponseDTO"];
+                    "application/json": components["schemas"]["CourseWithProgressDTO"];
                 };
             };
             /** @description Unauthorized */

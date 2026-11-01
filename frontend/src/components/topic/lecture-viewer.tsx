@@ -50,6 +50,8 @@ export default function LectureViewer({
 		mutationFn: () => completeLecture(lectureId),
 		onSuccess: async () => {
 			toast({ description: t("lecture_completed") || "Marked as completed" });
+			await queryClient.invalidateQueries({ queryKey: ["course"] });
+			await queryClient.invalidateQueries({ queryKey: ["courses"] });
 			await queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
 			if (topicId != null) {
 				await queryClient.invalidateQueries({
@@ -64,6 +66,8 @@ export default function LectureViewer({
 		mutationFn: () => uncompleteLecture(lectureId),
 		onSuccess: async () => {
 			toast({ description: t("lecture_uncompleted") });
+			await queryClient.invalidateQueries({ queryKey: ["course"] });
+			await queryClient.invalidateQueries({ queryKey: ["courses"] });
 			await queryClient.invalidateQueries({ queryKey: ["lecture", lectureId] });
 			if (topicId != null) {
 				await queryClient.invalidateQueries({

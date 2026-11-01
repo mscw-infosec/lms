@@ -149,7 +149,7 @@ pub async fn get_all_courses(
         ("course_id" = i32, Path)
     ),
     responses(
-        (status = 200, body = UpsertCourseResponseDTO, description = "Get course by id"),
+        (status = 200, body = CourseWithProgressDTO, description = "Get course by id"),
         (status = 401, description = "Unauthorized"),
         (status = 404, description = "Course not found")
     ),
@@ -161,10 +161,10 @@ pub async fn get_course_by_id(
     AccessTokenClaim { sub, role, .. }: AccessTokenClaim,
     Path(course_id): Path<i32>,
     State(state): State<CourseState>,
-) -> Result<Json<UpsertCourseResponseDTO>, LMSError> {
+) -> Result<Json<CourseWithProgressDTO>, LMSError> {
     let course = state
         .course_service
-        .get_course_by_id(sub, role, course_id)
+        .get_course_with_progress(sub, role, course_id)
         .await?;
     Ok(Json(course.into()))
 }

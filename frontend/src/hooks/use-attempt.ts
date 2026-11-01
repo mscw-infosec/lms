@@ -132,6 +132,14 @@ export function useAttempt(
 	}, [entities]);
 	const isPreview = isStaff && (!attempt || !attempt.active);
 	const loading = attemptsListQuery.isLoading || entitiesQuery.isLoading;
+	const wasActive = useRef(false);
+	useEffect(() => {
+		if (wasActive.current && !attempt?.active) {
+			void qc.invalidateQueries({ queryKey: ["course"] });
+			void qc.invalidateQueries({ queryKey: ["courses"] });
+		}
+		wasActive.current = attempt?.active === true;
+	}, [attempt?.active, qc]);
 
 	/* biome-ignore lint/correctness/useExhaustiveDependencies: we intentionally reset when examId changes */
 	useEffect(() => {
@@ -152,6 +160,8 @@ export function useAttempt(
 			// use it to re-sync our idea of server time before the countdown starts.
 			noteServerNow(parseServerDateMs(att?.started_at));
 			await Promise.all([
+				qc.invalidateQueries({ queryKey: ["course"] }),
+				qc.invalidateQueries({ queryKey: ["courses"] }),
 				qc.invalidateQueries({ queryKey: ["exam", examId, "attempts-list"] }),
 				qc.invalidateQueries({ queryKey: ["exam", examId, "entities"] }),
 			]);
@@ -204,6 +214,8 @@ export function useAttempt(
 			return await stopAttempt(examId);
 		},
 		onSuccess: async () => {
+			await qc.invalidateQueries({ queryKey: ["course"] });
+			await qc.invalidateQueries({ queryKey: ["courses"] });
 			await qc.invalidateQueries({
 				queryKey: ["exam", examId, "attempts-list"],
 			});

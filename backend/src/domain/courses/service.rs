@@ -88,6 +88,23 @@ impl CourseService {
             .collect()
     }
 
+    pub async fn get_course_with_progress(
+        &self,
+        user_id: Uuid,
+        role: UserRole,
+        course_id: i32,
+    ) -> Result<(CourseModel, CourseProgressModel)> {
+        let course = self.get_course_by_id(user_id, role, course_id).await?;
+        let progress = self
+            .repo
+            .get_courses_progress(user_id, &[course_id])
+            .await?
+            .into_iter()
+            .next()
+            .ok_or_else(|| LMSError::ServerError("Course progress is missing".to_string()))?;
+        Ok((course, progress))
+    }
+
     pub async fn get_course_by_id(
         &self,
         user_id: Uuid,

@@ -414,18 +414,12 @@ export default function LearnPage() {
 			cancelled = true;
 		};
 	}, [selectedKind, selectedId]);
-	const { getStatus: itemStatus, ready: statusReady } = useItemStatus(
+	const { getStatus: itemStatus } = useItemStatus(
 		(topicsQuery.data ?? []).map((topic) => topic.id),
 		contentByTopicQuery.data,
 	);
 
-	const contentComplete =
-		!!contentByTopicQuery.data &&
-		Object.values(contentByTopicQuery.data).every((items) => items !== null);
-
 	const progressByTopic = new Map<number, { done: number; total: number }>();
-	let courseDone = 0;
-	let courseTotal = 0;
 	for (const topic of topicsQuery.data ?? []) {
 		let done = 0;
 		let total = 0;
@@ -436,8 +430,6 @@ export default function LearnPage() {
 			if (status === "completed") done += 1;
 		}
 		progressByTopic.set(topic.id, { done, total });
-		courseDone += done;
-		courseTotal += total;
 	}
 
 	const courseQuery = useQuery({
@@ -446,6 +438,8 @@ export default function LearnPage() {
 		enabled: Number.isFinite(courseId),
 		retry: false,
 	});
+	const courseDone = courseQuery.data?.progress.completed ?? 0;
+	const courseTotal = courseQuery.data?.progress.total ?? 0;
 
 	const canPrev = taskIndex > 0;
 	const canNext = taskIndex < (entities?.length || 0) - 1;
@@ -1306,7 +1300,7 @@ export default function LearnPage() {
 							</span>
 						</div>
 					</button>
-					{contentComplete && statusReady && courseTotal > 0 ? (
+					{courseQuery.isSuccess && courseTotal > 0 ? (
 						<div
 							className={`space-y-1.5 px-1 ${sidebarOpen ? "" : "sm:hidden"}`}
 						>

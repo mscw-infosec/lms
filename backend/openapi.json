@@ -1202,7 +1202,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpsertCourseResponseDTO"
+                  "$ref": "#/components/schemas/CourseWithProgressDTO"
                 }
               }
             }

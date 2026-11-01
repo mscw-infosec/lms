@@ -5,9 +5,11 @@ export type UpsertCourseResponseDTO =
 	components["schemas"]["UpsertCourseResponseDTO"];
 export type UpsertCourseRequestDTO =
 	components["schemas"]["UpsertCourseRequestDTO"];
+export type CourseWithProgressDTO =
+	components["schemas"]["CourseWithProgressDTO"];
 
-export async function getAllCourses(): Promise<UpsertCourseResponseDTO[]> {
-	return http<UpsertCourseResponseDTO[]>("/api/courses", { withAuth: true });
+export async function getAllCourses(): Promise<CourseWithProgressDTO[]> {
+	return http<CourseWithProgressDTO[]>("/api/courses", { withAuth: true });
 }
 
 export async function createCourse(
@@ -22,8 +24,8 @@ export async function createCourse(
 
 export async function getCourseById(
 	courseId: number,
-): Promise<UpsertCourseResponseDTO> {
-	return http<UpsertCourseResponseDTO>(`/api/courses/${courseId}`, {
+): Promise<CourseWithProgressDTO> {
+	return http<CourseWithProgressDTO>(`/api/courses/${courseId}`, {
 		withAuth: true,
 	});
 }
