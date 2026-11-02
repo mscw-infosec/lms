@@ -18,10 +18,6 @@ const wall = [...people].sort(
 		),
 );
 
-function Tag({ children }: { children: React.ReactNode }) {
-	return <span className="tag">~/{children}</span>;
-}
-
 function NextIsYou({ className = "" }: { className?: string }) {
 	return (
 		<a
@@ -52,10 +48,9 @@ function TeamImg({ className = "" }: { className?: string }) {
 
 export function TeamPhoto() {
 	return (
-		<figure className="tile reveal relative mx-auto mt-4 max-w-6xl overflow-hidden">
+		<figure className="tile reveal relative mt-4 overflow-hidden">
 			<TeamImg className="aspect-[4/3] w-full object-cover sm:aspect-auto" />
 			<figcaption className="px-5 py-4 sm:absolute sm:top-5 sm:left-5 sm:rounded-2xl sm:border sm:border-white/10 sm:bg-[#0b0a0c]/75 sm:px-4 sm:py-3 sm:backdrop-blur-md">
-				<span className="font-mono text-[11px] text-accent-strong">~/team</span>
 				<div className="font-bold font-display text-base leading-tight sm:text-xl">
 					Это мы
 				</div>
@@ -69,14 +64,10 @@ export function TeamPhoto() {
 
 export function ResultsWall() {
 	return (
-		<div className="tile reveal relative z-10 mx-auto max-w-6xl p-6 sm:p-10 lg:p-12">
-			<div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-				<div className="glow -right-20 -top-20 h-80 w-80" />
-			</div>
+		<div className="tile reveal relative z-10 p-6 sm:p-10 lg:p-12">
 			<div className="relative grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
 				<div>
-					<Tag>results</Tag>
-					<h2 className="mt-4 font-bold font-display text-3xl tracking-tight sm:text-5xl">
+					<h2 className="font-bold font-display text-3xl tracking-tight sm:text-5xl">
 						<span className="text-accent">{OUR_DIPLOMAS}</span> дипломов ВсОШ по
 						ИБ
 					</h2>

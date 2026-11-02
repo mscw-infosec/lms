@@ -54,12 +54,15 @@ export function DiplomaWall({ people }: { people: Person[] }) {
 
 	useEffect(() => {
 		if (!active) return;
+		// any new press that isn't on the open diploma closes its card first, so a tap
+		// that turns into a scroll or long-press can't leave a stale card behind
 		const close = (e: Event) => {
-			if (
-				e instanceof KeyboardEvent
-					? e.key === "Escape"
-					: !wrap.current?.contains(e.target as Node)
-			)
+			if (e instanceof KeyboardEvent) {
+				if (e.key === "Escape") setActive(null);
+				return;
+			}
+			const hit = (e.target as Element).closest?.("[data-diploma]");
+			if (!hit || Number((hit as HTMLElement).dataset.diploma) !== active.i)
 				setActive(null);
 		};
 		document.addEventListener("keydown", close);
@@ -82,6 +85,10 @@ export function DiplomaWall({ people }: { people: Person[] }) {
 		});
 	};
 
+	// close only if the card still belongs to this diploma: a late leave/blur from
+	// the previous one must not wipe out the card that was just opened
+	const hide = (i: number) => setActive((a) => (a?.i === i ? null : a));
+
 	const person = active && people[active.i];
 	const width = wrap.current?.clientWidth ?? CARD_W;
 	const cardH = person ? 64 + person.diplomas.length * 46 : 0;
@@ -100,10 +107,18 @@ export function DiplomaWall({ people }: { people: Person[] }) {
 							<button
 								type="button"
 								aria-label={describe(p)}
-								onMouseEnter={(e) => show(i, e.currentTarget)}
-								onMouseLeave={() => setActive(null)}
-								onFocus={(e) => show(i, e.currentTarget)}
-								onBlur={() => setActive(null)}
+								data-diploma={i}
+								// hover only for a real mouse; touch gets the tap below
+								onPointerEnter={(e) =>
+									e.pointerType === "mouse" && show(i, e.currentTarget)
+								}
+								onPointerLeave={(e) => e.pointerType === "mouse" && hide(i)}
+								// keyboard focus only, not the focus a tap leaves behind
+								onFocus={(e) =>
+									e.currentTarget.matches(":focus-visible") &&
+									show(i, e.currentTarget)
+								}
+								onBlur={() => hide(i)}
 								onClick={(e) => show(i, e.currentTarget)}
 								className={`hover:-translate-y-0.5 relative block cursor-pointer rounded-[4px] outline-none transition-transform duration-150 focus-visible:ring-2 focus-visible:ring-white ${active?.i === i ? "-translate-y-0.5" : ""}`}
 								style={{
